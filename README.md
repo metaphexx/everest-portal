@@ -4,6 +4,9 @@ The complete, working front end for the Everest Tutoring platform: a **student
 portal** and a **tutor portal**, wired against deterministic in-browser mock data so
 every screen, state and interaction can be exercised with no backend and no API keys.
 
+Built with **React 18 + TypeScript + Vite**, routed with **React Router v6**. Plain
+client-side SPA - drops into any React stack.
+
 This repository is both a runnable demo and the **specification** for the production
 build. Start here:
 

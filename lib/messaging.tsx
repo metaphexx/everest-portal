@@ -1,5 +1,3 @@
-"use client";
-
 // ============================================================
 // Unified messaging store, shared by the student and tutor
 // portals. One localStorage-backed source of truth so a message

@@ -1,7 +1,5 @@
-"use client";
-
 import React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/router";
 import { COURSE_DEFS, COURSE_ORDER, CourseId } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
 import { ImageSlot } from "@/components/ui/ImageSlot";

@@ -31,7 +31,8 @@ detail.
 
 ```bash
 npx tsc --noEmit     # must be clean
-npx next build       # must compile
+npm run build        # tsc + vite build, must compile
+npm run dev          # vite dev server on http://localhost:3000
 ```
 
 Then check the change in a real browser (both portals share localStorage - open `/`
@@ -39,12 +40,16 @@ and `/tutor` in two tabs to see cross-portal sync). Check the console is clean a
 the page still has zero horizontal overflow at 375px. If you changed anything
 visual, do the side-by-side comparison in DESIGN-FIDELITY.md section 9.
 
-Note: `next build` and `next dev` share `.next/`. If the dev server starts serving
-"Cannot find module" errors after a build, stop it, `rm -rf .next`, restart.
-
 ## Orientation
 
-- `app/(student)/` student portal, `app/tutor/` tutor portal - all client components.
+- Vite + React 18 + TypeScript SPA, routed with React Router v6. Entry:
+  `index.html` → `src/main.tsx` (`<BrowserRouter>`) → `src/App.tsx` (route table).
+  Pages live under `app/**/page.tsx`; layouts under `app/**/layout.tsx` render
+  providers + shell around an `<Outlet />`.
+- `lib/router.tsx` + `components/ui/Link.tsx` are thin shims giving the page code a
+  Next-style `useRouter/usePathname/useSearchParams/useParams/notFound` and an
+  `href`-based `<Link>` on top of React Router. Keep imports pointing at them.
+- `app/(student)/` student portal, `app/tutor/` tutor portal.
 - State: `lib/store.tsx` (student), `lib/tutor-store.tsx` (tutor),
   `lib/messaging.tsx`, `lib/classroom.tsx` - localStorage-backed providers
   (`evr-portal`, `evr-tutor`, `evr-messaging`, `evr-classroom`).

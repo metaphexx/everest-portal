@@ -1,5 +1,3 @@
-"use client";
-
 // My Booklets - the tutor's view onto the Drive the Everest admin office has
 // linked for online teaching materials. Search is the deterministic "AI"
 // search (searchDrive), folder browse is the fallback when nothing is typed.

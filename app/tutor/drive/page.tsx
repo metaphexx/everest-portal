@@ -1,11 +1,9 @@
-"use client";
-
 // My Drive - the tutor's own personal file area, separate from the
 // admin-linked My Booklets. Purpose is still being decided, so this is
 // deliberately a small, tasteful placeholder rather than a built-out feature.
 
 import React from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { useTutor } from "@/lib/tutor-store";
 import { ICON } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";

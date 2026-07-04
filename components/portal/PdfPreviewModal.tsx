@@ -1,5 +1,3 @@
-"use client";
-
 // PdfPreviewModal - booklets the tutor shares are view + annotate only, never
 // a raw download (keeps materials inside the platform, matches how a real
 // licensed booklet library would work). Deliberately no download/export

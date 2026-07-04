@@ -1,5 +1,3 @@
-"use client";
-
 // Tutor-side client state, mirroring lib/store.tsx (student). Holds the booklet
 // cart -> request lifecycle and the marking queue. Message threads live in the
 // shared lib/messaging store. All deterministic - no backend in this prototype.

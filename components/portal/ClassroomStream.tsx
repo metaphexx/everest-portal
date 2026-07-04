@@ -1,5 +1,3 @@
-"use client";
-
 // ClassroomStream - the shared Google-Classroom-style post feed, used by both
 // the tutor and student classroom pages. A composer at the top creates a post
 // (with optional file attachments; tutors can pin as an announcement); each

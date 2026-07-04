@@ -1,8 +1,6 @@
-"use client";
-
 import React, { useRef, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "@/components/ui/Link";
+import { useRouter } from "@/lib/router";
 import { usePortal } from "@/lib/store";
 import {
   ACCENT,

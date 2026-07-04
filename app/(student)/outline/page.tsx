@@ -1,7 +1,5 @@
-"use client";
-
 import React, { useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { usePortal } from "@/lib/store";
 import { OUTLINE_SUBJECTS, outlineAverage } from "@/lib/features";
 import { Icon } from "@/components/ui/Icon";

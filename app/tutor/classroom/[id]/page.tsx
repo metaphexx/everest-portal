@@ -1,5 +1,3 @@
-"use client";
-
 // Tutor-side classroom - the same Google-Classroom-style post stream the
 // students see (shared lib/classroom.tsx provider). Two tabs: Stream (posts +
 // replies + file attachments via the shared ClassroomStream, plus a roster
@@ -8,8 +6,8 @@
 // mirrors the course page: a dynamic landscape photo with a gradient wash.
 
 import React, { useMemo, useState } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import Link from "@/components/ui/Link";
+import { useParams } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import { CLASSROOMS, DRIVE_FILES, DRIVE_FOLDERS, MATERIAL_KIND_META, MaterialAssignment, TUTOR_COURSES, TutorCourseId, rosterFor } from "@/lib/tutor-data";
 import { Icon } from "@/components/ui/Icon";

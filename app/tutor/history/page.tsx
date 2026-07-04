@@ -1,5 +1,3 @@
-"use client";
-
 // History - the full print log, one row PER BOOKLET requested (not grouped
 // into request packets), filterable by centre, day, class and status, with a
 // "showing print history for" summary line. Clicking a row (or its eye)
@@ -7,7 +5,7 @@
 // class context, plus Print Again straight back into the cart.
 
 import React, { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import {
   APPROVAL_META,

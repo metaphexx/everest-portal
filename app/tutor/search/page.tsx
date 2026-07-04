@@ -1,11 +1,9 @@
-"use client";
-
 // Tutor search results - the full-page version of the header search. Pressing
 // Enter in the header search lands here (/tutor/search?q=...); every result
 // links to the page that holds it (courses, materials, requests, marking...).
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "@/lib/router";
 import { TUTOR_SEARCH_ITEMS } from "@/lib/tutor-data";
 import { Icon } from "@/components/ui/Icon";
 

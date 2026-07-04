@@ -1,5 +1,3 @@
-"use client";
-
 // ClassDetailModal - opened from the Schedule when the tutor clicks an ONLINE
 // class occurrence. Register copied from components/portal/ClassModal.tsx
 // (blurred scrim + centred glass panel, evdrop/evfadein). Two tabs: Library

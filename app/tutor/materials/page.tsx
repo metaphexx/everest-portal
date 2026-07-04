@@ -1,12 +1,10 @@
-"use client";
-
 // Study Materials - the booklet catalogue. Cascading Centre -> Year -> Subject
 // -> Topic filters (topic stays disabled until the rest are chosen), a request
 // context ("requesting materials for"), preview + add-to-cart per file.
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import Link from "@/components/ui/Link";
+import { useSearchParams } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import {
   CATALOGUE,

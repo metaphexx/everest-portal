@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { usePortal } from "@/lib/store";
 import { STUDENT } from "@/lib/data";

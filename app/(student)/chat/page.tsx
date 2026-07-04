@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useRef, useState } from "react";
 import { usePortal } from "@/lib/store";
 import { chatSeeds } from "@/lib/data";

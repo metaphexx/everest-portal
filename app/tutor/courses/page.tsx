@@ -1,10 +1,8 @@
-"use client";
-
 // My Courses - every class the tutor teaches. Each card opens the course's
 // home page (students, sessions, materials, marking in one place).
 
 import React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import { TUTOR_COURSES, TUTOR_COURSE_ORDER } from "@/lib/tutor-data";
 import { todayKey } from "@/lib/calendar";

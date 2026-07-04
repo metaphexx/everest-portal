@@ -1,11 +1,9 @@
-"use client";
-
 // Floating Elliot: agentic assistant. Answers from live portal state and
 // returns action buttons (navigate, submit a worksheet, log a support
 // request). Every reply counts against the daily AI budget cap.
 
 import React, { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/router";
 import { ChatAction, ChatMsg, usePortal } from "@/lib/store";
 import { STUDENT_ME, useMessaging } from "@/lib/messaging";
 import { elliotAgent } from "@/lib/elliot-agent";

@@ -1,5 +1,3 @@
-"use client";
-
 // Shared messaging UI used by both the student and tutor portals:
 // delivery ticks, day separators, typing dots, attachment renderers,
 // an image lightbox and the composer (real files, drag-drop, multiline).

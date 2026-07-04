@@ -1,5 +1,3 @@
-"use client";
-
 // BookletPicker - assign Drive-linked booklets/worksheets to a class or a
 // student. Visual register copied from RequestTargetSelector.tsx (tiles,
 // pill chips, glass popover) and the existing glass modals (ClassModal,

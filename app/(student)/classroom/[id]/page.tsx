@@ -1,5 +1,3 @@
-"use client";
-
 // Student-side classroom - a Google-Classroom-style post stream shared with
 // the tutor side (lib/classroom.tsx, mounted in both layouts). The Stream is
 // posts + replies + file attachments (via the shared ClassroomStream
@@ -11,8 +9,8 @@
 // (chem11). Visiting any other id shows a graceful fallback.
 
 import React, { useState } from "react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import Link from "@/components/ui/Link";
+import { useParams, useRouter } from "@/lib/router";
 import { usePortal } from "@/lib/store";
 import { CLASSROOMS, MATERIAL_KIND_META, TUTOR, TUTOR_COURSES, TUTOR_COURSE_FOR, rosterFor } from "@/lib/tutor-data";
 import { CHEM_SESSION_KEYS, ICON } from "@/lib/data";

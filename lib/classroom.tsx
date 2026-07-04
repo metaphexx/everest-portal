@@ -1,5 +1,3 @@
-"use client";
-
 // ============================================================
 // Classroom - a shared Google-Classroom-style post stream between a tutor
 // and their class. One provider, mounted independently in both the tutor

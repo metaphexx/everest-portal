@@ -1,12 +1,10 @@
-"use client";
-
 // The course home page (the NEW page missing from the vendor app): one course's
 // students, sessions with booklet status, materials, marking activity and
 // shared outlines, with jump-offs to the related actions.
 
 import React, { useState } from "react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import Link from "@/components/ui/Link";
+import { useParams, useRouter } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import {
   APPROVAL_META,

@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 
 // Debounce a rapidly-changing value (e.g. a search box) so anything expensive

@@ -1,11 +1,9 @@
-"use client";
-
 // Message a Tutor - the student side of the AI-monitored channel.
 // Real shared threads (the tutor portal reads the same store), delivery and
 // read receipts, media attachments, and a pinned Everest Support channel.
 
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams } from "@/lib/router";
 import { usePortal } from "@/lib/store";
 import {
   ChatAttachment,

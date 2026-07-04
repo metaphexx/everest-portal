@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { BookletRequest, TutorCourseId } from "@/lib/tutor-data";
 import { BOOKLET_SERIES_COLORS, BookletTrackerMode, bookletSeries } from "@/lib/booklet-stats";

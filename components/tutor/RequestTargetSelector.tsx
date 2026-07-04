@@ -1,12 +1,10 @@
-"use client";
-
 // "Requesting materials for" - the visual target picker on Study Materials.
 // A card trigger + popover: a Custom Request tile, then the tutor's upcoming
 // classes as tiles (each with its delivery chip). Auto-reflects requestClassId
 // so a "Request booklets" CTA from anywhere in the portal lands here pre-filled.
 
 import React, { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { useTutor } from "@/lib/tutor-store";
 import { DELIVERY_META, TUTOR_COURSES, classLabel } from "@/lib/tutor-data";
 import { todayKey } from "@/lib/calendar";

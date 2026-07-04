@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { usePortal } from "@/lib/store";
 import { BASE_SUBMISSIONS, ICON, TUTOR_FILES, wsBase } from "@/lib/data";

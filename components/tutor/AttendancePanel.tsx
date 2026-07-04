@@ -1,5 +1,3 @@
-"use client";
-
 // Attendance marking, ported from the hshs app's ClassCard pattern:
 // one record per student per session per date, present/late/absent/excused,
 // a one-tap "All present" then flip the exceptions. For block classes each

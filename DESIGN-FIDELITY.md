@@ -37,7 +37,7 @@ system. Copy it verbatim into the production app.
 
 ## 2. Typography (exact)
 
-Loaded in `app/layout.tsx` from Google Fonts:
+Loaded in `index.html` from Google Fonts:
 
 ```
 https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap

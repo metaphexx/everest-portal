@@ -1,7 +1,5 @@
-"use client";
-
 import React, { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/lib/router";
 import { usePortal } from "@/lib/store";
 import { STUDENT_ME, useMessaging } from "@/lib/messaging";
 import { aiSearch } from "@/lib/search";

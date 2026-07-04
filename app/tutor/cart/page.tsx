@@ -1,5 +1,3 @@
-"use client";
-
 // Cart - turns the selected materials into a print job. The request target
 // uses the same visual selector as Study Materials; the materials table shows
 // the full catalogue detail (subject, year group, last updated, preview); the
@@ -7,8 +5,8 @@
 // orientation, scale, stapling, pages per sheet) behind a defaults toggle.
 
 import React, { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "@/components/ui/Link";
+import { useRouter } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import { CATALOGUE, DEFAULT_FORMAT, PRINTERS } from "@/lib/tutor-data";
 import { ICON } from "@/lib/data";

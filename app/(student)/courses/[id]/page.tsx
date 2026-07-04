@@ -1,8 +1,6 @@
-"use client";
-
 import React, { useRef, useState } from "react";
-import Link from "next/link";
-import { notFound, useRouter } from "next/navigation";
+import Link from "@/components/ui/Link";
+import { notFound, useParams, useRouter } from "@/lib/router";
 import { usePortal } from "@/lib/store";
 import {
   ACCENT,
@@ -28,7 +26,8 @@ const SUBJECT_FOR_COURSE: Record<CourseId, string> = {
   gate: "Mathematics Methods ATAR",
 };
 
-export default function CoursePage({ params }: { params: { id: string } }) {
+export default function CoursePage() {
+  const params = useParams<{ id: string }>();
   const cid = params.id as CourseId;
   const cd = COURSE_DEFS[cid];
   const { now, done, submitWorksheet, openModal, showToast, outlines, uploadOutline, deleteOutline, updateAssessment, assignedToMe, submitAssignedWorksheet } = usePortal();

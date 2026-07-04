@@ -1,11 +1,9 @@
-"use client";
-
 // Support: send a request AND track every request you've made - status,
 // team replies and follow-ups all live here (and Elliot can log requests
 // for you from chat). Urgent things still go by phone.
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/router";
 import { SupportRequest, usePortal } from "@/lib/store";
 import { Icon } from "@/components/ui/Icon";
 

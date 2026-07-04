@@ -1,7 +1,5 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/lib/router";
 import { Background } from "@/components/portal/Background";
 import { TutorSidebar } from "./TutorSidebar";
 import { TutorHeader } from "./TutorHeader";

@@ -1,5 +1,3 @@
-"use client";
-
 // Student Outlines - the tutor side of Feature 1. Grouped by CLASS so it stays
 // readable with a full roster: each class is a card you expand to see its
 // students, each student shows their outline status (submitted / scanning /

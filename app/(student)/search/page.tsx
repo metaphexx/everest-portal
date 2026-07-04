@@ -1,12 +1,10 @@
-"use client";
-
 // Search results - the full-page version of the header's AI search. Pressing
 // Enter in the header search lands here (/search?q=...); every result links
 // to the page that actually holds it. A refine box at the top re-runs the
 // search without going back to the header.
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "@/lib/router";
 import { usePortal } from "@/lib/store";
 import { aiSearch } from "@/lib/search";
 import { Icon } from "@/components/ui/Icon";

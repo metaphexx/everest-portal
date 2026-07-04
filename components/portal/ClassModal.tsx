@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { usePortal } from "@/lib/store";
 import { COURSE_DEFS, ICON, LIB_CATEGORIES, matsFor } from "@/lib/data";

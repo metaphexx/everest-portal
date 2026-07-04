@@ -1,10 +1,8 @@
-"use client";
-
 // Schedule - the tutor's month view with per-class booklet status, plus an
 // upcoming list. Mirrors the student Timetable layout.
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import { BOOKLET_META, TUTOR_COURSES, TutorClass } from "@/lib/tutor-data";
 import { DOWS_MON, monthGrid, monthLabel, todayKey } from "@/lib/calendar";

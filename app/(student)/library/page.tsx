@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { usePortal } from "@/lib/store";
 import { ACCENT, COURSE_DEFS, COURSE_ORDER, CourseId, EVENTS, ICON, LIB_CATEGORIES, matsFor, pastSessions, TITLE_TO_CID } from "@/lib/data";

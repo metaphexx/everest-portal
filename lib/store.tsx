@@ -1,5 +1,3 @@
-"use client";
-
 import React, { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ASSIGNED_TOTAL,

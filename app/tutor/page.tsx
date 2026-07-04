@@ -1,5 +1,3 @@
-"use client";
-
 // Tutor dashboard. Reshapes around the tutor's working mode:
 // in-person tutors see the booklet print pipeline, online tutors see the
 // teaching workflow (marking, outlines, recently assigned materials), both
@@ -7,8 +5,8 @@
 // status + request; online -> details + start class.
 
 import React from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "@/components/ui/Link";
+import { useRouter } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import { BOOKLET_META, DELIVERY_META, MATERIAL_KIND_META, TUTOR_COURSES, TutorClass, classLabel } from "@/lib/tutor-data";
 import { ICON } from "@/lib/data";

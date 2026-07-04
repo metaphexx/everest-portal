@@ -1,5 +1,3 @@
-"use client";
-
 // Marking - the tutor's grading queue. Open a submission, assign a grade,
 // write feedback, return it to the student (flows to the student's My Grades).
 

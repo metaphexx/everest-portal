@@ -1,5 +1,3 @@
-"use client";
-
 // Messages - the tutor side of the AI-monitored channel, on the same shared
 // store as the student portal. Safeguarding messages arrive DELIVERED with an
 // urgent banner (never hidden); a tutor's poaching/abuse attempt is withheld

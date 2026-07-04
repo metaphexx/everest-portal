@@ -1,8 +1,6 @@
-"use client";
-
 import React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "@/components/ui/Link";
+import { usePathname } from "@/lib/router";
 import { Icon, ICON } from "@/components/portal/nav-icons";
 import { useTutor } from "@/lib/tutor-store";
 import { TUTOR_ME, useMessaging } from "@/lib/messaging";

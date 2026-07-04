@@ -64,7 +64,7 @@ automatically. To reset the demo state at any time: DevTools console →
 
 | Layer | Choice | Notes |
 |---|---|---|
-| Framework | Next.js 14 (App Router) + React 18 + TypeScript | All pages are `"use client"` components |
+| Framework | Vite + React 18 + TypeScript, routed with React Router v6 | Plain client-side SPA. (Originally prototyped in Next.js App Router and converted; `app/` folder structure kept for familiarity but routes are declared in `src/App.tsx`) |
 | Styling | CSS custom properties (design tokens) + inline styles + a small set of global utility classes in `app/globals.css` | Tailwind is installed but only used for its reset; the visual system is the token set. **Do not re-theme.** See DESIGN-FIDELITY.md |
 | State | React context providers backed by localStorage | One provider per domain, listed below |
 | Data | Seeded mock data in `lib/*.ts` | These files ARE the data model spec |
@@ -83,6 +83,21 @@ Both layouts (`app/(student)/layout.tsx`, `app/tutor/layout.tsx`) mount the shar
 providers, which is how the two portals stay in sync in the demo. In production each
 provider becomes an API-backed data service; the provider *interfaces* (the values and
 actions they expose) are the contract your endpoints must satisfy.
+
+### Entry points and routing
+
+- `index.html` → `src/main.tsx` (mounts `<BrowserRouter>` + imports `app/globals.css`)
+  → `src/App.tsx` (the full route table).
+- Pages still live under `app/**/page.tsx` and layouts under `app/**/layout.tsx`
+  (each layout renders its providers/shell around a React Router `<Outlet />`).
+- Two tiny shims let the page code stay framework-neutral:
+  `lib/router.tsx` (a `useRouter()/usePathname()/useSearchParams()/useParams()/notFound()`
+  facade over React Router) and `components/ui/Link.tsx` (`href` → `to`). If you drop
+  these pages into an app that already uses React Router, you can delete the shims and
+  point imports at the router directly.
+- It is a **client-side SPA**: any static host must rewrite unknown paths to
+  `index.html` (SPA history fallback) so deep links like `/tutor/booklets` resolve.
+  Vite `dev` and `preview` already do this.
 
 ### Key lib files (read these first)
 
@@ -240,7 +255,7 @@ support `Request`. Copy the field names - the UI reads them.
 
 ## 9. Quality bars already met (do not regress)
 
-- `npx tsc --noEmit` clean and `npx next build` green at handoff.
+- `npx tsc --noEmit` clean and `npm run build` (tsc + `vite build`) green at handoff.
 - Zero browser console errors on a fresh seed.
 - Every page is responsive: desktop, tablet (≤1024px), phone (≤720px, 375px tested,
   0px horizontal overflow on every route).

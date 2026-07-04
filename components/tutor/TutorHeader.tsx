@@ -1,7 +1,5 @@
-"use client";
-
 import React, { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import { TUTOR_ME, useMessaging } from "@/lib/messaging";
 import { TUTOR, TUTOR_COURSES, TUTOR_SEARCH_ITEMS, TutorCourseId } from "@/lib/tutor-data";

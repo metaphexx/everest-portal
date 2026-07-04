@@ -1,5 +1,3 @@
-"use client";
-
 // Editable assessment table shared by the course pages and the Assessment
 // Tracker (same store, so edits in one place appear in the other instantly).
 // Students can tick assessments off, record their score, and fix the

@@ -1,12 +1,10 @@
-"use client";
-
 // My Requests - every booklet request with its TWO separate tracks:
 // approval status (admin decision) and printing status (the physical job).
 // Pending requests can be edited (pulled back into the cart); approved ones
 // are view-only.
 
 import React, { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import { APPROVAL_META, PRINTING_META } from "@/lib/tutor-data";
 import { Icon } from "@/components/ui/Icon";
