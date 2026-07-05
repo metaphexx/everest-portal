@@ -9,6 +9,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useTutor } from "@/lib/tutor-store";
 import {
   OutlineRosterEntry,
+  SharedOutline,
   TUTOR_COURSES,
   TUTOR_COURSE_ORDER,
   TutorCourseId,
@@ -20,6 +21,7 @@ import {
 import { ICON } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
 import { Outline, outlineAverage } from "@/lib/features";
+import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
 
 const STATUS_CHIP: Record<OutlineRosterEntry["status"], { label: string; color: string; bg: string }> = {
   done: { label: "Submitted", color: "var(--success-700)", bg: "rgba(34,160,91,.12)" },
@@ -35,6 +37,8 @@ export default function StudentOutlinesPage() {
   const [openCourses, setOpenCourses] = useState<Set<string>>(new Set([TUTOR_COURSE_ORDER[0]]));
   const [openOutline, setOpenOutline] = useState<string | null>(null);
   const [nudged, setNudged] = useState<Set<string>>(new Set());
+  // Raw outline file the tutor is previewing (read-only, no annotation).
+  const [preview, setPreview] = useState<SharedOutline | null>(null);
 
   // Live self-entered progress from the student portal (same demo browser):
   // Maya's scores/averages sync straight through to the tutor.
@@ -221,6 +225,11 @@ export default function StudentOutlinesPage() {
                             {isOpen ? "Hide" : "View outline"}
                           </button>
                         )}
+                        {e.status === "pending" && (
+                          <button onClick={() => setPreview(e.outline!)} className="btn-soft press" style={{ height: 28, padding: "0 12px", borderRadius: 8, fontSize: 11, flex: "none" }}>
+                            Preview file
+                          </button>
+                        )}
                         {e.status === "missing" && (
                           wasNudged ? (
                             <span style={{ fontSize: 11, fontWeight: 700, color: "var(--brand-600)", background: "rgba(0,157,255,.1)", padding: "5px 11px", borderRadius: 980, flex: "none" }}>Reminded</span>
@@ -235,6 +244,19 @@ export default function StudentOutlinesPage() {
                       {/* Outline detail */}
                       {isOpen && e.outline && (
                         <div className="ev-two-col" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.1fr) minmax(0,.9fr)", gap: 18, padding: "4px 0 16px 43px", animation: "evfadein .22s ease" }}>
+                          {/* Source file - the raw outline the student uploaded, previewable read-only */}
+                          <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: 11, border: "1px solid rgba(0,32,63,.07)", borderRadius: 12, padding: "9px 13px", background: "rgba(255,255,255,.5)" }}>
+                            <span style={{ width: 32, height: 32, borderRadius: 10, background: cd.bg, color: cd.color, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
+                              <Icon path={ICON.doc} size={14} />
+                            </span>
+                            <span style={{ flex: 1, minWidth: 0 }}>
+                              <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.outline.fileName}</span>
+                              <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>Original school outline · uploaded {e.outline.uploadedAt}</span>
+                            </span>
+                            <button onClick={() => setPreview(e.outline!)} className="btn-soft press" style={{ height: 28, padding: "0 12px", borderRadius: 8, fontSize: 11, flex: "none" }}>
+                              Preview file
+                            </button>
+                          </div>
                           <div>
                             <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.8, color: "var(--fg4)", marginBottom: 8 }}>SCHOOL ASSESSMENT SCHEDULE</div>
                             {e.outline.assessments.map((a, ai) => (
@@ -284,9 +306,18 @@ export default function StudentOutlinesPage() {
       <div className="glass-card" style={{ padding: "16px 22px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 12, animation: "evrise .55s cubic-bezier(.16,1,.3,1) .3s backwards" }}>
         <Icon path={ICON.clipboard} size={18} style={{ color: "var(--fg4)", flexShrink: 0 }} />
         <span style={{ fontSize: 12.5, color: "var(--fg3)" }}>
-          Students upload outlines from their own portal under Assessment Tracker. New uploads are scanned automatically and appear here. Year 7-10 students are reminded until they submit.
+          Students upload outlines from their own portal under Assessment Tracker. New uploads are scanned automatically and appear here - open a submitted outline to preview the original file. Year 7-10 students are reminded until they submit.
         </span>
       </div>
+
+      {/* Read-only preview of the raw outline file a student uploaded */}
+      <PdfPreviewModal
+        open={preview !== null}
+        onClose={() => setPreview(null)}
+        fileName={preview?.fileName ?? ""}
+        meta={preview ? preview.student + " · " + preview.subject + " · uploaded " + preview.uploadedAt : undefined}
+        annotate={false}
+      />
     </div>
   );
 }

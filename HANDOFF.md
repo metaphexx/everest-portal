@@ -118,7 +118,7 @@ actions they expose) are the contract your endpoints must satisfy.
 ### Student ↔ Tutor
 | Interaction | Student side | Tutor side |
 |---|---|---|
-| School outline | Uploads outline on `/outline` (Assessment Tracker); AI scan extracts assessments + weekly topics; student self-records marks as results come in | `/tutor/outlines` shows every student grouped BY CLASS with status (Submitted / Scanning / Not submitted), expandable to the scanned schedule; self-entered marks appear live there and on the course page ("Student marks & outlines") |
+| School outline | Uploads outline on `/outline` (Assessment Tracker); AI scan extracts assessments + weekly topics; student self-records marks as results come in | `/tutor/outlines` shows every student grouped BY CLASS with status (Submitted / Scanning / Not submitted), expandable to the scanned schedule; the raw uploaded file is openable as a read-only pop-up preview (`PdfPreviewModal`, `annotate={false}`) from the source-file card in the detail, or straight from a Scanning row before extraction finishes; self-entered marks appear live there and on the course page ("Student marks & outlines") |
 | Outline reminders | Students in Years 7-10 who have not uploaded see a reminder banner on `/outline`; system auto-reminds them | Tutor sees the outstanding Year 7-10 cohort, can "Send nudge" per student or "Nudge all outstanding" |
 | Worksheets | Assigned worksheets appear with due dates; student submits from dashboard/drive | Submission lands in `/tutor/grade` marking queue; tutor marks + gives feedback |
 | Grades | `/grades` shows marked work + feedback | Marking updates flow back instantly |

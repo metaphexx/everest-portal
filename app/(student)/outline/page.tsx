@@ -190,7 +190,7 @@ export default function OutlinePage() {
                 <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 800, color: "var(--brand-600)" }}>Shared with your tutor</h2>
               </div>
               <p style={{ margin: "0 0 4px", fontSize: 12, color: "var(--fg2)", lineHeight: 1.5 }}>
-                Your tutor sees a read-only summary so they can prepare for what you are studying at school: the outline document, {selected.assessments.length} extracted assessments and {selected.topics.length} weekly topics. They do not need to read the raw file.
+                Your tutor sees a read-only summary so they can prepare for what you are studying at school: the outline document, {selected.assessments.length} extracted assessments and {selected.topics.length} weekly topics. They can also open your original file as a read-only preview.
               </p>
               <div style={{ fontSize: 11.5, color: "var(--fg3)", marginTop: 6 }}>
                 Next up for your tutor: <strong style={{ color: "var(--fg1)" }}>{(selected.assessments.find((a) => !a.done) ?? selected.assessments[0])?.name}</strong> in week {(selected.assessments.find((a) => !a.done) ?? selected.assessments[0])?.week}.
