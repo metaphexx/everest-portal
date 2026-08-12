@@ -506,3 +506,63 @@ select:focus-visible,
   grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
 }
 .ev-main-inner div[style*="repeat(7,1fr)"] > * { min-width: 0; }
+
+/* --- mobile tap targets (mobile-only; desktop stays pixel-identical) ---------
+   Our own contract asks for a 40px minimum hit area. Several controls are
+   drawn smaller than that by design on desktop (calendar arrows, segmented
+   toggles, filter chips, inline row actions). Rather than change the desktop
+   drawing, we grow only the HIT AREA below the phone breakpoint. The glyph
+   keeps its size; the padding does the work.
+   `!important` is required because these controls carry inline styles. */
+@media (max-width: 720px) {
+  .ev-tap,
+  .mini-nav {
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+  /* Segmented controls and pill filters: height only, so they keep their
+     natural width and do not stretch a row. */
+  .ev-tap-h {
+    min-height: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+  /* Inline text links that act as buttons need a real touch area too. */
+  .ev-tap-link {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: 40px !important;
+  }
+  /* Every shared button primitive gets the 40px minimum on phones. This is the
+     rule that covers the long tail (Preview, Delete, Assign, row actions) in
+     one place rather than in dozens of inline styles. Width is untouched, so
+     button rows keep their shape. */
+  .btn-primary,
+  .btn-soft,
+  .btn-ghost {
+    min-height: 40px !important;
+  }
+
+  /* Genuinely small controls (checkboxes, inline chips, icon buttons) must stay
+     visually small or the layout changes. Instead of resizing them we project
+     an INVISIBLE 44px hit area from the centre, so the finger target meets the
+     guideline while the drawing is untouched. */
+  .ev-tap-area {
+    position: relative;
+  }
+  .ev-tap-area::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    /* Sits behind the control's own content but still receives the tap. */
+    z-index: 0;
+  }
+  /* Calendar day cells: grid tracks, so a min-height is safe here. */
+  .ev-tap-cell {
+    min-height: 44px !important;
+  }
+}

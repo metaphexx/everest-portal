@@ -166,9 +166,14 @@ export function TutorProvider({ children }: { children: React.ReactNode }) {
     } catch {
       /* corrupted store: keep seeds */
     }
-    setState((s) => ({ ...s, ...persisted, now: Date.now() }));
+    // Anchored demo clock - see the matching note in lib/store.tsx. The clock
+    // ticks so countdowns stay alive, but it runs from the seeded demo date so
+    // the tutor portal never drifts out of its own term.
+    const bootedAt = Date.now();
+    const demoNow = () => SEED_NOW + (Date.now() - bootedAt);
+    setState((s) => ({ ...s, ...persisted, now: demoNow() }));
     setHydrated(true);
-    const t = setInterval(() => setState((s) => ({ ...s, now: Date.now() })), 1000);
+    const t = setInterval(() => setState((s) => ({ ...s, now: demoNow() })), 1000);
     return () => {
       clearInterval(t);
       clearTimeout(toastTimer.current);

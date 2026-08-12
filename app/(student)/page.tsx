@@ -276,7 +276,7 @@ export default function DashboardPage() {
                 onClick={() => selectDay(c.k)}
                 aria-label={c.d.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" }) + (hasEv ? ", has an event" : "")}
                 aria-pressed={isSel}
-                className="list-hover"
+                className="list-hover ev-tap-cell"
                 style={{ padding: "2px 0", cursor: "pointer", borderRadius: 10, display: "flex", justifyContent: "center", border: "none", background: "none", fontFamily: "inherit", width: "100%" }}
               >
                 <span

@@ -160,7 +160,8 @@ export function TutorHeader() {
               placeholder="Search the portal"
               aria-label="Search the portal"
               className="ev-search-input"
-              style={{ border: "none", background: "transparent", fontFamily: "inherit", fontSize: 13, color: "var(--fg1)", width: 170, minWidth: 0 }}
+              /* Stretch to the control height so the whole 44px box is tappable. */
+              style={{ border: "none", background: "transparent", fontFamily: "inherit", fontSize: 13, color: "var(--fg1)", width: 170, minWidth: 0, alignSelf: "stretch", height: "100%" }}
             />
           </div>
           {searchOpen && (

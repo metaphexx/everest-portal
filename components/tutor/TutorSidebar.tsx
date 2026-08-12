@@ -50,7 +50,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
 
 function GroupLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.1, color: "var(--fg4)", padding: "16px 12px 6px" }}>
+    <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 1.1, color: "var(--fg4)", padding: "16px 12px 6px" }}>
       {children}
     </div>
   );

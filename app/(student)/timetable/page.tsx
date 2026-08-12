@@ -21,7 +21,14 @@ const ONLINE_T24 = "19:00";
 
 export default function TimetablePage() {
   const { now, vm, vy, prevMonth, nextMonth, openModal, assignedToMe, joinClass, showToast } = usePortal();
-  const [view, setView] = useState<"month" | "list">("month");
+  // A seven-column month grid cannot breathe on a phone: cells fall to ~48px,
+  // chips crush and the final column clips. Below the 720px breakpoint we open
+  // on the List view instead, which reads properly at that width. The toggle
+  // stays, so anyone who wants the grid can still switch to it. Desktop is
+  // unchanged (still opens on Month).
+  const [view, setView] = useState<"month" | "list">(() =>
+    typeof window !== "undefined" && window.innerWidth <= 720 ? "list" : "month"
+  );
   const tKey = todayKey(now);
 
   const upcoming: UpItem[] = [];
@@ -91,12 +98,12 @@ export default function TimetablePage() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 800, flex: "none" }}>{monthLabel(vm, vy)}</h2>
           <div style={{ display: "flex", gap: 4 }}>
-            <button onClick={prevMonth} className="mini-nav" style={{ width: 30, height: 30, borderRadius: 9, fontSize: 14 }}>‹</button>
-            <button onClick={nextMonth} className="mini-nav" style={{ width: 30, height: 30, borderRadius: 9, fontSize: 14 }}>›</button>
+            <button onClick={prevMonth} aria-label="Previous month" className="mini-nav" style={{ width: 30, height: 30, borderRadius: 9, fontSize: 14 }}>‹</button>
+            <button onClick={nextMonth} aria-label="Next month" className="mini-nav" style={{ width: 30, height: 30, borderRadius: 9, fontSize: 14 }}>›</button>
           </div>
           <div style={{ marginLeft: "auto", display: "inline-flex", background: "rgba(0,32,63,.06)", borderRadius: 10, padding: 3, gap: 2 }}>
             {(["month", "list"] as const).map((v) => (
-              <button key={v} onClick={() => setView(v)} style={{ height: 30, padding: "0 16px", borderRadius: 8, border: "none", fontFamily: "inherit", fontSize: 12, fontWeight: 600, cursor: "pointer", textTransform: "capitalize", background: view === v ? "#FFFFFF" : "transparent", color: view === v ? "var(--fg1)" : "var(--fg3)", boxShadow: view === v ? "0 2px 6px rgba(0,32,63,.12)" : "none" }}>{v}</button>
+              <button key={v} onClick={() => setView(v)} className="ev-tap-h" aria-pressed={view === v} style={{ height: 30, padding: "0 16px", borderRadius: 8, border: "none", fontFamily: "inherit", fontSize: 12, fontWeight: 600, cursor: "pointer", textTransform: "capitalize", background: view === v ? "#FFFFFF" : "transparent", color: view === v ? "var(--fg1)" : "var(--fg3)", boxShadow: view === v ? "0 2px 6px rgba(0,32,63,.12)" : "none" }}>{v}</button>
             ))}
           </div>
         </div>

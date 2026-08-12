@@ -117,6 +117,7 @@ export default function TutorMessagesPage() {
           {(["all", "open", "resolved"] as Filter[]).map((f) => (
             <button
               key={f}
+              className="ev-tap-h"
               role="tab"
               aria-selected={filter === f}
               onClick={() => setFilter(f)}

@@ -116,9 +116,12 @@ export function Header() {
               placeholder="Ask or search the portal"
               aria-label="Ask or search the portal"
               className="ev-search-input"
-              style={{ border: "none", background: "transparent", fontFamily: "inherit", fontSize: 13, color: "var(--fg1)", width: 170, minWidth: 0 }}
+              /* alignSelf stretch + full height: the input used to be its own
+                 ~20px intrinsic height inside a 44px control, so taps near the
+                 top and bottom edges missed it entirely. */
+              style={{ border: "none", background: "transparent", fontFamily: "inherit", fontSize: 13, color: "var(--fg1)", width: 170, minWidth: 0, alignSelf: "stretch", height: "100%" }}
             />
-            <span title="AI search: understands questions and everyday words" aria-hidden="true" style={{ fontSize: 9, fontWeight: 800, letterSpacing: 0.5, color: "var(--accent-violet)", background: "rgba(122,90,248,.12)", padding: "2px 6px", borderRadius: 980, flex: "none" }}>AI</span>
+            <span title="AI search: understands questions and everyday words" aria-hidden="true" style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 0.5, color: "var(--accent-violet)", background: "rgba(122,90,248,.12)", padding: "2px 6px", borderRadius: 980, flex: "none" }}>AI</span>
           </div>
           {searchOpen && (
             <div

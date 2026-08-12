@@ -399,7 +399,7 @@ export function Composer({
           onClick={() => fileRef.current?.click()}
           title="Attach files"
           aria-label="Attach files"
-          className="list-hover"
+          className="list-hover ev-tap"
           style={{ width: 34, height: 34, borderRadius: 10, border: "none", background: "transparent", color: "var(--fg3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}
         >
           <Icon path={IC.clip} size={16} />

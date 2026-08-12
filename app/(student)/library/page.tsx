@@ -145,7 +145,7 @@ export default function LibraryPage() {
               <Icon path={ICON.doc} size={16} style={{ color: "var(--fg3)", flex: "none" }} />
               <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{it.name}</span>
               <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fg3)", background: "rgba(0,32,63,.06)", padding: "3px 8px", borderRadius: 980, flex: "none" }}>{it.tag}</span>
-              <a href="#" onClick={(e) => { e.preventDefault(); setPreview({ name: it.name, meta: it.tag }); }} style={{ fontSize: 11.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 700, flex: "none" }}>Preview</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setPreview({ name: it.name, meta: it.tag }); }} className="ev-tap-link" style={{ fontSize: 11.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 700, flex: "none" }}>Preview</a>
             </div>
           ))}
         </div>

@@ -231,9 +231,17 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
     } catch {
       /* corrupted store: keep seeds */
     }
-    setState((s) => ({ ...s, ...persisted, now: Date.now() }));
+    // The clock ticks live (countdowns like "Starts in 2h 31m" depend on it)
+    // but it is ANCHORED to the seeded demo date rather than the wall clock.
+    // Previously this used Date.now() directly, so as real time moved past the
+    // seed the demo drifted: "today" left the seeded term and sections such as
+    // "Upcoming classes" silently emptied. Offsetting from boot keeps the
+    // countdowns alive while the demo stays internally consistent forever.
+    const bootedAt = Date.now();
+    const demoNow = () => SEED_NOW + (Date.now() - bootedAt);
+    setState((s) => ({ ...s, ...persisted, now: demoNow() }));
     setHydrated(true);
-    const t = setInterval(() => setState((s) => ({ ...s, now: Date.now() })), 1000);
+    const t = setInterval(() => setState((s) => ({ ...s, now: demoNow() })), 1000);
     return () => {
       clearInterval(t);
       clearTimeout(toastTimer.current);

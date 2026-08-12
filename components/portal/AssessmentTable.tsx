@@ -140,6 +140,7 @@ export function AssessmentTable({
             checked={!!a.done}
             onChange={(e) => onUpdate(a.id, { done: e.target.checked })}
             aria-label={"Mark " + a.name + " as done"}
+            className="ev-tap-area"
             style={{ width: 15, height: 15, accentColor: "var(--brand-500)", cursor: "pointer" }}
           />
           <div style={{ fontSize: 12.5, fontWeight: 600, textDecoration: a.done ? "line-through" : "none", textDecorationColor: "rgba(0,32,63,.35)" }}>{a.name}</div>

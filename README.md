@@ -13,6 +13,8 @@ build. Start here:
 | Read this | For |
 |---|---|
 | [`HANDOFF.md`](HANDOFF.md) | Full developer handoff: what the app does, architecture, every student / tutor / admin interaction, the AI features, and how to integrate it into an existing system |
+| [`CODE-MAP.md`](CODE-MAP.md) | How the prototype is wired internally - the layers, the state providers you replace with APIs, the behaviour contracts, what is deliberately not wired, and the traps to avoid when debugging your build against it |
+| [`MOBILE-STANDARD.md`](MOBILE-STANDARD.md) | What "flawless on mobile" means: the ten rules, the automated test that proves them, the three techniques, and what the live build has to change |
 | [`DESIGN-FIDELITY.md`](DESIGN-FIDELITY.md) | The UI contract. The production app must look identical to this prototype - fonts, colours, sizing, spacing, motion. Non-negotiable |
 | [`CLAUDE.md`](CLAUDE.md) | Working rules for AI coding assistants in this repo |
 

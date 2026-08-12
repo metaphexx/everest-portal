@@ -93,7 +93,7 @@ export default function CoursePage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
-      <Link href="/courses" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 600, color: "var(--fg3)", textDecoration: "none", width: "fit-content" }}>
+      <Link href="/courses" className="ev-tap-link" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 600, color: "var(--fg3)", textDecoration: "none", width: "fit-content" }}>
         <Icon path="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12l4.6-4.6Z" size={13} />
         Back to courses
       </Link>
