@@ -5,6 +5,10 @@ import { TutorSidebar } from "./TutorSidebar";
 import { TutorHeader } from "./TutorHeader";
 import { useTutor } from "@/lib/tutor-store";
 import { Icon } from "@/components/ui/Icon";
+import { AccountMenu } from "@/components/portal/AccountMenu";
+import { TUTOR } from "@/lib/tutor-data";
+import { TUTOR_NOTIFS } from "@/lib/notifications";
+import { TUTOR_ME, useMessaging } from "@/lib/messaging";
 
 function TutorToast() {
   const { toast } = useTutor();
@@ -38,6 +42,8 @@ function TutorToast() {
 export function TutorShell({ children }: { children: React.ReactNode }) {
   const [navOpen, setNavOpen] = useState(false);
   const pathname = usePathname();
+  const { unreadTotal } = useMessaging();
+  const { notWired } = useTutor();
 
   useEffect(() => {
     setNavOpen(false);
@@ -48,6 +54,16 @@ export function TutorShell({ children }: { children: React.ReactNode }) {
       <Background />
 
       <div className="ev-mobilebar">
+        <AccountMenu
+          name={TUTOR.name}
+          initials={TUTOR.initials}
+          role={TUTOR.role}
+          accent="var(--accent-violet)"
+          seed={TUTOR_NOTIFS}
+          unreadMsgs={unreadTotal(TUTOR_ME)}
+          messagesHref="/tutor/messages"
+          onSignOut={() => notWired("Sign out")}
+        />
         <button className="ev-hamburger" aria-label="Open menu" onClick={() => setNavOpen(true)}>
           <Icon path="M3 6h18M3 12h18M3 18h18" size={20} stroke />
         </button>

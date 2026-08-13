@@ -8,10 +8,17 @@ import { ClassModal } from "./ClassModal";
 import { WorksheetPicker } from "./WorksheetPicker";
 import { ElliotFab } from "./ElliotFab";
 import { Icon } from "@/components/ui/Icon";
+import { AccountMenu } from "./AccountMenu";
+import { STUDENT } from "@/lib/data";
+import { STUDENT_NOTIFS } from "@/lib/notifications";
+import { STUDENT_ME, useMessaging } from "@/lib/messaging";
+import { usePortal } from "@/lib/store";
 
 export function PortalShell({ children }: { children: React.ReactNode }) {
   const [navOpen, setNavOpen] = useState(false);
   const pathname = usePathname();
+  const { unreadTotal } = useMessaging();
+  const { notWired } = usePortal();
 
   // Close the mobile drawer whenever the route changes.
   useEffect(() => {
@@ -24,6 +31,16 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile top bar (hidden on desktop via CSS) */}
       <div className="ev-mobilebar">
+        <AccountMenu
+          name={STUDENT.name}
+          initials={STUDENT.initials}
+          role={STUDENT.year}
+          accent="var(--brand-500)"
+          seed={STUDENT_NOTIFS}
+          unreadMsgs={unreadTotal(STUDENT_ME)}
+          messagesHref="/messages"
+          onSignOut={() => notWired("Sign out")}
+        />
         <button className="ev-hamburger" aria-label="Open menu" onClick={() => setNavOpen(true)}>
           <Icon path="M3 6h18M3 12h18M3 18h18" size={20} stroke />
         </button>

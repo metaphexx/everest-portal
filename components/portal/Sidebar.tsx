@@ -3,7 +3,6 @@ import Link from "@/components/ui/Link";
 import { usePathname } from "@/lib/router";
 import { Icon, ICON } from "./nav-icons";
 import { STUDENT_ME, useMessaging } from "@/lib/messaging";
-import { STUDENT } from "@/lib/data";
 import { usePortal } from "@/lib/store";
 import { DrawerAccount } from "./DrawerAccount";
 
@@ -106,6 +105,9 @@ export function Sidebar() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/student-portal-logo.png" alt="Everest Tutoring - Student Portal" style={{ width: 176, height: "auto", display: "block" }} />
       </div>
+      {/* Phone only: portal search, first thing under the logo. */}
+      <DrawerAccount searchPath="/search" />
+
       <nav style={{ display: "flex", flexDirection: "column", gap: 2, overflowY: "auto", minHeight: 0 }} className="thin-scroll">
         {MAIN.map((n) => (
           <NavLink key={n.href} item={n} active={isActive(pathname, n.href)} />
@@ -124,16 +126,6 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Phone only: the header's search / profile / sign out live here. */}
-      <DrawerAccount
-        searchPath="/search"
-        settingsPath="/settings"
-        name={STUDENT.name}
-        initials={STUDENT.initials}
-        role={STUDENT.year}
-        accent="var(--brand-500)"
-        onSignOut={() => notWired("Sign out")}
-      />
     </aside>
   );
 }

@@ -16,6 +16,8 @@ import {
 } from "@/lib/messaging";
 import { Bubble, Composer, ComposerHandle, DaySeparator, DropZone, IC, Lightbox, TypingDots, UnreadBadge, isSep, withDaySeparators } from "@/components/messaging/parts";
 import { Icon } from "@/components/ui/Icon";
+import { Modal } from "@/components/ui/Modal";
+import { TUTOR_COURSES, TUTOR_COURSE_ORDER, TutorCourseId } from "@/lib/tutor-data";
 
 type Filter = "all" | "open" | "resolved";
 
@@ -46,9 +48,12 @@ function Avatar({ t, size = 36 }: { t: ChatThread; size?: number }) {
 
 export default function TutorMessagesPage() {
   const { showToast } = useTutor();
-  const { hydrated, messages, typing, threadsFor, unreadCount, isRead, markRead, sendMessage, setThreadStatus } = useMessaging();
+  const { hydrated, messages, typing, threadsFor, unreadCount, isRead, markRead, sendMessage, setThreadStatus, startThreadWith } = useMessaging();
 
   const myThreads = threadsFor(TUTOR_ME);
+  const [picker, setPicker] = useState(false);
+  const [pickerClass, setPickerClass] = useState<"all" | TutorCourseId>("all");
+  const [pickerQuery, setPickerQuery] = useState("");
   const [activeId, setActiveId] = useState<string>("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -113,6 +118,16 @@ export default function TutorMessagesPage() {
             style={{ flex: 1, border: "none", background: "transparent", fontFamily: "inherit", fontSize: 12, color: "var(--fg1)", minWidth: 0, outline: "none" }}
           />
         </div>
+        <button
+          onClick={() => setPicker(true)}
+          title="Message a student"
+          aria-label="Message a student"
+          className="btn-primary press"
+          style={{ height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, flex: "none", fontSize: 12, fontWeight: 700 }}
+        >
+          <Icon path={IC.plus} size={15} />
+          Message a student
+        </button>
         <div style={{ display: "flex", gap: 5, flex: "none" }} role="tablist" aria-label="Filter conversations">
           {(["all", "open", "resolved"] as Filter[]).map((f) => (
             <button
@@ -178,7 +193,7 @@ export default function TutorMessagesPage() {
           )}
         </div>
         <div style={{ margin: "4px 4px 0", fontSize: 11, fontWeight: 600, color: "var(--fg3)", lineHeight: 1.55, borderTop: "1px solid rgba(0,32,63,.08)", paddingTop: 10, flex: "none" }}>
-          Every message here is monitored for safety. Serious concerns go straight to the Everest team.
+          Every message here is monitored for safety, and the Everest office can see every file shared on the platform. Serious concerns go straight to the Everest team.
         </div>
       </div>
 
@@ -262,6 +277,88 @@ export default function TutorMessagesPage() {
       ) : (
         <div className="glass-card" style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fg4)", fontSize: 13 }}>Pick a conversation to get started.</div>
       )}
+
+      {/* ---- message a student: pick anyone you teach, filtered by class ---- */}
+      {picker && (() => {
+        const classes = TUTOR_COURSE_ORDER.filter((cid) => TUTOR_COURSES[cid].delivery === "online");
+        const visible = (pickerClass === "all" ? classes : [pickerClass]).flatMap((cid) =>
+          TUTOR_COURSES[cid].students
+            .filter((st) => !pickerQuery.trim() || st.name.toLowerCase().includes(pickerQuery.trim().toLowerCase()))
+            .map((st) => ({ st, cid }))
+        );
+        return (
+          <Modal
+            onClose={() => setPicker(false)}
+            label="Message a student"
+            panelStyle={{ width: 440, maxWidth: "92vw", maxHeight: "86vh", overflowY: "auto", background: "rgba(255,255,255,.97)", borderRadius: 18, padding: 20 }}
+            panelClassName="thin-scroll"
+          >
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
+              <div>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17 }}>Message a student</div>
+                <div style={{ fontSize: 12, color: "var(--fg3)", marginTop: 3 }}>Pick anyone you teach. Filter by class if it is a long list.</div>
+              </div>
+              <button onClick={() => setPicker(false)} aria-label="Close" className="btn-ghost ev-tap" style={{ width: 32, height: 32, borderRadius: 9, background: "#fff", flex: "none" }}>
+                <Icon path={IC.close} size={15} />
+              </button>
+            </div>
+
+            <div className="thin-scroll" style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 10 }}>
+              {(["all", ...classes] as ("all" | TutorCourseId)[]).map((cid) => {
+                const on = pickerClass === cid;
+                return (
+                  <button
+                    key={cid}
+                    onClick={() => setPickerClass(cid)}
+                    className="ev-tap-h"
+                    style={{ height: 30, padding: "0 12px", borderRadius: 980, flex: "none", whiteSpace: "nowrap", border: on ? "none" : "1px solid rgba(0,32,63,.12)", background: on ? "var(--brand-500)" : "rgba(255,255,255,.8)", color: on ? "#fff" : "var(--fg2)", fontFamily: "inherit", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}
+                  >
+                    {cid === "all" ? "All classes" : TUTOR_COURSES[cid].name}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,.8)", border: "1px solid rgba(0,32,63,.1)", borderRadius: 11, padding: "0 12px", height: 40, marginBottom: 10 }}>
+              <Icon path={IC.search} size={14} style={{ color: "var(--fg4)", flex: "none" }} />
+              <input
+                value={pickerQuery}
+                onChange={(e) => setPickerQuery(e.target.value)}
+                placeholder="Search students"
+                aria-label="Search students"
+                style={{ flex: 1, minWidth: 0, border: "none", background: "transparent", fontFamily: "inherit", fontSize: 13, color: "var(--fg1)", height: "100%" }}
+              />
+            </div>
+
+            {visible.length === 0 && (
+              <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "14px 4px" }}>No students match that search.</div>
+            )}
+            {visible.map(({ st, cid }) => {
+              const cd = TUTOR_COURSES[cid];
+              const init = st.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+              return (
+                <button
+                  key={cid + ":" + st.name}
+                  onClick={() => {
+                    const id = startThreadWith({ id: st.name.toLowerCase().replace(/\s+/g, "-"), name: st.name, init }, cd.name, cd.color, cd.bg);
+                    setActiveId(id);
+                    setPicker(false);
+                    setPickerQuery("");
+                  }}
+                  className="list-hover"
+                  style={{ display: "flex", width: "100%", textAlign: "left", alignItems: "center", gap: 11, padding: "10px 10px", margin: "0 -10px", borderRadius: 12, cursor: "pointer", border: "none", background: "none", fontFamily: "inherit" }}
+                >
+                  <span style={{ width: 34, height: 34, borderRadius: "50%", flex: "none", background: cd.bg, color: cd.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11.5, fontWeight: 700 }}>{init}</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: "block", fontSize: 13, fontWeight: 600 }}>{st.name}</span>
+                    <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>{cd.name}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </Modal>
+        );
+      })()}
 
       <Lightbox att={preview} onClose={() => setPreview(null)} />
     </div>

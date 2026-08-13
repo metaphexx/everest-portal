@@ -7,6 +7,7 @@ import Link from "@/components/ui/Link";
 import { useTutor } from "@/lib/tutor-store";
 import { ICON } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
+import { OfficeVisibilityNotice } from "@/components/tutor/OfficeVisibilityNotice";
 
 export default function MyDrivePage() {
   const { notWired, hasOnline } = useTutor();
@@ -50,6 +51,7 @@ export default function MyDrivePage() {
         <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 6, maxWidth: 380, marginLeft: "auto", marginRight: "auto", lineHeight: 1.55 }}>
           This is your own personal drive space for teaching files you keep for yourself, separate from the booklets the office shares with you.
         </div>
+        <OfficeVisibilityNotice style={{ marginBottom: 14 }} />
         <button
           onClick={() => notWired("Uploading to My Drive")}
           className="btn-primary press"

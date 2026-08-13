@@ -19,6 +19,7 @@ import {
 } from "@/lib/tutor-data";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
+import { OfficeVisibilityNotice } from "@/components/tutor/OfficeVisibilityNotice";
 import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
 
 const ONLINE_COURSE_IDS = (Object.keys(TUTOR_COURSES) as TutorCourseId[]).filter((id) => TUTOR_COURSES[id].delivery === "online");
@@ -271,6 +272,7 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
               Search or browse the linked Drive, then assign materials to a class or a student.
             </div>
           </div>
+        <OfficeVisibilityNotice compact style={{ marginBottom: 14 }} />
           <button onClick={handleClose} className="btn-ghost" style={{ width: 30, height: 30, borderRadius: 9, fontSize: 14, lineHeight: 1, flex: "none", background: "#fff" }}>
             ✕
           </button>

@@ -323,6 +323,11 @@ interface MessagingContextValue {
   markRead: (threadId: string, viewer: string) => void;
   sendMessage: (threadId: string, viewer: string, role: ChatRole, text: string, attachments?: ChatAttachment[], topic?: SupportTopic) => Classification | null;
   setThreadStatus: (threadId: string, status: "open" | "resolved") => void;
+  /**
+   * Find the tutor's thread with a student, creating one if this is the first
+   * time they have written to them. Returns the thread id to open.
+   */
+  startThreadWith: (student: ChatParty, course: string, color: string, bg: string) => string;
   resetDemo: () => void;
 }
 
@@ -461,6 +466,31 @@ export function MessagingProvider({ children }: { children: React.ReactNode }) {
   const setThreadStatus = useCallback((threadId: string, status: "open" | "resolved") => {
     setDb((d) => ({ ...d, threads: d.threads.map((t) => (t.id === threadId ? { ...t, status } : t)) }));
   }, []);
+
+  const startThreadWith = useCallback(
+    (student: ChatParty, course: string, color: string, bg: string): string => {
+      const existing = db.threads.find((t) => t.kind === "tutor" && t.student.id === student.id && t.tutor?.id === TUTOR_ME);
+      if (existing) return existing.id;
+      const id = "th-" + student.id + "-" + Date.now().toString(36);
+      const thread: ChatThread = {
+        id,
+        kind: "tutor",
+        student,
+        tutor: { id: TUTOR_ME, name: "Priya Rao", init: "PR" },
+        // Blank owner: the thread belongs to both portals, exactly like the
+        // seeded tutor threads, so the student sees it as soon as it exists.
+        owner: "",
+        course,
+        color,
+        bg,
+        status: "open",
+        lastRead: {},
+      };
+      setDb((d) => ({ ...d, threads: [thread, ...d.threads] }));
+      return id;
+    },
+    [db.threads]
+  );
 
   const sendMessage = useCallback(
     (threadId: string, viewer: string, role: ChatRole, text: string, attachments: ChatAttachment[] = [], topic?: SupportTopic): Classification | null => {
@@ -611,6 +641,7 @@ export function MessagingProvider({ children }: { children: React.ReactNode }) {
     markRead,
     sendMessage,
     setThreadStatus,
+    startThreadWith,
     resetDemo,
   };
 

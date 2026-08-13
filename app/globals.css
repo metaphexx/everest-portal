@@ -502,8 +502,14 @@ select option {
     border-bottom: 1px solid var(--hairline);
   }
   .ev-mobilebar-logo {
-    width: 168px; height: auto; display: block; max-width: calc(100% - 112px);
+    width: 168px; height: auto; display: block; max-width: calc(100% - 132px);
   }
+  /* Avatar pinned left, opposite the menu button, so the logo keeps the middle. */
+  .ev-account-menu {
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    display: block; z-index: 1;
+  }
+  .ev-account-drop { width: min(320px, calc(100vw - 32px)); }
   /* Menu button on the RIGHT: the drawer now holds search, profile and sign
      out, so the button is the single entry point to all of them and sits under
      the thumb rather than across the screen from it. */
@@ -1121,9 +1127,7 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
   .ev-only-mobile { display: flex !important; }
   .ev-drawer-account {
     display: block;
-    margin-top: auto;
-    padding: 14px 10px 4px;
-    border-top: 1px solid rgba(0, 32, 63, 0.08);
+    padding: 0 10px 12px;
   }
   .ev-only-mobile-t { display: inline !important; }
   .ev-only-desktop { display: none !important; }

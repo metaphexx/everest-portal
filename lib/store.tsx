@@ -10,7 +10,7 @@ import {
   wsBase,
 } from "./data";
 import { Assessment, Outline, scanOutline, seedOutlines, subjectToCourse } from "./features";
-import { MaterialAssignment, TutorCourseId } from "./tutor-data";
+import { MaterialAssignment, TutorCourseId, TUTOR_COURSE_FOR } from "./tutor-data";
 import { readTutorState } from "./live-sync";
 
 // Maya Kapoor's stable id, shared with the tutor side (lib/tutor-data.ts
@@ -167,6 +167,9 @@ export function usePortal(): PortalContextValue {
   if (!ctx) throw new Error("usePortal must be used within PortalProvider");
   return ctx;
 }
+
+/** The tutor-side classes our student persona is enrolled in. */
+const MY_TUTOR_COURSES = new Set(Object.values(TUTOR_COURSE_FOR));
 
 function todayKeyOf(now: number): string {
   const d = new Date(now);
@@ -563,7 +566,15 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
     const t = readTutorState();
     const all: MaterialAssignment[] = t && Array.isArray(t.assignments) ? t.assignments : [];
     return all
-      .filter((a) => a.target.kind === "class" || (a.target.kind === "student" && a.target.studentId === STUDENT_ID))
+      .filter((a) =>
+        a.target.kind === "student"
+          ? a.target.studentId === STUDENT_ID
+          // "Whole class" means every student in THAT class - and nobody else.
+          // This used to accept any class-targeted assignment regardless of
+          // course, so a booklet sent to Year 8 Core Block also turned up for a
+          // Year 11 student.
+          : MY_TUTOR_COURSES.has(a.courseId)
+      )
       .map((a) => (a.status === "assigned" && state.worksheetSubmissions.some((s) => s.assignmentId === a.id) ? { ...a, status: "submitted" as const } : a))
       .sort((a, b) => (a.assignedAt < b.assignedAt ? 1 : -1));
   }, [tutorSyncTick, state.worksheetSubmissions, hydrated]);

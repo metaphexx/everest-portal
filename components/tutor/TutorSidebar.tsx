@@ -4,7 +4,6 @@ import { usePathname } from "@/lib/router";
 import { Icon, ICON } from "@/components/portal/nav-icons";
 import { useTutor } from "@/lib/tutor-store";
 import { TUTOR_ME, useMessaging } from "@/lib/messaging";
-import { TUTOR } from "@/lib/tutor-data";
 import { DrawerAccount } from "@/components/portal/DrawerAccount";
 
 interface NavItem {
@@ -119,6 +118,9 @@ export function TutorSidebar() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/tutor-portal-logo.png" alt="Everest Tutoring - Tutor Portal" style={{ width: 168, height: "auto", display: "block" }} />
       </div>
+      {/* Phone only: portal search, first thing under the logo. */}
+      <DrawerAccount searchPath="/tutor/search" />
+
       <nav style={{ display: "flex", flexDirection: "column", gap: 2, overflowY: "auto", minHeight: 0 }} className="thin-scroll">
         {MAIN.map((n) => (
           <NavLink key={n.href} item={n} active={isActive(pathname, n.href)} />
@@ -153,16 +155,6 @@ export function TutorSidebar() {
         )}
       </nav>
 
-      {/* Phone only: the header's search / profile / sign out live here. */}
-      <DrawerAccount
-        searchPath="/tutor/search"
-        settingsPath="/tutor"
-        name={TUTOR.name}
-        initials={TUTOR.initials}
-        role={TUTOR.role}
-        accent="var(--accent-violet)"
-        onSignOut={() => notWired("Sign out")}
-      />
     </aside>
   );
 }

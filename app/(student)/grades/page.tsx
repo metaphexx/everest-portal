@@ -3,6 +3,7 @@ import { usePortal } from "@/lib/store";
 import { gradeBase, wsBase, GradeRow } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
 import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
+import { downloadFile } from "@/lib/download";
 
 type Filter = "all" | "graded" | "pending";
 
@@ -80,22 +81,31 @@ export default function GradesPage() {
             <div key={i} style={{ border: "1px solid rgba(0,32,63,.08)", borderRadius: 14, background: "rgba(255,255,255,.6)", padding: "13px 15px" }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <a href="#" onClick={(e) => { e.preventDefault(); notWired("Downloading the worksheet"); }} className="ev-tap-link" style={{ display: "block", fontSize: 13, fontWeight: 700, color: "var(--brand-600)", textDecoration: "none" }}>{g.wsName}</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); if (!downloadFile(g.wsName + ".pdf", "Worksheet for " + g.cls)) notWired("Downloading the worksheet"); }} className="ev-tap-link" style={{ display: "block", fontSize: 13, fontWeight: 700, color: "var(--brand-600)", textDecoration: "none" }}>{g.wsName}</a>
                   <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 1 }}>{g.cls} · {g.at}</div>
                 </div>
                 <span style={{ flex: "none", fontSize: 11.5, fontWeight: 700, padding: "4px 11px", borderRadius: 980, background: g.graded ? "rgba(34,160,91,.12)" : "rgba(245,166,35,.16)", color: g.graded ? "var(--success-700)" : "var(--warn-700)" }}>{g.grade}</span>
               </div>
               <div style={{ fontSize: 12, color: "var(--fg2)", lineHeight: 1.45, marginTop: 8 }}>{g.fb}</div>
               {g.returnedFile && (
-                <button
-                  onClick={() => setPreview({ name: g.returnedFile!, meta: "Marked by your tutor" })}
-                  className="btn-soft press ev-tap-h"
-                  style={{ marginTop: 8, height: 32, padding: "0 13px", borderRadius: 9, fontSize: 11.5, fontWeight: 600 }}
-                >
-                  View marked copy
-                </button>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+                  <button
+                    onClick={() => setPreview({ name: g.returnedFile!, meta: "Marked by your tutor" })}
+                    className="btn-soft press ev-tap-h"
+                    style={{ height: 32, padding: "0 13px", borderRadius: 9, fontSize: 11.5, fontWeight: 600 }}
+                  >
+                    View marked copy
+                  </button>
+                  <button
+                    onClick={() => { if (!downloadFile(g.returnedFile!, "Marked by your tutor for " + g.wsName)) notWired("Downloading the marked copy"); }}
+                    className="btn-ghost press ev-tap-h"
+                    style={{ height: 32, padding: "0 13px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, background: "rgba(255,255,255,.8)", color: "var(--fg2)" }}
+                  >
+                    Download
+                  </button>
+                </div>
               )}
-              <a href="#" onClick={(e) => { e.preventDefault(); notWired("Downloading your file"); }} className="ev-tap-link" style={{ fontSize: 11.5, color: "var(--fg3)", textDecoration: "none", marginTop: 2 }}>{g.file}</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); if (!downloadFile(g.file, "Your submission for " + g.wsName)) notWired("Downloading your file"); }} className="ev-tap-link" style={{ fontSize: 11.5, color: "var(--fg3)", textDecoration: "none", marginTop: 2 }}>{g.file}</a>
             </div>
           ))}
         </div>
@@ -109,20 +119,28 @@ export default function GradesPage() {
               <div key={i} className="row-hover" style={{ display: "grid", gridTemplateColumns: "1.1fr 1.3fr .9fr .75fr 1.6fr", gap: 12, padding: "12px 10px", borderBottom: "1px solid rgba(0,32,63,.06)", alignItems: "center" }}>
                 <div style={{ fontSize: 12.5, fontWeight: 600 }}>{g.cls}</div>
                 <div style={{ minWidth: 0 }}>
-                  <a href="#" onClick={(e) => { e.preventDefault(); notWired("Downloading the worksheet"); }} style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "var(--brand-600)", textDecoration: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.wsName}</a>
-                  <a href="#" onClick={(e) => { e.preventDefault(); notWired("Downloading your file"); }} style={{ display: "block", fontSize: 11, color: "var(--fg4)", textDecoration: "none", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.file}</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); if (!downloadFile(g.wsName + ".pdf", "Worksheet for " + g.cls)) notWired("Downloading the worksheet"); }} style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "var(--brand-600)", textDecoration: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.wsName}</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); if (!downloadFile(g.file, "Your submission for " + g.wsName)) notWired("Downloading your file"); }} style={{ display: "block", fontSize: 11, color: "var(--fg4)", textDecoration: "none", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.file}</a>
                 </div>
                 <div style={{ fontSize: 12, color: "var(--fg3)" }}>{g.at}</div>
                 <div><span style={{ display: "inline-block", fontSize: 11.5, fontWeight: 700, padding: "4px 11px", borderRadius: 980, background: g.graded ? "rgba(34,160,91,.12)" : "rgba(245,166,35,.16)", color: g.graded ? "var(--success-700)" : "var(--warn-700)" }}>{g.grade}</span></div>
                 <div style={{ fontSize: 12, color: "var(--fg2)", lineHeight: 1.45 }}>
                   {g.fb}
                   {g.returnedFile && (
-                    <button
-                      onClick={() => setPreview({ name: g.returnedFile!, meta: "Marked by your tutor" })}
-                      style={{ display: "block", marginTop: 4, border: "none", background: "none", padding: 0, cursor: "pointer", fontFamily: "inherit", fontSize: 11.5, fontWeight: 600, color: "var(--brand-600)" }}
-                    >
-                      View marked copy
-                    </button>
+                    <span style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                      <button
+                        onClick={() => setPreview({ name: g.returnedFile!, meta: "Marked by your tutor" })}
+                        style={{ border: "none", background: "none", padding: 0, cursor: "pointer", fontFamily: "inherit", fontSize: 11.5, fontWeight: 600, color: "var(--brand-600)" }}
+                      >
+                        View marked copy
+                      </button>
+                      <button
+                        onClick={() => { if (!downloadFile(g.returnedFile!, "Marked by your tutor for " + g.wsName)) notWired("Downloading the marked copy"); }}
+                        style={{ border: "none", background: "none", padding: 0, cursor: "pointer", fontFamily: "inherit", fontSize: 11.5, fontWeight: 600, color: "var(--fg3)" }}
+                      >
+                        Download
+                      </button>
+                    </span>
                   )}
                 </div>
               </div>

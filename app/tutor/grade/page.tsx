@@ -7,6 +7,7 @@ import { GRADE_OPTIONS, TUTOR_COURSES, TUTOR_COURSE_ORDER } from "@/lib/tutor-da
 import { ICON } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
 import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
+import { downloadFile } from "@/lib/download";
 
 export default function GradePage() {
   const { submissions, markSubmission, toMarkCount, notWired, hasOnline } = useTutor();
@@ -115,7 +116,15 @@ export default function GradePage() {
                   <span style={{ display: "block", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.student} · {s.wsName}</span>
                   <span style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", marginTop: 1 }}>{cd.name} · submitted {s.when}</span>
                 </span>
-                <button onClick={() => notWired('Opening "' + s.file + '"')} className="btn-ghost" style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, color: "var(--brand-600)", background: "rgba(255,255,255,.7)", flex: "none" }}>
+                <button
+                  onClick={() => {
+                    const ok = downloadFile(s.file, "Submitted by " + s.student + " for " + s.wsName);
+                    if (!ok) notWired('Downloading "' + s.file + '"');
+                  }}
+                  title={"Download " + s.file}
+                  className="btn-ghost ev-title-2"
+                  style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, color: "var(--brand-600)", background: "rgba(255,255,255,.7)", flex: "none", maxWidth: "100%" }}
+                >
                   {s.file}
                 </button>
                 <button onClick={() => startMarking(s.id)} className={(open ? "btn-ghost press" : "btn-primary press") + " ev-row-end"} style={{ height: 30, padding: "0 14px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>
@@ -158,6 +167,16 @@ export default function GradePage() {
                       style={{ height: 32, padding: "0 13px", borderRadius: 9, fontSize: 11.5, fontWeight: 600 }}
                     >
                       Annotate the file
+                    </button>
+                    <button
+                      onClick={() => {
+                        const ok = downloadFile(s.file, "Submitted by " + s.student + " for " + s.wsName);
+                        if (!ok) notWired('Downloading "' + s.file + '"');
+                      }}
+                      className="btn-ghost press"
+                      style={{ height: 32, padding: "0 13px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, background: "rgba(255,255,255,.8)", color: "var(--fg2)" }}
+                    >
+                      Download the work
                     </button>
                     <button
                       onClick={() => uploadRef.current?.click()}

@@ -8,6 +8,7 @@ import React, { useRef, useState } from "react";
 import { useClassroom, ClassPost, PostAttachment } from "@/lib/classroom";
 import { categoryColor, FlagCategory } from "@/lib/features";
 import { Icon } from "@/components/ui/Icon";
+import { OfficeVisibilityNotice } from "@/components/tutor/OfficeVisibilityNotice";
 
 const ATTACH_ICON = "M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5S13.5 3.62 13.5 5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7.5 2.79 7.5 5v11.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5Z";
 const SEND_ICON = "M2 21l21-9L2 3v7l15 2-15 2v7Z";
@@ -361,6 +362,8 @@ export function ClassroomStream({
             style={{ flex: 1, minHeight: 44, resize: "vertical", fontSize: 13, padding: "10px 12px", lineHeight: 1.5 }}
           />
         </div>
+
+        {canPin && <OfficeVisibilityNotice compact style={{ marginTop: 12, marginLeft: 43 }} />}
 
         {/* One action row rather than three stacked blocks: attach controls, the
             pin toggle and Post sat on separate lines at three different left

@@ -3,6 +3,7 @@ import { usePortal } from "@/lib/store";
 import { BASE_SUBMISSIONS, ICON, TUTOR_FILES, wsBase } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
 import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
+import { downloadFile } from "@/lib/download";
 
 export default function DrivePage() {
   const { done, setDrivePick, showToast, notWired } = usePortal();
@@ -65,7 +66,7 @@ export default function DrivePage() {
               <div className="ev-title-2" style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</div>
               <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>{f.kind} · {f.size} · {f.when}</div>
             </div>
-            <button onClick={() => notWired('Downloading "' + f.name + '"')} className="btn-soft ev-row-end" style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>Download</button>
+            <button onClick={() => { if (!downloadFile(f.name, "Your upload - " + f.kind)) notWired('Downloading "' + f.name + '"'); }} className="btn-soft ev-row-end" style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>Download</button>
           </div>
         ))}
       </div>
