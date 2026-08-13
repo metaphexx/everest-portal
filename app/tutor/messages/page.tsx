@@ -178,7 +178,7 @@ export default function TutorMessagesPage() {
           )}
         </div>
         <div style={{ margin: "4px 4px 0", fontSize: 11, fontWeight: 600, color: "var(--fg3)", lineHeight: 1.55, borderTop: "1px solid rgba(0,32,63,.08)", paddingTop: 10, flex: "none" }}>
-          Every message here is monitored by Elliot for safety. Serious concerns go straight to the Everest team.
+          Every message here is monitored for safety. Serious concerns go straight to the Everest team.
         </div>
       </div>
 

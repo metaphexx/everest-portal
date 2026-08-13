@@ -114,7 +114,7 @@ function buildIndex(outlines: Outline[], dueCount: number): Indexable[] {
     );
   });
   idx.push(
-    { name: "Message a Tutor", meta: "Page · AI-monitored messages", color: "#009DFF", page: "/messages" },
+    { name: "Message a Tutor", meta: "Page · monitored messages", color: "#009DFF", page: "/messages" },
     { name: "Everest Support", meta: "Message the Everest team", color: "#00203F", page: "/messages" },
     { name: "Support requests", meta: "Page · track your requests", color: "#1B8049", page: "/support" },
     { name: "Chat with Elliot", meta: "Page · AI study help", color: "#009DFF", page: "/chat" },

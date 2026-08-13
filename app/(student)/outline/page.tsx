@@ -14,6 +14,7 @@ export default function OutlinePage() {
   const [term, setTerm] = useState("Term 3");
   const [fileName, setFileName] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Default to the most recent outline (top of the list) so a fresh upload shows
@@ -109,17 +110,59 @@ export default function OutlinePage() {
           {outlines.length === 0 && <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "6px 0" }}>No outlines uploaded yet.</div>}
           {outlines.map((o) => {
             const on = selected?.id === o.id;
+            const confirming = confirmRemove === o.id;
             return (
-              <button key={o.id} onClick={() => setSelectedId(o.id)} aria-pressed={on} className="list-hover" style={{ display: "flex", width: "100%", alignItems: "center", gap: 11, padding: "10px 10px", margin: "0 -10px", borderRadius: 10, cursor: "pointer", background: on ? "rgba(0,157,255,.08)" : "transparent", border: "none", fontFamily: "inherit", textAlign: "left" }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, flex: "none", background: "rgba(122,90,248,.13)", color: "var(--accent-violet)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Icon path="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm-1 7V3.5L18.5 9H13Z" size={15} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.subject}</div>
-                  <div style={{ fontSize: 11, color: "var(--fg4)" }}>{o.term} · {o.uploadedAt}</div>
-                </div>
-                <StatusChip status={o.status} />
-              </button>
+              // Row is a div, not a button: it holds its own remove control, and a
+              // button cannot legally contain another button.
+              <div key={o.id} className="list-hover" style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 10px", margin: "0 -10px", borderRadius: 10, background: on ? "rgba(0,157,255,.08)" : "transparent" }}>
+                <button
+                  onClick={() => setSelectedId(o.id)}
+                  aria-pressed={on}
+                  style={{ display: "flex", flex: 1, minWidth: 0, alignItems: "center", gap: 11, padding: 0, cursor: "pointer", background: "none", border: "none", fontFamily: "inherit", textAlign: "left" }}
+                >
+                  <div style={{ width: 34, height: 34, borderRadius: 10, flex: "none", background: "rgba(122,90,248,.13)", color: "var(--accent-violet)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Icon path="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm-1 7V3.5L18.5 9H13Z" size={15} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.subject}</div>
+                    <div style={{ fontSize: 11, color: "var(--fg4)" }}>{o.term} · {o.uploadedAt}</div>
+                  </div>
+                </button>
+                {confirming ? (
+                  // Two-step rather than a modal: deleting an outline also deletes
+                  // the assessments scanned out of it, so it needs a deliberate
+                  // second tap, but it does not warrant a dialog.
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flex: "none" }}>
+                    <button
+                      onClick={() => { deleteOutline(o.id); setConfirmRemove(null); setSelectedId(null); showToast("Outline removed"); }}
+                      className="press ev-tap-h"
+                      style={{ height: 28, padding: "0 11px", borderRadius: 8, border: "none", background: "var(--danger-500)", color: "#fff", fontFamily: "inherit", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
+                    >
+                      Remove
+                    </button>
+                    <button
+                      onClick={() => setConfirmRemove(null)}
+                      className="press ev-tap-h"
+                      style={{ height: 28, padding: "0 11px", borderRadius: 8, border: "1px solid rgba(0,32,63,.12)", background: "rgba(255,255,255,.8)", color: "var(--fg2)", fontFamily: "inherit", fontSize: 11, fontWeight: 600, cursor: "pointer" }}
+                    >
+                      Cancel
+                    </button>
+                  </span>
+                ) : (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flex: "none" }}>
+                    <StatusChip status={o.status} />
+                    <button
+                      onClick={() => setConfirmRemove(o.id)}
+                      aria-label={"Remove " + o.subject + " outline"}
+                      title="Remove this outline"
+                      className="press ev-tap"
+                      style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: "rgba(224,65,65,.08)", color: "var(--danger-500)", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none" }}
+                    >
+                      <Icon path="M9 3h6l1 2h4v2H4V5h4l1-2ZM6 9h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9Z" size={13} />
+                    </button>
+                  </span>
+                )}
+              </div>
             );
           })}
         </div>
@@ -161,7 +204,7 @@ export default function OutlinePage() {
                   <AverageChip assessments={selected.assessments} />
                   <span style={{ fontSize: 11.5, color: "var(--fg4)", whiteSpace: "nowrap" }}>{selected.subject} · {selected.term}</span>
                   {selected.courseId && (
-                    <Link href={"/courses/" + selected.courseId} className="ev-tap-link" style={{ fontSize: 11.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600, whiteSpace: "nowrap" }}>Open course page</Link>
+                    <Link href={"/courses/" + selected.courseId} className="btn-ghost ev-tap-h" style={{ height: 28, padding: "0 12px", borderRadius: 9, fontSize: 11, fontWeight: 600, color: "var(--brand-600)", background: "rgba(255,255,255,.8)", display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap" }}>Open course page</Link>
                   )}
                   <button
                     onClick={() => deleteOutline(selected.id)}

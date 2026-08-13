@@ -28,8 +28,8 @@ export default function GradesPage() {
       </div>
 
       <div className="glass-card" style={{ padding: "20px 22px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,.7)", border: "1px solid rgba(0,32,63,.1)", borderRadius: 11, padding: "0 12px", height: 36 }}>
+        <div className="ev-toolbar" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+          <div className="ev-toolbar-search" style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,.7)", border: "1px solid rgba(0,32,63,.1)", borderRadius: 11, padding: "0 12px", height: 36 }}>
             <Icon path="m21 20-4.3-4.3a8 8 0 1 0-1.4 1.4L20 21l1-1ZM4 10a6 6 0 1 1 12 0A6 6 0 0 1 4 10Z" size={14} style={{ color: "var(--fg4)" }} />
             <input value={gq} onChange={(e) => setGq(e.target.value)} placeholder="Search submissions" style={{ border: "none", background: "transparent", fontFamily: "inherit", fontSize: 12.5, color: "var(--fg1)", width: 160 }} />
           </div>

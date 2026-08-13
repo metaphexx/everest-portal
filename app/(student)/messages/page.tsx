@@ -229,7 +229,7 @@ function MessagesInner() {
             <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--fg2-alt)" }}>
               {active.kind === "admin"
                 ? "You are talking to the Everest team. Anything you send here goes straight to a person."
-                : "Messages are monitored by AI to keep everyone safe. If you ever feel unsafe, say so here and our team will help."}
+                : "Messages are monitored to keep everyone safe. If you ever feel unsafe, say so here and our team will help."}
             </span>
           </div>
 

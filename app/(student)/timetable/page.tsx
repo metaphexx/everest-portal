@@ -103,7 +103,7 @@ export default function TimetablePage() {
             <button onClick={prevMonth} aria-label="Previous month" className="mini-nav" style={{ width: 30, height: 30, borderRadius: 9, fontSize: 14 }}>‹</button>
             <button onClick={nextMonth} aria-label="Next month" className="mini-nav" style={{ width: 30, height: 30, borderRadius: 9, fontSize: 14 }}>›</button>
           </div>
-          <div style={{ marginLeft: "auto", display: "inline-flex", background: "rgba(0,32,63,.06)", borderRadius: 10, padding: 3, gap: 2 }}>
+          <div className="ev-cal-toggle" style={{ marginLeft: "auto", display: "inline-flex", background: "rgba(0,32,63,.06)", borderRadius: 10, padding: 3, gap: 2 }}>
             {(["month", "list"] as const).map((v) => (
               <button key={v} onClick={() => setView(v)} className="ev-tap-h" aria-pressed={view === v} style={{ height: 30, padding: "0 16px", borderRadius: 8, border: "none", fontFamily: "inherit", fontSize: 12, fontWeight: 600, cursor: "pointer", textTransform: "capitalize", background: view === v ? "#FFFFFF" : "transparent", color: view === v ? "var(--fg1)" : "var(--fg3)", boxShadow: view === v ? "0 2px 6px rgba(0,32,63,.12)" : "none" }}>{v}</button>
             ))}
@@ -130,19 +130,28 @@ export default function TimetablePage() {
                     style={{ minHeight: 76, borderRight: "1px solid rgba(0,32,63,.06)", borderBottom: "1px solid rgba(0,32,63,.06)", padding: 6, boxSizing: "border-box", background: isToday ? "rgba(0,157,255,.05)" : "transparent", cursor: hit ? "pointer" : "default" }}
                   >
                     <div style={{ fontSize: 11.5, fontWeight: isToday ? 800 : 600, color: isToday ? "var(--brand-600)" : c.inMonth ? "var(--fg1)" : "var(--fg5-decorative)" }}>{c.d.getDate()}</div>
+                    {/* A day cell is ~44px on a phone, so a full class name inside
+                        it breaks to "Verba / Reaso". Below 720px the cell shows a
+                        coloured dot instead and the name lives in the List view
+                        and the day detail. Desktop keeps the labelled chip. */}
                     {hit && (
-                      <div style={{ marginTop: 5, borderRadius: 7, background: hit.bg, color: hit.color, fontSize: 10, fontWeight: 700, padding: "3px 6px", lineHeight: 1.3, overflow: "hidden" }}>
-                        {hit.title}
-                        <span style={{ display: "block", fontWeight: 600, opacity: 0.8 }}>{hit.time}</span>
-                      </div>
+                      <>
+                        <div className="ev-only-desktop" style={{ marginTop: 5, borderRadius: 7, background: hit.bg, color: hit.color, fontSize: 10, fontWeight: 700, padding: "3px 6px", lineHeight: 1.3, overflow: "hidden" }}>
+                          {hit.title}
+                          <span style={{ display: "block", fontWeight: 600, opacity: 0.8 }}>{hit.time}</span>
+                        </div>
+                        <div className="ev-only-mobile" style={{ justifyContent: "center", marginTop: 4 }} title={hit.title + " " + hit.time}>
+                          <span style={{ width: 7, height: 7, borderRadius: "50%", background: hit.color, display: "block" }} />
+                        </div>
+                      </>
                     )}
                     {booklet && (
-                      <div style={{ marginTop: 3, fontSize: 9, color: "var(--brand-600)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>📎 {booklet}</div>
+                      <div className="ev-only-desktop" style={{ marginTop: 3, fontSize: 9, color: "var(--brand-600)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>📎 {booklet}</div>
                     )}
                     {isToday && hit && hit.title === ONLINE_TITLE && (
                       <button
                         onClick={(e) => { e.stopPropagation(); onJoinToday(c.k); }}
-                        className="btn-primary press"
+                        className="btn-primary press ev-only-desktop"
                         style={{ marginTop: 3, height: 20, padding: "0 8px", borderRadius: 6, fontSize: 9.5, fontWeight: 700, width: "100%" }}
                       >
                         Join

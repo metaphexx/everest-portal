@@ -362,19 +362,19 @@ export function ClassroomStream({
           />
         </div>
 
-        <div style={{ marginLeft: 43, marginTop: 12 }}>
+        {/* One action row rather than three stacked blocks: attach controls, the
+            pin toggle and Post sat on separate lines at three different left
+            edges, which read as unrelated buttons scattered under the box. */}
+        <div className="ev-composer-actions" style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12, marginLeft: 43, flexWrap: "wrap" }}>
           <AttachControls attachments={attachments} setAttachments={setAttachments} />
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12, marginLeft: 43, flexWrap: "wrap" }}>
           {canPin && (
-            <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--fg2)", cursor: "pointer", fontWeight: 600 }}>
-              <input type="checkbox" className="ev-tap-area" checked={pinned} onChange={(e) => setPinned(e.target.checked)} style={{ width: 17, height: 17, accentColor: "var(--brand-500)", cursor: "pointer" }} />
+            <label style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--fg2)", cursor: "pointer", fontWeight: 600 }}>
+              <input type="checkbox" className="ev-tap-area" checked={pinned} onChange={(e) => setPinned(e.target.checked)} style={{ accentColor: "var(--brand-500)", cursor: "pointer" }} />
               Pin as announcement
             </label>
           )}
           <span className="ev-spacer-flex" style={{ flex: 1 }} />
-          <button onClick={submit} className="btn-primary press" style={{ height: 34, padding: "0 18px", borderRadius: 10, fontSize: 12.5, fontWeight: 700 }}>
+          <button onClick={submit} className="btn-primary press ev-row-end" style={{ height: 36, padding: "0 20px", borderRadius: 10, fontSize: 12.5, fontWeight: 700 }}>
             Post
           </button>
         </div>

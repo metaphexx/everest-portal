@@ -602,12 +602,20 @@ select option {
   /* Right-anchored header dropdowns (notifications) run off the left edge of
      a narrow phone screen, so on phones they become a fixed full-width sheet
      just under the top bar instead. */
+  /* Stays ABSOLUTE, anchored to the bell, rather than switching to fixed.
+     `.ev-tutor-header` runs an evrise entrance animation, and a transformed
+     ancestor becomes the containing block for a fixed descendant - so a fixed
+     panel resolved its `top` against the header instead of the viewport and
+     landed somewhere unpredictable, which is what read as clipping. Absolute
+     needs no viewport maths; it only needs to be stopped from growing past the
+     screen. */
   .ev-notif-drop {
-    position: fixed !important;
-    left: 16px !important;
-    right: 16px !important;
-    top: 64px !important;
-    width: auto !important;
+    /* 300px anchored to a bell that sits ~299px from the left edge put the
+       panel 1px off-screen. 288 keeps it clear without shrinking it. */
+    width: min(288px, calc(100vw - 40px)) !important;
+    max-height: 62vh !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
   }
 }
 
@@ -902,8 +910,13 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
      pushed Details onto a third, so only that one row was taller. */
   .ev-cal-row > .ev-cal-time { order: 4; }
   .ev-cal-row > .ev-cal-tutor { order: 5; }
-  .ev-cal-row > .ev-cal-join { order: 6; }
+  /* Actions group together at the right end of line two. Both carry auto
+     margins, so the sibling rule cancels it on Details whenever a Join is
+     present - otherwise the free space splits between them and they drift
+     apart. */
+  .ev-cal-row > .ev-cal-join { order: 6; margin-left: auto; }
   .ev-cal-row > .ev-cal-details { order: 7; margin-left: auto; }
+  .ev-cal-row > .ev-cal-join ~ .ev-cal-details { margin-left: 0 !important; }
 
   /* Native artefacts. The resize grabber is drawn by the browser in the corner
      of every textarea and reads as an unfinished control on a phone, where you
@@ -923,6 +936,13 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
   /* Groups pushed to the far right on desktop sit flush against the card edge
      on a phone once the row wraps. */
   .ev-push-end { margin-left: 0 !important; }
+
+  /* Filter and export toolbars: on a phone these wrap into a ragged left-hung
+     stack. Centring each row reads as deliberate. */
+  .ev-toolbar { justify-content: center !important; }
+  .ev-toolbar > * { flex: none !important; }
+  .ev-toolbar > .ev-toolbar-search { flex: 1 1 100% !important; }
+  .ev-toolbar > .ev-toolbar-search > input { width: 100% !important; }
 
   /* A hero title block and its action row cannot share a line at 375px - the
      second button was being sliced off at the card edge. */
@@ -973,6 +993,21 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
   /* A 75px desktop indent leaves these chips ~214px on a phone, which cut the
      booklet name mid-word. The indent is decorative; the name is not. */
   .ev-chip-row { padding-left: 0 !important; }
+
+  /* The composer's action row is indented to line up under the textarea on
+     desktop. On a phone that indent costs 43px of a 289px card, so the row
+     goes full width and Post pins to the right edge. */
+  .ev-composer-actions { margin-left: 0 !important; }
+
+  /* Calendar header: the view toggle is pushed right by an auto margin, so once
+     it wraps it lands alone against the right edge looking stranded. On a phone
+     it takes its own full-width row and splits evenly instead. */
+  .ev-cal-toggle {
+    margin-left: 0 !important;
+    width: 100%;
+    justify-content: stretch !important;
+  }
+  .ev-cal-toggle > button { flex: 1 1 0 !important; justify-content: center; }
 
   /* Filenames are the one string where the tail matters (the extension), so a
      single-line ellipsis is the wrong trade. Two lines, then clamp. */

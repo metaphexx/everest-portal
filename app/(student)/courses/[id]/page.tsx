@@ -156,15 +156,15 @@ export default function CoursePage() {
               <Link href="/library" className="ev-tap-link" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>View all in library</Link>
             </div>
             {mats.map((r, i) => (
-              <div key={i} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < mats.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < mats.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                 <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: ACCENT[r.course].bg, color: r.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Icon path={iconForResource(r.icon)} size={16} />
                 </div>
-                <div className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="ev-title-2" style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</div>
                   <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>{r.date} · {r.meta}</div>
                 </div>
-                <button onClick={() => setPreview({ name: r.name, meta: r.meta })} className="btn-soft ev-row-end" style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>Preview</button>
+                <button onClick={() => setPreview({ name: r.name, meta: r.meta })} className="btn-soft" style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>Preview</button>
               </div>
             ))}
           </div>
@@ -189,13 +189,13 @@ export default function CoursePage() {
                   {assignedMaterials.map((a, i) => {
                     const km = MATERIAL_KIND_META[a.kind];
                     return (
-                      <div key={a.id} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < assignedMaterials.length - 1 || assignedWorksheets.length > 0 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+                      <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < assignedMaterials.length - 1 || assignedWorksheets.length > 0 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                         <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: ACCENT[cid].bg, color: ACCENT[cid].color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <Icon path={ICON.doc} size={16} />
                         </div>
-                        <div className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 1 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="ev-title-2" style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
                             <span style={{ fontSize: 10, fontWeight: 700, color: km.color, background: km.bg, padding: "1px 8px", borderRadius: 980, flex: "none" }}>{km.label}</span>
                             <span style={{ fontSize: 11, color: "var(--fg4)" }}>Assigned {new Date(a.assignedAt).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}</span>
                           </div>
@@ -212,12 +212,12 @@ export default function CoursePage() {
                   {assignedWorksheets.map((a, i) => {
                     const due = a.due ? new Date(a.due + "T12:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" }) : null;
                     return (
-                      <div key={a.id} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < assignedWorksheets.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+                      <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < assignedWorksheets.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                         <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: "rgba(122,90,248,.13)", color: "var(--accent-purple)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <Icon path={ICON.doc} size={16} />
                         </div>
-                        <div className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="ev-title-2" style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</div>
                           <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>
                             {due ? "Due " + due : "No due date set"}
                           </div>
@@ -225,10 +225,10 @@ export default function CoursePage() {
                         {a.status === "graded" ? (
                           <span style={{ fontSize: 11, fontWeight: 700, color: "var(--success-700)", background: "rgba(34,160,91,.12)", padding: "6px 13px", borderRadius: 980, flex: "none" }}>Graded</span>
                         ) : a.status === "submitted" ? (
-                          <span style={{ fontSize: 11, fontWeight: 700, color: "var(--success-700)", background: "rgba(34,160,91,.12)", padding: "6px 13px", borderRadius: 980, flex: "none" }}>Submitted, waiting on marking</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: "var(--success-700)", background: "rgba(34,160,91,.12)", padding: "6px 13px", borderRadius: 980, flex: "none" }}>Awaiting marking</span>
                         ) : (
                           <button onClick={() => submitAssignedWorksheet(a.id)} className="btn-primary press" style={{ height: 30, padding: "0 14px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>
-                            Submit completed worksheet
+                            Submit
                           </button>
                         )}
                       </div>

@@ -352,15 +352,15 @@ export default function DashboardPage() {
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           {recent.map((r, i) => (
-            <div key={i} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < recent.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < recent.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
               <div style={{ width: 40, height: 40, borderRadius: 12, flex: "none", background: ACCENT[r.course].bg, color: r.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Icon path={iconForResource(r.icon)} size={17} />
               </div>
-              <div className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="ev-title-2" style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</div>
                 <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 1 }}>{COURSE_DEFS[r.course].name} · {r.meta}</div>
               </div>
-              <button onClick={() => setPreview({ name: r.name, meta: r.meta })} className="btn-ghost ev-row-end" style={{ height: 30, padding: "0 14px", borderRadius: 9, fontSize: 11.5, color: "var(--brand-600)", background: "rgba(255,255,255,.7)", flex: "none" }}>
+              <button onClick={() => setPreview({ name: r.name, meta: r.meta })} className="btn-ghost" style={{ height: 30, padding: "0 14px", borderRadius: 9, fontSize: 11.5, color: "var(--brand-600)", background: "rgba(255,255,255,.7)", flex: "none" }}>
                 Preview
               </button>
             </div>

@@ -233,9 +233,9 @@ export function wsBase(): Worksheet[] {
   return [
     { id: "w1", name: "Whole Numbers Topic Test", due: "For the Sat 4 Jul class", dot: "#E04141", course: "gate" },
     { id: "w2", name: "Complete Study Guide", due: "For the Mon 6 Jul class", dot: "#F5A623", course: "chem" },
-    { id: "w3", name: "Algebra Practice Set", due: "For the Thu 9 Jul class", dot: "#97A1AE", course: "gate" },
-    { id: "w4", name: "Booklet Template 2025", due: "For the Sat 11 Jul class", dot: "#97A1AE", course: "chem" },
-    { id: "w5", name: "Reading Comprehension 4", due: "For the Wed 15 Jul class", dot: "#97A1AE", course: "verbal" },
+    { id: "w3", name: "Algebra Practice Set", due: "For the Thu 9 Jul class", dot: "#8A94A3", course: "gate" },
+    { id: "w4", name: "Booklet Template 2025", due: "For the Sat 11 Jul class", dot: "#8A94A3", course: "chem" },
+    { id: "w5", name: "Reading Comprehension 4", due: "For the Wed 15 Jul class", dot: "#8A94A3", course: "verbal" },
   ];
 }
 
