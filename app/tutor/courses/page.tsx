@@ -60,7 +60,7 @@ export default function TutorCoursesPage() {
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, fontSize: 11.5 }}>
                 <span style={{ opacity: 0.85 }}>
-                  Next: {nextLabel} · {doneCount}/{sessions.length} sessions done
+                  Next: {nextLabel} · {doneCount}/{sessions.length} sessions
                 </span>
                 {toMark > 0 && (
                   <span style={{ background: "rgba(224,65,65,.9)", padding: "4px 10px", borderRadius: 980, fontWeight: 700, flex: "none" }}>{toMark} to mark</span>

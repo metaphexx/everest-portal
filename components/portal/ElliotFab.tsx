@@ -181,6 +181,7 @@ export function ElliotFab() {
               setNudgeSeen(true);
             }}
             aria-label="Dismiss"
+            className="ev-tap-area"
             style={{ width: 20, height: 20, borderRadius: 7, border: "none", background: "rgba(0,32,63,.06)", color: "var(--fg3)", fontSize: 11, lineHeight: 1, cursor: "pointer", flex: "none" }}
           >
             ✕

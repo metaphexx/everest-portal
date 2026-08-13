@@ -249,7 +249,7 @@ export function ClassDetailModal({ courseId, sessionISO, onClose }: ClassDetailM
                 Online attendance records itself when students join. You only need to mark excused students.
               </div>
               <div className="ev-scroll-x">
-                <div>
+                <div style={{ minWidth: 520 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr)", gap: 8, padding: "0 10px 8px", fontSize: 10.5, fontWeight: 700, color: "var(--fg4)", letterSpacing: 0.4 }}>
                     <span>STUDENT</span>
                     <span>ATTENDANCE</span>

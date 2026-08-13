@@ -99,7 +99,7 @@ function SearchInner() {
           >
             <span style={{ width: 10, height: 10, borderRadius: 4, background: r.color, flex: "none" }} />
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: "block", fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</span>
+              <span className="ev-title-2" style={{ display: "block", fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</span>
               <span style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", marginTop: 1 }}>{r.meta}</span>
             </span>
             <Icon path="M9 6l6 6-6 6" size={15} style={{ color: "var(--fg5-decorative)", flex: "none" }} />

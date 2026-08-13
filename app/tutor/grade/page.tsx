@@ -52,7 +52,7 @@ export default function GradePage() {
         <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--danger-500)", background: "rgba(224,65,65,.1)", padding: "5px 12px", borderRadius: 980, flex: "none" }}>
           {toMarkCount} waiting
         </span>
-        <div className="thin-scroll" style={{ display: "inline-flex", borderRadius: 11, overflow: "hidden", border: "1px solid rgba(0,32,63,.1)", flex: "none", maxWidth: "100%", overflowX: "auto" }}>
+        <div className="thin-scroll ev-filter-scroll" style={{ display: "inline-flex", borderRadius: 11, border: "1px solid rgba(0,32,63,.1)", flex: "none", maxWidth: "100%", overflowX: "auto" }}>
           {[{ id: "all", label: "All classes" }, ...TUTOR_COURSE_ORDER.map((id) => ({ id, label: TUTOR_COURSES[id].year }))].map((f) => (
             <button
               key={f.id}
@@ -104,7 +104,7 @@ export default function GradePage() {
                 <button onClick={() => notWired('Opening "' + s.file + '"')} className="btn-ghost" style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, color: "var(--brand-600)", background: "rgba(255,255,255,.7)", flex: "none" }}>
                   {s.file}
                 </button>
-                <button onClick={() => startMarking(s.id)} className={open ? "btn-ghost press" : "btn-primary press"} style={{ height: 30, padding: "0 14px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>
+                <button onClick={() => startMarking(s.id)} className={(open ? "btn-ghost press" : "btn-primary press") + " ev-row-end"} style={{ height: 30, padding: "0 14px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>
                   {open ? "Close" : "Mark"}
                 </button>
               </div>
@@ -168,8 +168,8 @@ export default function GradePage() {
             <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < done.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
               <span style={{ width: 34, height: 34, borderRadius: "50%", background: cd.bg, color: cd.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10.5, fontWeight: 700, flex: "none" }}>{s.init}</span>
               <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: "block", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.student} · {s.wsName}</span>
-                <span style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>&ldquo;{s.feedback}&rdquo;</span>
+                <span className="ev-title-2" style={{ display: "block", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.student} · {s.wsName}</span>
+                <span className="ev-title-2" style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>&ldquo;{s.feedback}&rdquo;</span>
               </span>
               <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--success-700)", background: "rgba(34,160,91,.12)", padding: "5px 12px", borderRadius: 980, flex: "none" }}>{s.grade}</span>
             </div>

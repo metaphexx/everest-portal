@@ -24,7 +24,11 @@ export default function SettingsPage() {
         <div style={{ height: 12 }} />
         <Field label="Email address"><input value={email} onChange={(e) => setEmail(e.target.value)} className="field" /></Field>
         <div style={{ height: 12 }} />
-        <Field label="Year level"><input value="Year 11" readOnly className="field" style={{ background: "rgba(0,32,63,.04)", color: "var(--fg4)", borderColor: "rgba(0,32,63,.08)" }} /></Field>
+        {/* Greyed with no explanation just reads as a broken field. */}
+        <Field label="Year level">
+          <input value="Year 11" readOnly className="field" style={{ background: "rgba(0,32,63,.04)", color: "var(--fg4)", borderColor: "rgba(0,32,63,.08)" }} />
+          <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 5 }}>Set by the Everest office. Ask your tutor if this is wrong.</div>
+        </Field>
         <div style={{ height: 16 }} />
         <button onClick={() => showToast("Profile saved")} className="btn-primary" style={{ height: 40, padding: "0 20px", borderRadius: 11, fontSize: 13 }}>Save changes</button>
       </div>
@@ -37,7 +41,7 @@ export default function SettingsPage() {
           <div style={{ height: 12 }} />
           <Field label="New password"><input type="password" placeholder="At least 8 characters" className="field" /></Field>
           <div style={{ height: 16 }} />
-          <button onClick={() => showToast("Password updated")} className="btn-ghost" style={{ height: 40, padding: "0 20px", borderRadius: 11, fontSize: 13, background: "rgba(255,255,255,.8)" }}>Update password</button>
+          <button onClick={() => showToast("Password updated")} className="btn-primary" style={{ height: 40, padding: "0 20px", borderRadius: 11, fontSize: 13 }}>Update password</button>
         </div>
 
         {/* Notifications */}

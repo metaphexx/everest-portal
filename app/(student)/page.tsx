@@ -159,7 +159,7 @@ export default function DashboardPage() {
                 <div style={{ fontFamily: "var(--font-display)", fontSize: 23, fontWeight: 800, letterSpacing: -0.4, marginTop: 3 }}>Organic Chemistry</div>
                 <div style={{ fontSize: 13, color: "var(--fg2)", marginTop: 3 }}>Session 6 · 7:00pm to 8:00pm · Priya Rao</div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "none" }}>
+              <div className="ev-hero-actions" style={{ display: "flex", alignItems: "center", gap: 10, flex: "none" }}>
                 <button onClick={onJoin} className="btn-primary" style={{ height: 42, padding: "0 22px", borderRadius: 12, fontSize: 13.5 }}>
                   {joinLabel}
                 </button>
@@ -175,15 +175,15 @@ export default function DashboardPage() {
       {/* TODAY'S CLASS MATERIAL */}
       {todaysMaterial && (
         <div
-          className="glass-card list-hover"
+          className="glass-card list-hover ev-wrap-row"
           style={{ gridColumn: "span 12", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .12s backwards", padding: "13px 20px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}
         >
           <span style={{ width: 34, height: 34, borderRadius: 10, flex: "none", background: "rgba(0,157,255,.12)", color: "var(--brand-600)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon path={DOC_ICON} size={15} />
           </span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              Today's class uses: {todaysMaterial.fileName}
+          <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
+            <span className="ev-title-2" style={{ display: "block", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              Today&apos;s class uses: {todaysMaterial.fileName}
             </span>
             <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>
               {MATERIAL_KIND_META[todaysMaterial.kind].label} · Chemistry
@@ -236,7 +236,7 @@ export default function DashboardPage() {
           // 4+ enrolled - horizontal carousel
           <div ref={coursesRef} className="thin-scroll" style={{ display: "flex", gap: 14, overflowX: "auto", scrollSnapType: "x mandatory", paddingBottom: 4, flex: 1 }}>
             {enrolled.map((c, i) => (
-              <div key={c.id} style={{ flex: "0 0 224px", scrollSnapAlign: "start", display: "flex" }}>
+              <div key={c.id} className="ev-carousel-card" style={{ flex: "0 0 224px", scrollSnapAlign: "start", display: "flex" }}>
                 <CourseCard course={c} index={i} onOpen={() => router.push(c.href)} />
               </div>
             ))}
@@ -319,7 +319,7 @@ export default function DashboardPage() {
       <div className="glass-card" style={{ gridColumn: "span 4", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .28s backwards", padding: "20px 22px", boxSizing: "border-box" }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14 }}>
           <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Up next</h2>
-          <Link href="/timetable" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Schedule</Link>
+          <Link href="/timetable" className="ev-tap-link" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Schedule</Link>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
           {upNext.map((u, i) => (
@@ -347,20 +347,20 @@ export default function DashboardPage() {
       {/* RECENTLY ADDED LIBRARY */}
       <div className="glass-card" style={{ gridColumn: "span 8", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .32s backwards", padding: "20px 22px", boxSizing: "border-box" }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 4 }}>
-          <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Recently added to your library</h2>
-          <Link href="/library" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Open library</Link>
+          <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Recently added</h2>
+          <Link href="/library" className="ev-tap-link" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600, flex: "none", whiteSpace: "nowrap", marginLeft: 12 }}>Open library</Link>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           {recent.map((r, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < recent.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+            <div key={i} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < recent.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
               <div style={{ width: 40, height: 40, borderRadius: 12, flex: "none", background: ACCENT[r.course].bg, color: r.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Icon path={iconForResource(r.icon)} size={17} />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</div>
                 <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 1 }}>{COURSE_DEFS[r.course].name} · {r.meta}</div>
               </div>
-              <button onClick={() => setPreview({ name: r.name, meta: r.meta })} className="btn-ghost" style={{ height: 30, padding: "0 14px", borderRadius: 9, fontSize: 11.5, color: "var(--brand-600)", background: "rgba(255,255,255,.7)", flex: "none" }}>
+              <button onClick={() => setPreview({ name: r.name, meta: r.meta })} className="btn-ghost ev-row-end" style={{ height: 30, padding: "0 14px", borderRadius: 9, fontSize: 11.5, color: "var(--brand-600)", background: "rgba(255,255,255,.7)", flex: "none" }}>
                 Preview
               </button>
             </div>
@@ -383,13 +383,17 @@ export default function DashboardPage() {
                   <Icon path={ICON.doc} size={15} />
                 </span>
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: "block", fontSize: 13, fontWeight: 600, color: d ? "var(--fg4)" : "var(--fg1)", transition: "color .25s ease", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{w.name}</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, fontWeight: 600, color: d ? "var(--fg4)" : "var(--fg1)", transition: "color .25s ease" }}>
+                    {/* The dot belongs to the worksheet, not to the button - as a
+                        sibling of the row it wrapped onto the action line. */}
+                    <span style={{ width: 7, height: 7, borderRadius: "50%", background: d ? "var(--success-500)" : w.dot, transition: "background .25s ease", flex: "none" }} />
+                    <span className="ev-title-2" style={{ minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{w.name}</span>
+                  </span>
                   <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>{d ? "Submitted, awaiting grade" : w.due}</span>
                 </span>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: d ? "var(--success-500)" : w.dot, transition: "background .25s ease", flex: "none" }} />
                 <button
                   onClick={() => submitWorksheet(w.id, w.name)}
-                  className="press"
+                  className="press ev-tap-h"
                   style={{
                     height: 30,
                     padding: "0 14px",

@@ -182,7 +182,47 @@ export default function HistoryPage() {
 
       {/* TABLE - one row per booklet */}
       <div className="glass-card" style={{ gridColumn: "span 12", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .12s backwards" }}>
-        <div className="ev-scroll-x"><div style={{ display: "grid", gridTemplateColumns: "auto 1fr .9fr 1.1fr 1.6fr .9fr auto auto auto", gap: "0 14px", alignItems: "center", minWidth: 980 }}>
+        {/* Phones get cards. Nine columns at 980px means STATUS and ACTION - the
+            two a tutor actually opens this page for - sit off the right edge
+            behind a swipe, which is not a reasonable thing to ask of a phone. */}
+        <div className="ev-only-mobile" style={{ flexDirection: "column", gap: 10 }}>
+          {rows.map((row, i) => {
+            const { req, item } = row;
+            const sm = HISTORY_STATUS[req.approval];
+            const cat = CATALOGUE.find((c) => c.id === item.itemId);
+            const { cls, day: classDay } = splitClassText(req.classText);
+            const isCustom = !req.classId;
+            return (
+              <div key={row.key} style={{ border: "1px solid rgba(0,32,63,.08)", borderRadius: 14, background: "rgba(255,255,255,.6)", padding: "13px 15px" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                  <button onClick={() => setOpenKey(row.key)} style={{ flex: 1, minWidth: 0, border: "none", background: "none", padding: 0, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
+                    <span className="ev-title-2" style={{ display: "block", fontSize: 13, fontWeight: 700, color: "var(--brand-600)" }}>{item.name}</span>
+                    <span style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", marginTop: 2 }}>
+                      {isCustom ? "Custom request" : cls + " · " + classDay}
+                    </span>
+                  </button>
+                  <span style={{ flex: "none", fontSize: 11, fontWeight: 700, color: sm.color, background: sm.bg, padding: "5px 11px", borderRadius: 980, whiteSpace: "nowrap" }}>{sm.label}</span>
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px", marginTop: 8, fontSize: 12, color: "var(--fg3)" }}>
+                  <span>#{i + 1}</span>
+                  <span>{req.date}</span>
+                  <span>{centreOf(req)}</span>
+                  <span>{cat?.topic ?? req.subject}</span>
+                  <span style={{ fontWeight: 700, marginLeft: "auto" }}>{item.qty} copies</span>
+                </div>
+                <button
+                  onClick={() => setOpenKey(row.key)}
+                  className="btn-ghost press"
+                  style={{ width: "100%", height: 36, marginTop: 10, borderRadius: 9, fontSize: 12, color: "var(--brand-600)", background: "rgba(255,255,255,.7)" }}
+                >
+                  View print details
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="ev-scroll-x ev-only-desktop"><div style={{ display: "grid", gridTemplateColumns: "auto 1fr .9fr 1.1fr 1.6fr .9fr auto auto auto", gap: "0 14px", alignItems: "stretch", minWidth: 980 }}>
           <Head>S.NO</Head>
           <Head>DATE CREATED</Head>
           <Head>CENTRE</Head>
@@ -228,7 +268,7 @@ export default function HistoryPage() {
                 <Cell><span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--fg3)" }}>{item.qty}</span></Cell>
                 <Cell><span style={{ fontSize: 11, fontWeight: 700, color: sm.color, background: sm.bg, padding: "5px 11px", borderRadius: 980, whiteSpace: "nowrap" }}>{sm.label}</span></Cell>
                 <Cell>
-                  <button onClick={() => setOpenKey(row.key)} title="View print details" aria-label="View print details" className="press hit-area-8" style={{ width: 30, height: 30, borderRadius: 9, border: "none", background: "rgba(0,157,255,.1)", color: "var(--brand-600)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <button onClick={() => setOpenKey(row.key)} title="View print details" aria-label="View print details" className="press hit-area-8 ev-tap" style={{ width: 30, height: 30, borderRadius: 9, border: "none", background: "rgba(0,157,255,.1)", color: "var(--brand-600)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Icon path={EYE} size={14} />
                   </button>
                 </Cell>

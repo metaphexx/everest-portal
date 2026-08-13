@@ -34,7 +34,7 @@ export default function DrivePage() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search your drive: submissions, tutor files, worksheets"
+          placeholder="Search your drive"
           aria-label="Search your drive"
           style={{ flex: 1, border: "none", background: "transparent", fontFamily: "inherit", fontSize: 13, color: "var(--fg1)", minWidth: 0, outline: "none" }}
         />
@@ -57,15 +57,15 @@ export default function DrivePage() {
         </button>
         {ql && mySubs.length === 0 && <div style={{ fontSize: 12, color: "var(--fg4)", padding: "10px 0" }}>No submissions match &quot;{q}&quot;.</div>}
         {mySubs.map((f, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < mySubs.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+          <div key={i} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < mySubs.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
             <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: f.bg, color: f.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon path={ICON.doc} size={16} />
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</div>
               <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>{f.kind} · {f.size} · {f.when}</div>
             </div>
-            <button onClick={() => notWired('Downloading "' + f.name + '"')} className="btn-soft" style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>Download</button>
+            <button onClick={() => notWired('Downloading "' + f.name + '"')} className="btn-soft ev-row-end" style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>Download</button>
           </div>
         ))}
       </div>
@@ -76,15 +76,15 @@ export default function DrivePage() {
         <p style={{ margin: "0 0 8px", fontSize: 12, color: "var(--fg3)" }}>Extra material your tutors have shared with you.</p>
         {ql && tutorFiles.length === 0 && <div style={{ fontSize: 12, color: "var(--fg4)", padding: "10px 0" }}>No shared files match &quot;{q}&quot;.</div>}
         {tutorFiles.map((f, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < tutorFiles.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+          <div key={i} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < tutorFiles.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
             <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: f.bg, color: f.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon path={ICON.doc} size={16} />
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</div>
+            <div className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
+              <div className="ev-title-2" style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</div>
               <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>From {f.from} · {f.when}</div>
             </div>
-            <button onClick={() => setPreview({ name: f.name, meta: "From " + f.from })} className="btn-soft" style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>Preview</button>
+            <button onClick={() => setPreview({ name: f.name, meta: "From " + f.from })} className="btn-soft ev-row-end" style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>Preview</button>
           </div>
         ))}
       </div>

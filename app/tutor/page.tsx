@@ -270,7 +270,7 @@ export default function TutorDashboard() {
       <div className="glass-card" style={{ gridColumn: "span 8", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .26s backwards", padding: "20px 22px", boxSizing: "border-box" }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
           <h2 className="portal-section-title" style={{ fontSize: 15 }}>Upcoming classes</h2>
-          <Link href="/tutor/schedule" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Full schedule</Link>
+          <Link href="/tutor/schedule" className="ev-tap-link" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Full schedule</Link>
         </div>
         <div className="ev-upcoming-grid" style={{ display: "grid", gridTemplateColumns: "70px 1fr auto auto", gap: "0 12px", alignItems: "center" }}>
           {upcoming.map((c, i) => {
@@ -290,7 +290,7 @@ export default function TutorDashboard() {
                 </div>
                 <div style={{ minWidth: 0, padding: "10px 0", borderBottom: i < upcoming.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cd.name}</span>
+                    <span className="ev-title-2" style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cd.name}</span>
                     <span style={{ fontSize: 9.5, fontWeight: 800, color: dm.color, background: dm.bg, padding: "2px 8px", borderRadius: 980, flex: "none" }}>{dm.label}</span>
                   </div>
                   <div style={{ fontSize: 11.5, color: "var(--fg3)", marginTop: 1 }}>
@@ -336,7 +336,7 @@ export default function TutorDashboard() {
           <>
             <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 12 }}>
               <h2 className="portal-section-title" style={{ fontSize: 15 }}>Booklet pipeline</h2>
-              <Link href="/tutor/requests" style={{ fontSize: 12, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>My Requests</Link>
+              <Link href="/tutor/requests" className="ev-tap-link" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>My Requests</Link>
             </div>
             <div style={{ display: "flex", alignItems: "stretch", gap: 0, marginBottom: 12 }}>
               {pipeline.map((p, i) => (
@@ -372,17 +372,17 @@ export default function TutorDashboard() {
           <>
             <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
               <h2 className="portal-section-title" style={{ fontSize: 15 }}>Recently assigned</h2>
-              <Link href="/tutor/booklets" style={{ fontSize: 12, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>My Booklets</Link>
+              <Link href="/tutor/booklets" className="ev-tap-link" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>My Booklets</Link>
             </div>
             {recentAssignments.map((a, i, arr) => {
               const cd = TUTOR_COURSES[a.courseId];
               return (
-                <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < arr.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+                <div key={a.id} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < arr.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                   <span style={{ width: 32, height: 32, borderRadius: 10, background: "rgba(0,157,255,.1)", color: "var(--brand-600)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
                     <Icon path={ICON.doc} size={14} />
                   </span>
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: "block", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName.replace(".pdf", "").replace(".docx", "")}</span>
+                  <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
+                    <span className="ev-title-2" style={{ display: "block", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName.replace(".pdf", "").replace(".docx", "")}</span>
                     <span style={{ display: "block", fontSize: 10.5, color: "var(--fg4)" }}>{cd.name} · {a.target.kind === "class" ? "Whole class" : a.target.studentName}</span>
                   </span>
                   <span style={{ fontSize: 10, fontWeight: 700, color: MATERIAL_KIND_META[a.kind].color, background: MATERIAL_KIND_META[a.kind].bg, padding: "3px 9px", borderRadius: 980, flex: "none" }}>{MATERIAL_KIND_META[a.kind].label}</span>
@@ -418,9 +418,9 @@ export default function TutorDashboard() {
           {toMark.map((s, i) => {
             const cd = TUTOR_COURSES[s.course];
             return (
-              <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < toMark.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+              <div key={s.id} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < toMark.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                 <span style={{ width: 34, height: 34, borderRadius: "50%", background: cd.bg, color: cd.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flex: "none" }}>{s.init}</span>
-                <span style={{ flex: 1, minWidth: 0 }}>
+                <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: "block", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {s.student} · {s.wsName}
                   </span>
@@ -529,15 +529,15 @@ export default function TutorDashboard() {
 
       {/* STUDENT OUTLINES NUDGE (online only) */}
       {hasOnline && (
-        <div className="glass-card" style={{ gridColumn: "span 12", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .42s backwards", padding: "18px 22px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 14 }}>
+        <div className="glass-card ev-wrap-row" style={{ gridColumn: "span 12", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .42s backwards", padding: "18px 22px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 14 }}>
           <span style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(0,157,255,.1)", color: "var(--brand-600)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
             <Icon path={ICON.clipboard} size={18} />
           </span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: "block", fontSize: 13.5, fontWeight: 600 }}>Maya Kapoor shared her Chemistry ATAR outline, and Ruby Chen&apos;s Science outline is still scanning</span>
+          <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: "block", fontSize: 13.5, fontWeight: 600 }}>Maya Kapoor shared her Chemistry ATAR outline, and Ruby Chen&apos;s Science outline is still scanning.</span>
             <span style={{ display: "block", fontSize: 12, color: "var(--fg3)", marginTop: 2 }}>Elliot has mapped their school assessments so you can plan sessions around what is coming up.</span>
           </span>
-          <Link href="/tutor/outlines" className="btn-soft" style={{ height: 34, padding: "0 16px", borderRadius: 10, fontSize: 12.5, display: "inline-flex", alignItems: "center", textDecoration: "none", flex: "none" }}>
+          <Link href="/tutor/outlines" className="btn-soft ev-wrap-cta" style={{ height: 34, padding: "0 16px", borderRadius: 10, fontSize: 12.5, display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", flex: "none", whiteSpace: "nowrap" }}>
             View student outlines
           </Link>
         </div>

@@ -67,7 +67,7 @@ export function BookletStatsPanel({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 8, margin: "10px 0 14px" }}>
+      <div className="ev-stats-2up" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 8, margin: "10px 0 14px" }}>
         {COUNTERS.map((c) => (
           <div key={c.key} style={{ border: "1px solid rgba(0,32,63,.07)", borderRadius: 12, padding: "10px 12px", background: "rgba(255,255,255,.5)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>

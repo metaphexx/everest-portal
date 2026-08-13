@@ -81,7 +81,10 @@ function ClassroomBody({ roomId }: { roomId: string }) {
       </Link>
 
       {/* HERO - course-page style, dynamic landscape photo */}
-      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", minHeight: 168, boxShadow: "0 18px 40px -20px rgba(0,32,63,.45)" }}>
+      {/* Content is absolutely positioned, so the card cannot grow with it: at
+          375px the title wraps and the "Next session" value was being clipped
+          by the bottom edge. .ev-hero-tall gives it more height on phones. */}
+      <div className="ev-hero-tall" style={{ position: "relative", borderRadius: 20, overflow: "hidden", minHeight: 168, boxShadow: "0 18px 40px -20px rgba(0,32,63,.45)" }}>
         <div className="ev-kenburns" style={{ position: "absolute", inset: 0, backgroundImage: `url(${cv.photo})`, backgroundSize: "cover", backgroundPosition: "center", animation: ["evkenburns1 26s", "evkenburns2 31s", "evkenburns3 35s"][room.id.charCodeAt(0) % 3] + " ease-in-out infinite" }} />
         <div style={{ position: "absolute", inset: 0, background: cv.grad, pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, zIndex: 2, padding: "20px 26px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxSizing: "border-box", color: "#fff" }}>
@@ -90,7 +93,7 @@ function ClassroomBody({ roomId }: { roomId: string }) {
           </div>
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
             <div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, letterSpacing: -0.4 }}>{room.name} classroom</div>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, letterSpacing: -0.4 }}>{room.name}</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 9 }}>
                 <Pill>{TUTOR.name}</Pill>
                 <Pill>{room.name.replace(/^Year \d+ /, "")}</Pill>
@@ -107,7 +110,9 @@ function ClassroomBody({ roomId }: { roomId: string }) {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "inline-flex", gap: 4, background: "rgba(0,32,63,.05)", borderRadius: 980, padding: 3, width: "fit-content", flexWrap: "wrap" }}>
+      {/* Was flexWrap:"wrap", which dropped "Messages" onto a second line under
+          the pill container and read as broken. Scrolls sideways instead. */}
+      <div className="ev-tabs-scroll thin-scroll" style={{ display: "inline-flex", gap: 4, background: "rgba(0,32,63,.05)", borderRadius: 980, padding: 3, width: "fit-content", maxWidth: "100%", overflowX: "auto" }}>
         {TABS.map((t) => (
           <button
             key={t.k}
@@ -192,7 +197,13 @@ function StreamSidebar({
       {/* Resources this week */}
       <div className="glass-card" style={{ padding: "18px 20px" }}>
         <h2 className="portal-section-title" style={{ fontSize: 13.5, marginBottom: 8 }}>Resources this week</h2>
-        {latest.length === 0 && <div style={{ fontSize: 12, color: "var(--fg4)" }}>Nothing shared yet.</div>}
+        {latest.length === 0 && (
+          <div style={{ textAlign: "center", padding: "18px 10px", color: "var(--fg4)" }}>
+            <Icon path={ICON.doc} size={24} style={{ color: "var(--fg5-decorative)", display: "block", margin: "0 auto" }} />
+            <div style={{ fontSize: 12.5, fontWeight: 600, marginTop: 6, color: "var(--fg3)" }}>Nothing shared yet</div>
+            <div style={{ fontSize: 11.5, marginTop: 2 }}>Files your tutor posts this week appear here.</div>
+          </div>
+        )}
         {latest.map((a, i) => (
           <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 0", borderBottom: i < latest.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
             <span style={{ width: 26, height: 26, borderRadius: 8, background: "rgba(122,90,248,.13)", color: "var(--accent-violet)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>

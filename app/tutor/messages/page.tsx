@@ -161,11 +161,11 @@ export default function TutorMessagesPage() {
                   </div>
                   <div style={{ fontSize: 11, color: unread ? "var(--fg2)" : "var(--fg4)", fontWeight: unread ? 600 : 400, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {t.kind === "admin" ? "" : (t.course ?? "") + " · "}
-                    {last ? (last.role === "system" ? "Update" : (last.senderId === TUTOR_ME ? "You: " : "") + (last.text || "Attachment")) : "No messages yet"}
+                    {last ? (last.role === "system" ? "Update" : (last.senderId === TUTOR_ME ? "You: " : "") + (last.text ? last.text.replace(/[.\s]+$/, "") : "Attachment")) : "No messages yet"}
                   </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flex: "none" }}>
-                  {last && <span style={{ fontSize: 9.5, color: "var(--fg6-faint)" }}>{fmtWhen(last.sentAt, Date.now())}</span>}
+                  {last && <span style={{ fontSize: 9.5, color: "var(--fg4)" }}>{fmtWhen(last.sentAt, Date.now())}</span>}
                   <UnreadBadge n={unread} />
                 </div>
               </button>
@@ -249,7 +249,7 @@ export default function TutorMessagesPage() {
             )}
 
             <Composer
-              placeholder={active.kind === "admin" ? "Message the Everest office" : "Reply to " + active.student.name.split(" ")[0] + ". Keep it on the platform."}
+              placeholder={active.kind === "admin" ? "Message the Everest office" : "Reply to " + active.student.name.split(" ")[0]}
               onSend={send}
               onError={showToast}
               registerDropTarget={(h) => (dropHandle.current = h)}

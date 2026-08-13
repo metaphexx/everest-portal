@@ -15,6 +15,7 @@ import {
 } from "@/lib/data";
 import { monthGrid, monthLabel, todayKey } from "@/lib/calendar";
 import { Icon } from "@/components/ui/Icon";
+import { Loader } from "@/components/ui/Loader";
 import { ImageSlot } from "@/components/ui/ImageSlot";
 import { AssessmentTable, AverageChip } from "@/components/portal/AssessmentTable";
 import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
@@ -99,7 +100,7 @@ export default function CoursePage() {
       </Link>
 
       {/* HERO */}
-      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", minHeight: 210, boxShadow: "0 18px 40px -20px rgba(0,32,63,.45)" }}>
+      <div className="ev-hero-course" style={{ position: "relative", borderRadius: 20, overflow: "hidden", minHeight: 210, boxShadow: "0 18px 40px -20px rgba(0,32,63,.45)" }}>
         <ImageSlot
           slotId={cd.slotId}
           fallbackSrc={cd.photo}
@@ -126,7 +127,7 @@ export default function CoursePage() {
                 <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, opacity: 0.8 }}>NEXT SESSION</div>
                 <div style={{ fontSize: 13.5, fontWeight: 600, marginTop: 2 }}>{cd.next}</div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <div className="ev-hero-actions" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 {tutorCourseId && (
                   <Link
                     href={"/classroom/" + tutorCourseId}
@@ -152,18 +153,18 @@ export default function CoursePage() {
           <div className="glass-card" style={{ padding: "20px 22px" }}>
             <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
               <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Course materials</h2>
-              <Link href="/library" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>View all in library</Link>
+              <Link href="/library" className="ev-tap-link" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>View all in library</Link>
             </div>
             {mats.map((r, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < mats.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+              <div key={i} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < mats.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                 <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: ACCENT[r.course].bg, color: r.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Icon path={iconForResource(r.icon)} size={16} />
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</div>
                   <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>{r.date} · {r.meta}</div>
                 </div>
-                <button onClick={() => setPreview({ name: r.name, meta: r.meta })} className="btn-soft" style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>Preview</button>
+                <button onClick={() => setPreview({ name: r.name, meta: r.meta })} className="btn-soft ev-row-end" style={{ height: 30, padding: "0 13px", borderRadius: 9, fontSize: 11.5, flex: "none" }}>Preview</button>
               </div>
             ))}
           </div>
@@ -173,10 +174,14 @@ export default function CoursePage() {
             <div className="glass-card" style={{ padding: "20px 22px" }}>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
                 <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Assigned by your tutor</h2>
-                <Link href={"/classroom/" + tutorCourseId} style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Open classroom</Link>
+                <Link href={"/classroom/" + tutorCourseId} className="ev-tap-link" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Open classroom</Link>
               </div>
               {tutorAssignments.length === 0 && (
-                <p style={{ margin: "6px 0 0", fontSize: 12.5, color: "var(--fg4)" }}>Nothing assigned yet for this course.</p>
+                <div style={{ textAlign: "center", padding: "22px 10px", color: "var(--fg4)" }}>
+                  <Icon path={ICON.doc} size={30} style={{ color: "var(--fg5-decorative)", display: "block", margin: "0 auto" }} />
+                  <div style={{ fontSize: 13, fontWeight: 600, marginTop: 7, color: "var(--fg3)" }}>Nothing assigned yet</div>
+                  <div style={{ fontSize: 12, marginTop: 2 }}>Booklets and worksheets your tutor assigns will land here.</div>
+                </div>
               )}
 
               {assignedMaterials.length > 0 && (
@@ -184,11 +189,11 @@ export default function CoursePage() {
                   {assignedMaterials.map((a, i) => {
                     const km = MATERIAL_KIND_META[a.kind];
                     return (
-                      <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < assignedMaterials.length - 1 || assignedWorksheets.length > 0 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+                      <div key={a.id} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < assignedMaterials.length - 1 || assignedWorksheets.length > 0 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                         <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: ACCENT[cid].bg, color: ACCENT[cid].color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <Icon path={ICON.doc} size={16} />
                         </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</div>
                           <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 1 }}>
                             <span style={{ fontSize: 10, fontWeight: 700, color: km.color, background: km.bg, padding: "1px 8px", borderRadius: 980, flex: "none" }}>{km.label}</span>
@@ -207,11 +212,11 @@ export default function CoursePage() {
                   {assignedWorksheets.map((a, i) => {
                     const due = a.due ? new Date(a.due + "T12:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" }) : null;
                     return (
-                      <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < assignedWorksheets.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+                      <div key={a.id} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < assignedWorksheets.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                         <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: "rgba(122,90,248,.13)", color: "var(--accent-purple)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <Icon path={ICON.doc} size={16} />
                         </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</div>
                           <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>
                             {due ? "Due " + due : "No due date set"}
@@ -240,7 +245,7 @@ export default function CoursePage() {
               <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Course outline and assessments</h2>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {outline && outline.status === "done" && <AverageChip assessments={outline.assessments} />}
-                <Link href="/outline" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Open Assessment Tracker</Link>
+                <Link href="/outline" className="ev-tap-link" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Open Assessment Tracker</Link>
               </div>
             </div>
 
@@ -269,7 +274,7 @@ export default function CoursePage() {
 
             {outline && outline.status === "pending" && (
               <div style={{ textAlign: "center", padding: "22px 10px" }}>
-                <div style={{ width: 34, height: 34, borderRadius: "50%", border: "3px solid rgba(0,157,255,.2)", borderTopColor: "var(--brand-500)", margin: "0 auto 10px", animation: "evspin2 .9s linear infinite" }} />
+                <Loader size={60} label={"Scanning " + outline.fileName} style={{ margin: "0 auto 10px" }} />
                 <div style={{ fontSize: 13, fontWeight: 700 }}>Scanning {outline.fileName}</div>
                 <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 3 }}>Pulling out your assessments and weekly topics</div>
               </div>
@@ -279,17 +284,17 @@ export default function CoursePage() {
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "2px 0 10px", flexWrap: "wrap" }}>
                   <span style={{ fontSize: 11.5, color: "var(--fg3)" }}>From <strong style={{ color: "var(--fg1)" }}>{outline.fileName}</strong> · {outline.term} · shared with {cd.tutor}</span>
-                  <span style={{ flex: 1 }} />
+                  <span className="ev-spacer-flex" style={{ flex: 1 }} />
                   <button
                     onClick={() => outlineFileRef.current?.click()}
-                    className="btn-ghost"
+                    className="btn-ghost ev-tap-h"
                     style={{ height: 28, padding: "0 12px", borderRadius: 9, fontSize: 11, background: "rgba(255,255,255,.8)" }}
                   >
                     Replace
                   </button>
                   <button
                     onClick={() => deleteOutline(outline.id)}
-                    className="btn-ghost"
+                    className="btn-ghost ev-tap-h"
                     style={{ height: 28, padding: "0 12px", borderRadius: 9, fontSize: 11, color: "var(--danger-500)", background: "rgba(224,65,65,.07)" }}
                   >
                     Delete
@@ -341,7 +346,7 @@ export default function CoursePage() {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: 10 }}>
               {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                <div key={i} style={{ textAlign: "center", fontSize: 9.5, fontWeight: 700, color: "var(--fg6-faint)", padding: "2px 0" }}>{d}</div>
+                <div key={i} style={{ textAlign: "center", fontSize: 9.5, fontWeight: 700, color: "var(--fg4)", padding: "2px 0" }}>{d}</div>
               ))}
               {grid.map((c) => {
                 const has = sessionDays.has(c.k);

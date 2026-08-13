@@ -66,8 +66,10 @@ export default function TimetablePage() {
 
   return (
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "330px 1fr", gap: 16, alignItems: "start", animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
-      {/* Upcoming list */}
-      <div className="glass-card" style={{ padding: "20px 22px" }}>
+      {/* Upcoming list. Hidden on phones: the calendar below opens in List view
+          there and already covers these rows, so showing both repeated the same
+          six classes in two different layouts on one screen. */}
+      <div className="glass-card ev-only-desktop" style={{ padding: "20px 22px" }}>
         <h2 style={{ margin: "0 0 4px", fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Upcoming classes</h2>
         {upcoming.map((u, i) => {
           const booklet = u.title === ONLINE_TITLE ? bookletFor(u.k) : null;
@@ -166,24 +168,24 @@ export default function TimetablePage() {
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(u); } }}
-                  className="row-hover"
+                  className="row-hover ev-cal-row"
                   style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 6px", borderBottom: "1px solid rgba(0,32,63,.06)", cursor: "pointer" }}
                 >
-                  <span style={{ fontSize: 11, fontWeight: 700, color: u.color, background: u.bg, padding: "5px 10px", borderRadius: 9, flex: "none", width: 74, textAlign: "center" }}>{u.dateLabel}</span>
-                  <span style={{ flex: 1, minWidth: 0 }}>
+                  <span className="ev-cal-date" style={{ fontSize: 11, fontWeight: 700, color: u.color, background: u.bg, padding: "5px 10px", borderRadius: 9, flex: "none", width: 74, textAlign: "center" }}>{u.dateLabel}</span>
+                  <span className="ev-cal-main" style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: "block", fontSize: 13.5, fontWeight: 600 }}>{u.title}</span>
                     {booklet && (
                       <span style={{ display: "block", fontSize: 10.5, color: "var(--brand-600)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>📎 {booklet}</span>
                     )}
                   </span>
-                  <span style={{ fontSize: 12, color: "var(--fg3)", flex: "none" }}>{u.time}</span>
-                  <span style={{ fontSize: 12, color: "var(--fg4)", flex: "none" }}>{u.tutor}</span>
+                  <span className="ev-cal-time" style={{ fontSize: 12, color: "var(--fg3)", flex: "none" }}>{u.time}</span>
+                  <span className="ev-cal-tutor" style={{ fontSize: 12, color: "var(--fg4)", flex: "none" }}>{u.tutor}</span>
                   {isToday && u.title === ONLINE_TITLE && (
-                    <button onClick={(e) => { e.stopPropagation(); onJoinToday(u.k); }} className="btn-primary press" style={{ height: 26, padding: "0 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, flex: "none" }}>
+                    <button onClick={(e) => { e.stopPropagation(); onJoinToday(u.k); }} className="btn-primary press ev-cal-join" style={{ height: 26, padding: "0 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, flex: "none" }}>
                       Join
                     </button>
                   )}
-                  <span style={{ fontSize: 12, color: "var(--brand-600)", fontWeight: 600, flex: "none" }}>Details</span>
+                  <span className="ev-cal-details ev-tap-link" style={{ fontSize: 12, color: "var(--brand-600)", fontWeight: 600, flex: "none" }}>Details</span>
                 </div>
               );
             })}

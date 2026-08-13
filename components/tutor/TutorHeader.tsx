@@ -346,7 +346,7 @@ function Notif({ dot, title, meta, read, onOpen, onMarkRead }: { dot: string; ti
           }}
           title="Mark as read"
           aria-label="Mark as read"
-          className="icon-btn hit-area-8"
+          className="icon-btn hit-area-8 ev-tap"
           style={{ width: 22, height: 22, borderRadius: 7, flex: "none", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", marginTop: 9, marginRight: 10 }}
         >
           <Icon path="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z" size={12} style={{ color: "var(--fg3)" }} />

@@ -63,7 +63,7 @@ export default function ClassroomPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
       {/* HERO - course-page style, dynamic landscape photo */}
-      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", minHeight: 168, boxShadow: "0 18px 40px -20px rgba(0,32,63,.45)" }}>
+      <div className="ev-hero-tall" style={{ position: "relative", borderRadius: 20, overflow: "hidden", minHeight: 168, boxShadow: "0 18px 40px -20px rgba(0,32,63,.45)" }}>
         <div className="ev-kenburns" style={{ position: "absolute", inset: 0, backgroundImage: `url(${course.photo})`, backgroundSize: "cover", backgroundPosition: "center", animation: ["evkenburns1 26s", "evkenburns2 31s", "evkenburns3 35s"][room.id.charCodeAt(0) % 3] + " ease-in-out infinite" }} />
         <div style={{ position: "absolute", inset: 0, background: course.grad, pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, zIndex: 2, padding: "20px 26px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxSizing: "border-box", color: "#fff" }}>
@@ -76,7 +76,7 @@ export default function ClassroomPage() {
             </Link>
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, letterSpacing: -0.4 }}>{room.name} classroom</div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, letterSpacing: -0.4 }}>{room.name}</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 9 }}>
               <Pill>{TUTOR_NAME}</Pill>
               <Pill>{roster.length} students</Pill>
@@ -118,7 +118,7 @@ export default function ClassroomPage() {
                 <span style={{ fontSize: 12.5, fontWeight: 600 }}>{s.name}</span>
               </div>
             ))}
-            <div style={{ fontSize: 10.5, color: "var(--fg6-faint)", marginTop: 10, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 10.5, color: "var(--fg4)", marginTop: 10, lineHeight: 1.5 }}>
               Students see this stream in their own classroom - post announcements, share files and reply to questions here.
             </div>
           </div>
@@ -188,7 +188,7 @@ function ResourcesTab({ courseId, effectiveAssignments, onPreview }: { courseId:
         {courseAssignments.length === 0 ? (
           <div style={{ fontSize: 12.5, color: "var(--fg4)" }}>Nothing assigned to this class yet.</div>
         ) : (
-          <div className="ev-scroll-x">
+          <div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               {courseAssignments.map((a, i) => {
                 const sm = ASSIGN_STATUS_META[a.status];
@@ -197,7 +197,7 @@ function ResourcesTab({ courseId, effectiveAssignments, onPreview }: { courseId:
                   <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 0", borderBottom: i < courseAssignments.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                     <Icon path={PDF_ICON} size={14} style={{ color: "var(--fg3)", flexShrink: 0 }} />
                     <span style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</span>
+                      <span className="ev-title-2" style={{ display: "block", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</span>
                       <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>{targetLabel(a.target)}</span>
                     </span>
                     <span style={{ fontSize: 10.5, fontWeight: 700, color: km.color, background: km.bg, padding: "3px 9px", borderRadius: 980, flex: "none" }}>{km.label}</span>

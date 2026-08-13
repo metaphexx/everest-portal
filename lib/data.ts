@@ -362,7 +362,7 @@ export const SEARCH_ITEMS = [
   { name: "Verbal Reasoning", meta: "Course · Grace Lin", color: "#0E9C8E", page: "/" },
   { name: "GATE Exam Prep", meta: "Course · David Chen", color: "#D68910", page: "/" },
   { name: "Whole Numbers Topic Test", meta: "Worksheet · due 4 Jul", color: "#E04141", page: "/" },
-  { name: "Stoichiometry Set 5", meta: "My Grade · marked A", color: "#22A05B", page: "/grades" },
+  { name: "Stoichiometry Set 5", meta: "My Grades · marked A", color: "#22A05B", page: "/grades" },
   { name: "Session recording, 30 Jun", meta: "Library · Verbal", color: "#0E9C8E", page: "/library" },
   { name: "Timed practice paper 3", meta: "Library · GATE", color: "#D68910", page: "/library" },
   { name: "Balancing redox equations", meta: "Chat with Elliot", color: "#009DFF", page: "/chat" },

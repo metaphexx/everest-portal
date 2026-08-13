@@ -17,7 +17,7 @@ proves it, and the specific things the current live build has to change.
 | M2 | **No container overflows its parent** - nothing clipped or cut off | For every block element: `scrollWidth <= clientWidth + 2` unless it deliberately scrolls |
 | M3 | **Every interactive control has a 44px hit area** | Bounding box >= 40x40, or an expanded invisible hit area (see §3) |
 | M4 | **No informational text below 11px**; 10.5px only for pills, badges and meta | Computed `font-size` on text-bearing elements |
-| M5 | **Tables become cards below 720px** - no column may be dropped or hidden | No `<table>` wider than the viewport; every field still present |
+| M5 | **No table silently loses a column below 720px.** Either collapse to cards, or scroll sideways *and say so* | Every field still reachable; a scrolling table carries a visible "swipe sideways" hint |
 | M6 | **The header stays usable** - search reachable, no orphaned control rows | Visual check at 375px |
 | M7 | **Dense grids reflow, not shrink** - a 7-column calendar becomes a list | Visual check at 375px |
 | M8 | **Zero console errors** on load | Playwright console listener |
@@ -96,10 +96,19 @@ Referenced against the audit sheet (`Everest Online Tutoring - Live Build Audit`
    a phone. Keep the field in the header (icon that expands is fine), or put it at
    the top of the drawer. Also make the `<input>` fill its control's height - if the
    input is 20px inside a 44px box, taps near the edges do nothing.
-3. **Tables do not collapse (B21).** Booklet History renders a cramped table at
-   375px showing only S.NO / DATE / CENTRE - the other columns are simply gone, so
-   the user loses data on a phone. Implement the card-collapse pattern for every
-   table in both portals. Losing columns silently is worse than scrolling.
+3. **Tables silently lose columns (B21).** Booklet History renders a cramped table
+   at 375px showing only S.NO / DATE / CENTRE - the other columns are simply gone,
+   so the user loses data on a phone. Two acceptable fixes, and we use both:
+   - **Collapse to cards** where the hidden column is the point of the page. Our
+     student My Grades table does this - on a phone the grade sat off the right
+     edge, which is the one thing a grades page exists to show.
+   - **Scroll sideways, and say so.** Our booklet History and My Requests tables
+     keep the wide grid but carry a visible "Swipe the table sideways to see every
+     column" line above it. A clipped table with no cue reads as dropped columns.
+
+   Also check your row rules: ours drew a separator per *cell* with the cells
+   vertically centred, so each row showed three disconnected line segments at
+   three different heights. Setting the grid to `align-items: stretch` fixed it.
 
 ### Required
 
@@ -108,9 +117,15 @@ Referenced against the audit sheet (`Everest Online Tutoring - Live Build Audit`
    (24px), row actions like Preview and Delete (28-30px) and inline text links
    (18-19px). Expect the same classes of control in yours. Fix at the primitive
    level, not per instance.
-5. **Native `<select>` controls (B12).** Fifteen of them across both roles. Besides
-   looking wrong, native selects on mobile open the OS picker with no styling
-   control and inconsistent heights. Replace with the shared field component.
+5. **Native `<select>` controls (B12).** Fifteen of them across both roles, drawn
+   by the OS in grey with the system chevron - the loudest single break from the
+   frosted-glass language. Our own build had 24 of them and the same problem; we
+   fixed it in one place rather than 24, by styling the *element type* in
+   `globals.css`: `appearance: none`, the app's radius and border, and our own
+   chevron as an inline SVG background. Note the trap - most of those selects
+   carried an inline `background:` or `padding:` shorthand, which wipes out a
+   background-image, so the chevron declarations need `!important` to survive.
+   On phones give them `min-height: 40px` as well.
 6. **Text sizes.** Nothing informational below 11px. Badges and meta may sit at
    10.5px. We found a 9px badge in our own build and fixed it.
 7. **Dense grids.** Any month grid, wide chart or multi-column layout needs a
@@ -157,3 +172,54 @@ the element's own box. The genuinely-still-small ones are the assessment tracker
 inline score and weight chips (around 19-25px) and a few inline text links such as
 "Reply" and "Schedule". These need a layout decision rather than a CSS patch, and
 are listed as open work rather than quietly marked done.
+
+---
+
+## 6. Second pass (13 Aug 2026) - what the automated probe could not see
+
+The numbers above were measured, and they were misleading. The app scrolls inside
+an inner container rather than the document, so Playwright's `fullPage: true` only
+ever captured the first 812px - as little as 27% of a 3000px page. Every visual
+review up to that point had been looking at the first fold of each page and
+nothing else. Capturing the real page height (measure `.ev-main-inner.scrollHeight`
+and grow the viewport to match) surfaced a second, larger set of defects.
+
+**Take this away: an automated overflow probe passing is not evidence that a page
+looks right.** `overflow-y: auto` computes `overflow-x` to `auto` too, so a
+container whose content is 593px wide inside a 375px viewport reports zero page
+overflow while being visibly broken. Look at whole pages, not metrics.
+
+The pattern behind most of what it found was one shape repeated everywhere: the
+desktop list row `[icon] [flexible text] [pill] [pill] [button]`. The text is the
+only `flex: 1` child, so at 375px it absorbs the entire shortfall - names truncated
+to "Lucas...", metadata rendered one word per line down a 55px column, and the
+trailing button sliced off at the card edge. Wrapping the row is not enough on its
+own: a `flex: 1 1 0%` child has a zero base size, so it stays on line one and stays
+crushed. The text needs a flex-basis wide enough to claim the line:
+
+```css
+@media (max-width: 720px) {
+  .ev-wrap-row { flex-wrap: wrap; row-gap: 8px; }
+  .ev-wrap-row > .ev-wrap-main { flex: 1 1 calc(100% - 56px); min-width: 0; }
+  .ev-wrap-row > .ev-wrap-cta  { flex: 1 1 100%; width: 100%; }
+}
+```
+
+`56px` is the leading icon plus its gap, so the icon and the text share line one
+and every trailing control moves to line two. Expect the same shape in your build.
+
+Also fixed in this pass, all of which are worth checking in yours:
+
+- **Charts.** Eight x-axis date labels across 287px of plot width ran together into
+  a smear. The chart now drops labels until each has ~44px.
+- **Copy written for a desktop layout.** "Pick a class on the left", "Send one from
+  the left", "Enter to send · Shift+Enter for a new line, drag files anywhere" -
+  all shown on a phone where there is no left column and no keyboard.
+- **Placeholders longer than their input**, which clip mid-word ("Ask Elliot about
+  your hom").
+- **A month grid the tutor schedule could not draw** - each day cell was ~44px, so
+  every class chip truncated to "Y..". Phones now open on the list view.
+- **Duplicate search results.** A static seed index and the live index both
+  described the same course, so one query returned it twice and inflated the count.
+- **A greyed read-only field with no explanation**, which reads as broken rather
+  than deliberate. It now says who sets it.

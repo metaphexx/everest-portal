@@ -149,7 +149,7 @@ export default function BookletsPage() {
             <input
               value={q}
               onChange={(e) => { setQ(e.target.value); setActiveFolder(null); }}
-              placeholder='Search inside your booklets - try "curly arrows", "Le Chatelier", "titration" ...'
+              placeholder="Search inside your booklets"
               aria-label="Search booklets"
               style={{ border: "none", background: "transparent", fontFamily: "inherit", fontSize: 13, color: "var(--fg1)", flex: 1, minWidth: 0 }}
             />
@@ -314,19 +314,19 @@ export default function BookletsPage() {
         ) : assignments.length === 0 ? (
           <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "10px 0" }}>No assigned materials match those filters.</div>
         ) : (
-          <div className="thin-scroll" style={{ maxHeight: 360, overflowY: "auto" }}>
+          <div className="thin-scroll ev-uncap-mobile" style={{ maxHeight: 360, overflowY: "auto" }}>
             {assignments.map((a, i) => {
               const cd = TUTOR_COURSES[a.courseId];
               const sm = STATUS_META[a.status];
               const km = MATERIAL_KIND_META[a.kind];
               return (
-                <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < assignments.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+                <div key={a.id} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < assignments.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                   <span style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(0,157,255,.1)", color: "var(--brand-600)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
                     <Icon path={ICON.doc} size={15} />
                   </span>
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: "block", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</span>
-                    <span style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
+                    <span className="ev-title-2" style={{ display: "block", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</span>
+                    <span className="ev-title-2" style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {cd.name} · {a.target.kind === "class" ? "Whole class" : a.target.studentName} · assigned {new Date(a.assignedAt).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
                     </span>
                   </span>
@@ -336,7 +336,7 @@ export default function BookletsPage() {
                     onClick={() => removeAssignment(a.id)}
                     title="Remove"
                     aria-label={"Remove " + a.fileName}
-                    className="btn-ghost press hit-area-8"
+                    className="btn-ghost press hit-area-8 ev-tap ev-row-end"
                     style={{ width: 28, height: 28, borderRadius: 8, fontSize: 13, color: "var(--danger-500)", flex: "none", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
                   >
                     ✕

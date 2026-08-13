@@ -241,10 +241,10 @@ function PostCard({
         </span>
         {canPin && (
           <div style={{ display: "flex", gap: 4, flex: "none" }}>
-            <button onClick={() => togglePin(post.id)} title={post.pinned ? "Unpin" : "Pin as announcement"} className="press" style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: post.pinned ? "rgba(245,166,35,.16)" : "rgba(0,32,63,.05)", color: post.pinned ? "var(--warn-700)" : "var(--fg4)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <button onClick={() => togglePin(post.id)} title={post.pinned ? "Unpin" : "Pin as announcement"} className="press ev-tap" style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: post.pinned ? "rgba(245,166,35,.16)" : "rgba(0,32,63,.05)", color: post.pinned ? "var(--warn-700)" : "var(--fg4)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon path={PIN_ICON} size={13} />
             </button>
-            <button onClick={() => deletePost(post.id)} title="Delete post" className="press" style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: "rgba(224,65,65,.08)", color: "var(--danger-500)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <button onClick={() => deletePost(post.id)} title="Delete post" className="press ev-tap" style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: "rgba(224,65,65,.08)", color: "var(--danger-500)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon path={TRASH_ICON} size={13} />
             </button>
           </div>
@@ -310,7 +310,7 @@ function PostCard({
           }}
         />
       ) : (
-        <button onClick={() => setShowReply(true)} className="press" style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: "var(--brand-600)", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit" }}>
+        <button onClick={() => setShowReply(true)} className="press ev-tap-link" style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: "var(--brand-600)", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit" }}>
           Reply
         </button>
       )}
@@ -369,11 +369,11 @@ export function ClassroomStream({
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12, marginLeft: 43, flexWrap: "wrap" }}>
           {canPin && (
             <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--fg2)", cursor: "pointer", fontWeight: 600 }}>
-              <input type="checkbox" checked={pinned} onChange={(e) => setPinned(e.target.checked)} />
+              <input type="checkbox" className="ev-tap-area" checked={pinned} onChange={(e) => setPinned(e.target.checked)} style={{ width: 17, height: 17, accentColor: "var(--brand-500)", cursor: "pointer" }} />
               Pin as announcement
             </label>
           )}
-          <span style={{ flex: 1 }} />
+          <span className="ev-spacer-flex" style={{ flex: 1 }} />
           <button onClick={submit} className="btn-primary press" style={{ height: 34, padding: "0 18px", borderRadius: 10, fontSize: 12.5, fontWeight: 700 }}>
             Post
           </button>

@@ -72,9 +72,9 @@ export function AttendancePanel({ sessionId, dateKey, accent }: { sessionId: str
         const cur = statusOf(s.name);
         const auton = isAuto(s.name);
         return (
-          <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 9, padding: "6px 0", borderBottom: i < roster.length - 1 ? "1px solid rgba(0,32,63,.05)" : "none" }}>
+          <div key={s.name} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 9, padding: "6px 0", borderBottom: i < roster.length - 1 ? "1px solid rgba(0,32,63,.05)" : "none" }}>
             <span style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(0,32,63,.06)", color: accent ?? "var(--accent-navy-blue)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9.5, fontWeight: 700, flex: "none" }}>{s.init}</span>
-            <span style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}>
+            <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: cur === "absent" ? "var(--fg4)" : "var(--fg1)" }}>{s.name}</span>
               {auton && (
                 <span title="Recorded automatically when the student joined" style={{ fontSize: 9, fontWeight: 700, color: "var(--fg4)", background: "rgba(0,32,63,.06)", padding: "1px 6px", borderRadius: 980, flex: "none" }}>
@@ -93,6 +93,7 @@ export function AttendancePanel({ sessionId, dateKey, accent }: { sessionId: str
                 return (
                   <button
                     key={st}
+                    className="ev-att-btn"
                     role="radio"
                     aria-checked={on}
                     tabIndex={on || (!cur && si === 0) ? 0 : -1}

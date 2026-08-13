@@ -114,7 +114,7 @@ export default function LibraryPage() {
                 >
                   <span style={{ position: "relative", display: "inline-flex", width: 30, height: 30, borderRadius: "50%", alignItems: "center", justifyContent: "center", fontSize: 12.5, fontWeight: isToday || isSelDay ? 700 : 500, background: isToday ? "var(--brand-500)" : isSelDay ? "rgba(0,157,255,.14)" : "transparent", color: isToday ? "#fff" : isSelDay ? "var(--brand-600)" : c.inMonth ? "var(--fg1)" : "var(--fg5-decorative)" }}>
                     {c.d.getDate()}
-                    <span style={{ position: "absolute", bottom: 2, left: "50%", transform: "translateX(-50%)", width: 4, height: 4, borderRadius: "50%", background: hit ? (isToday ? "#fff" : isPastEv && cid2 ? ACCENT[cid2].color : "var(--fg5-decorative)") : "transparent" }} />
+                    <span style={{ position: "absolute", bottom: 2, left: "50%", transform: "translateX(-50%)", width: 5, height: 5, borderRadius: "50%", background: hit ? (isToday ? "#fff" : isPastEv && cid2 ? ACCENT[cid2].color : "var(--fg3)") : "transparent" }} />
                   </span>
                 </button>
               );
@@ -136,8 +136,12 @@ export default function LibraryPage() {
             </div>
           )}
           {empty && (
-            <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "6px 0", lineHeight: 1.5 }}>
-              Pick a class on the left, or a dotted day on the calendar, to browse its study materials, worksheets, booklets and recordings.
+            <div style={{ textAlign: "center", padding: "26px 10px", color: "var(--fg4)" }}>
+              <Icon path={ICON.library} size={30} style={{ color: "var(--fg5-decorative)", display: "block", margin: "0 auto" }} />
+              <div style={{ fontSize: 13.5, fontWeight: 600, marginTop: 8, color: "var(--fg3)" }}>Nothing selected yet</div>
+              <div style={{ fontSize: 12.5, marginTop: 3, lineHeight: 1.5, maxWidth: 300, marginInline: "auto" }}>
+                Pick a class, or a dotted day on the calendar, to browse its study materials, worksheets, booklets and recordings.
+              </div>
             </div>
           )}
           {items.map((it, i) => (

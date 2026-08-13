@@ -177,7 +177,7 @@ export function PdfPreviewModal({ open, onClose, fileName, meta, kind = "doc", u
               </button>
             );
           })}
-          <span style={{ flex: 1 }} />
+          <span className="ev-spacer-flex" style={{ flex: 1 }} />
           <button onClick={clearAll} className="btn-ghost" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, background: "rgba(255,255,255,.7)" }}>
             Clear annotations
           </button>

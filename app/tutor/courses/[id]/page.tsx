@@ -101,8 +101,8 @@ export default function TutorCoursePage() {
       <div style={{ gridColumn: "span 12", position: "relative", borderRadius: 20, overflow: "hidden", minHeight: 128, boxShadow: "0 18px 40px -20px rgba(0,32,63,.4)", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .06s backwards" }}>
         <div className="ev-kenburns" style={{ position: "absolute", inset: 0, backgroundImage: `url(${cd.photo})`, backgroundSize: "cover", backgroundPosition: "center", animation: ["evkenburns1 26s", "evkenburns2 31s", "evkenburns3 35s"][id.charCodeAt(0) % 3] + " ease-in-out infinite" }} />
         <div style={{ position: "absolute", inset: 0, background: cd.grad }} />
-        <div style={{ position: "relative", zIndex: 1, padding: "22px 26px", color: "#fff", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, minHeight: 128, boxSizing: "border-box" }}>
-          <div>
+        <div className="ev-wrap-row" style={{ position: "relative", zIndex: 1, padding: "22px 26px", color: "#fff", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, minHeight: 128, boxSizing: "border-box" }}>
+          <div className="ev-wrap-full">
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, opacity: 0.8 }}>
               {DELIVERY_META[cd.delivery].label.toUpperCase()}{cd.centre.toLowerCase() !== "online" ? " · " + cd.centre.toUpperCase() : ""} · {cd.sched.toUpperCase()}
             </div>
@@ -112,7 +112,7 @@ export default function TutorCoursePage() {
               {cd.isBlock ? " · one room, three rosters" : ""}
             </div>
           </div>
-          <div style={{ display: "flex", gap: 9, flex: "none", flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <div className="ev-wrap-full" style={{ display: "flex", gap: 9, flex: "none", flexWrap: "wrap", justifyContent: "flex-end" }}>
             {cd.delivery === "online" && (
               <Link href="/tutor/grade" className="btn-ghost" style={{ height: 36, padding: "0 16px", borderRadius: 11, fontSize: 12.5, display: "inline-flex", alignItems: "center", textDecoration: "none", background: "rgba(255,255,255,.9)" }}>
                 Mark work{toMark.length > 0 ? " (" + toMark.length + ")" : ""}
@@ -153,7 +153,7 @@ export default function TutorCoursePage() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, flexWrap: "wrap" }}>
               <h2 className="portal-section-title" style={{ fontSize: 15, margin: 0 }}>Block timeline and attendance</h2>
               <span style={{ fontSize: 11, fontWeight: 700, color: "var(--brand-600)", background: "rgba(0,157,255,.1)", padding: "3px 10px", borderRadius: 980 }}>One room · one link · 4:00pm to 7:00pm</span>
-              <span style={{ flex: 1 }} />
+              <span className="ev-spacer-flex" style={{ flex: 1 }} />
               <label style={{ fontSize: 11.5, color: "var(--fg3)", fontWeight: 600 }}>
                 Session date{" "}
                 <select value={selDate} onChange={(e) => setAttDate(e.target.value)} className="field" style={{ height: 30, width: "auto", padding: "0 8px", fontSize: 12, display: "inline-block" }}>
@@ -205,7 +205,7 @@ export default function TutorCoursePage() {
               <Link href={"/tutor/classroom/" + cd.id} style={{ fontSize: 11, fontWeight: 700, color: cd.color, background: cd.bg, padding: "4px 10px", borderRadius: 980, textDecoration: "none" }}>
                 Open classroom
               </Link>
-              <span style={{ flex: 1 }} />
+              <span className="ev-spacer-flex" style={{ flex: 1 }} />
               <label style={{ fontSize: 11.5, color: "var(--fg3)", fontWeight: 600 }}>
                 Session date{" "}
                 <select value={selDate} onChange={(e) => setAttDate(e.target.value)} className="field" style={{ height: 30, width: "auto", padding: "0 8px", fontSize: 12, display: "inline-block" }}>
@@ -217,7 +217,7 @@ export default function TutorCoursePage() {
                 </select>
               </label>
             </div>
-            <div style={{ columns: 2, columnGap: 24 }}>
+            <div className="ev-cols-2" style={{ columns: 2, columnGap: 24 }}>
               <AttendancePanel sessionId={cd.id} dateKey={selDate} accent={cd.color} />
             </div>
           </div>
@@ -254,7 +254,7 @@ export default function TutorCoursePage() {
         {courseAssignments.length === 0 ? (
           <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "6px 0" }}>Nothing assigned to this class yet.</div>
         ) : (
-          <div className="ev-scroll-x">
+          <div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               {courseAssignments.map((a, i) => {
                 const sm = ASSIGN_STATUS_META[a.status];
@@ -263,13 +263,14 @@ export default function TutorCoursePage() {
                 return (
                   <div
                     key={a.id}
+                    className="ev-wrap-row"
                     style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 0", borderBottom: i < courseAssignments.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}
                   >
                     <span style={{ width: 32, height: 32, borderRadius: 9, background: cd.bg, color: cd.color, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
                       <Icon path={ICON.doc} size={14} />
                     </span>
-                    <span style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</span>
+                    <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
+                      <span className="ev-title-2" style={{ display: "block", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</span>
                       <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>
                         {targetLabel(a.target)} · assigned {assignedAtLabel(a.assignedAt)}{due ? " · due " + due : ""}
                       </span>
@@ -278,24 +279,24 @@ export default function TutorCoursePage() {
                       {km.label}
                     </span>
                     <span style={{ fontSize: 10.5, fontWeight: 700, color: sm.color, background: sm.bg, padding: "3px 9px", borderRadius: 980, flex: "none" }}>{sm.label}</span>
+                    <button
+                      onClick={() => removeAssignment(a.id)}
+                      aria-label="Remove assignment"
+                      title="Remove"
+                      className="press ev-tap ev-row-end"
+                      style={{ width: 24, height: 24, borderRadius: 8, border: "none", background: "rgba(224,65,65,.08)", color: "var(--danger-500)", fontSize: 12, cursor: "pointer", flex: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
+                    >
+                      ✕
+                    </button>
                     {a.kind === "worksheet" && a.status === "submitted" && (
                       <button
                         onClick={() => setAssignmentStatus(a.id, "graded")}
-                        className="btn-ghost press"
+                        className="btn-ghost press ev-wrap-cta"
                         style={{ height: 26, padding: "0 10px", borderRadius: 8, fontSize: 11, flex: "none", background: "rgba(255,255,255,.7)", color: "var(--success-700)" }}
                       >
                         Mark as graded
                       </button>
                     )}
-                    <button
-                      onClick={() => removeAssignment(a.id)}
-                      aria-label="Remove assignment"
-                      title="Remove"
-                      className="press"
-                      style={{ width: 24, height: 24, borderRadius: 8, border: "none", background: "rgba(224,65,65,.08)", color: "var(--danger-500)", fontSize: 12, cursor: "pointer", flex: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
-                    >
-                      ✕
-                    </button>
                   </div>
                 );
               })}
@@ -394,7 +395,7 @@ export default function TutorCoursePage() {
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                           <span style={{ fontSize: 10.5, fontWeight: 700, color: meta.color, background: meta.bg, padding: "3px 9px", borderRadius: 980 }}>{status}</span>
                           <span style={{ fontSize: 10.5, color: "var(--fg4)" }}>{r.ref}</span>
-                          <span style={{ flex: 1 }} />
+                          <span className="ev-spacer-flex" style={{ flex: 1 }} />
                           <button onClick={() => requestFor(sess.id)} className="btn-ghost press" style={{ height: 26, padding: "0 11px", borderRadius: 8, fontSize: 11, background: "rgba(255,255,255,.7)", color: "var(--brand-600)" }}>Reorder</button>
                         </div>
                         {r.items.map((it) => (
@@ -487,13 +488,13 @@ export default function TutorCoursePage() {
       <div className="glass-card" style={{ gridColumn: "span 6", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .24s backwards" }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
           <h2 className="portal-section-title" style={{ fontSize: 15 }}>Worksheet activity</h2>
-          <Link href="/tutor/grade" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Open marking</Link>
+          <Link href="/tutor/grade" className="ev-tap-link" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Open marking</Link>
         </div>
         {courseSubs.slice(0, 4).map((s, i, arr) => (
           <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 0", borderBottom: i < arr.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
             <span style={{ width: 32, height: 32, borderRadius: "50%", background: cd.bg, color: cd.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10.5, fontWeight: 700, flex: "none" }}>{s.init}</span>
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.student} · {s.wsName}</span>
+              <span className="ev-title-2" style={{ display: "block", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.student} · {s.wsName}</span>
               <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>{s.when}</span>
             </span>
             {s.marked ? (
@@ -514,7 +515,7 @@ export default function TutorCoursePage() {
       <div className="glass-card" style={{ gridColumn: "span 6", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .26s backwards" }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
           <h2 className="portal-section-title" style={{ fontSize: 15 }}>Student marks &amp; outlines</h2>
-          <Link href="/tutor/outlines" style={{ fontSize: 12, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>All outlines</Link>
+          <Link href="/tutor/outlines" className="ev-tap-link" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>All outlines</Link>
         </div>
         <p style={{ margin: "0 0 8px", fontSize: 11.5, color: "var(--fg4)" }}>Marks students record in their own Assessment Tracker show here automatically.</p>
         {outlines.length === 0 ? (
@@ -567,7 +568,7 @@ export default function TutorCoursePage() {
 function PriorRequests({ requests, onReorder }: { requests: BookletRequest[]; onReorder: () => void }) {
   if (requests.length === 0) return null;
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6, paddingLeft: 75 }}>
+    <div className="ev-chip-row" style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6, paddingLeft: 75 }}>
       {requests.flatMap((r) => {
         const dig = r.delivery === "digital";
         const status = dig ? "Delivered" : r.approval === "approved" ? PRINTING_META[r.printing].label : APPROVAL_META[r.approval].label;
@@ -581,7 +582,7 @@ function PriorRequests({ requests, onReorder }: { requests: BookletRequest[]; on
             style={{ display: "inline-flex", alignItems: "center", gap: 6, maxWidth: "100%", border: "1px solid rgba(0,32,63,.1)", background: "rgba(255,255,255,.6)", borderRadius: 980, padding: "3px 10px", cursor: "pointer", fontFamily: "inherit" }}
           >
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: meta.color, flex: "none" }} />
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: "var(--fg2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{it.name}</span>
+            <span className="ev-title-2" style={{ fontSize: 10.5, fontWeight: 700, color: "var(--fg2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{it.name}</span>
             <span style={{ fontSize: 10, color: "var(--fg4)", flex: "none" }}>· {status}</span>
           </button>
         ));

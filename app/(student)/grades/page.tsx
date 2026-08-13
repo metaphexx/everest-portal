@@ -21,10 +21,10 @@ export default function GradesPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
-      <div className="ev-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 14 }}>
+      <div className="ev-grid-3 ev-stats-2up" style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 14 }}>
         <Stat label="TOTAL SUBMISSIONS" value={String(allRows.length)} note="This term" />
         <Stat label="COMPLETION RATE" value={<>{completionPct}<span style={{ fontSize: 15, color: "var(--fg4)" }}>%</span></>} note="Submitted vs assigned" noteColor="var(--success-500)" />
-        <Stat label="TUTOR REMARKS" value={String(gradedCount)} note="Pieces of feedback received" />
+        <Stat label="TUTOR REMARKS" value={String(gradedCount)} note="Feedback received" />
       </div>
 
       <div className="glass-card" style={{ padding: "20px 22px" }}>
@@ -38,7 +38,7 @@ export default function GradesPage() {
               <button key={f} onClick={() => setGf(f)} style={{ height: 30, padding: "0 14px", borderRadius: 8, border: "none", fontFamily: "inherit", fontSize: 12, fontWeight: 600, cursor: "pointer", textTransform: "capitalize", background: gf === f ? "#FFFFFF" : "transparent", color: gf === f ? "var(--fg1)" : "var(--fg3)", boxShadow: gf === f ? "0 2px 6px rgba(0,32,63,.12)" : "none" }}>{f}</button>
             ))}
           </div>
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
+          <div className="ev-push-end" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 11.5, color: "var(--fg4)", marginRight: 4 }}>Export</span>
             {["CSV", "XLSX", "PDF"].map((x) => (
               <button key={x} onClick={() => notWired(x + " export")} className="btn-ghost" style={{ height: 30, padding: "0 12px", borderRadius: 9, fontSize: 11.5, color: "var(--fg2)", background: "rgba(255,255,255,.7)" }}>{x}</button>
@@ -46,7 +46,26 @@ export default function GradesPage() {
           </div>
         </div>
 
-        <div className="thin-scroll" style={{ overflowX: "auto" }}>
+        {/* Phones get real cards, not a sideways-scrolling table. A student's
+            grade is the whole point of this page, and in a 640px-wide table it
+            sits off the right edge of a 375px screen. */}
+        <div className="ev-only-mobile" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {rows.map((g, i) => (
+            <div key={i} style={{ border: "1px solid rgba(0,32,63,.08)", borderRadius: 14, background: "rgba(255,255,255,.6)", padding: "13px 15px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <a href="#" onClick={(e) => { e.preventDefault(); notWired("Downloading the worksheet"); }} className="ev-tap-link" style={{ display: "block", fontSize: 13, fontWeight: 700, color: "var(--brand-600)", textDecoration: "none" }}>{g.wsName}</a>
+                  <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 1 }}>{g.cls} · {g.at}</div>
+                </div>
+                <span style={{ flex: "none", fontSize: 11.5, fontWeight: 700, padding: "4px 11px", borderRadius: 980, background: g.graded ? "rgba(34,160,91,.12)" : "rgba(245,166,35,.16)", color: g.graded ? "var(--success-700)" : "var(--warn-700)" }}>{g.grade}</span>
+              </div>
+              <div style={{ fontSize: 12, color: "var(--fg2)", lineHeight: 1.45, marginTop: 8 }}>{g.fb}</div>
+              <a href="#" onClick={(e) => { e.preventDefault(); notWired("Downloading your file"); }} className="ev-tap-link" style={{ fontSize: 11.5, color: "var(--fg3)", textDecoration: "none", marginTop: 2 }}>{g.file}</a>
+            </div>
+          ))}
+        </div>
+
+        <div className="thin-scroll ev-only-desktop" style={{ overflowX: "auto" }}>
           <div style={{ minWidth: 640 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1.3fr .9fr .75fr 1.6fr", gap: 12, padding: "8px 10px", fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, color: "var(--fg4)", borderBottom: "1px solid rgba(0,32,63,.1)" }}>
               <div>CLASS</div><div>WORKSHEET / MY FILE</div><div>SUBMITTED</div><div>GRADE</div><div>TUTOR FEEDBACK</div>
@@ -68,7 +87,7 @@ export default function GradesPage() {
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 12 }}>
           <span style={{ fontSize: 12, color: "var(--fg4)" }}>Showing {rows.length} of {allRows.length} submissions</span>
-          <div style={{ display: "flex", gap: 4 }}>
+          <div className="ev-only-desktop" style={{ display: "flex", gap: 4 }}>
             <button className="mini-nav" style={{ width: 28, height: 28, borderRadius: 9, fontSize: 13, color: "var(--fg5-decorative)" }}>‹</button>
             <button className="mini-nav" style={{ width: 28, height: 28, borderRadius: 9, fontSize: 13, color: "var(--fg5-decorative)" }}>›</button>
           </div>

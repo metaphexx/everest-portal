@@ -50,7 +50,9 @@ export default function SupportPage() {
         {/* New request */}
         <div className="glass-card" style={{ padding: "20px 22px" }}>
           <h2 style={{ margin: "0 0 4px", fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Send a support request</h2>
-          <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--fg3)" }}>It lands with a person and you can track it on the right.</p>
+          {/* Was "track it on the right" - there is no right-hand column on a
+              phone, where the tracker sits below the form instead. */}
+          <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--fg3)" }}>It lands with a person, and you can track it any time.</p>
           <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--fg2)", marginBottom: 5 }}>Issue type</div>
           <select value={type} onChange={(e) => setType(e.target.value)} className="field" style={{ padding: "0 10px", marginBottom: 12 }}>
             <option value="">Choose a category</option>
@@ -110,7 +112,7 @@ export default function SupportPage() {
               <Icon path="M5 12l5 5L20 7" size={20} stroke />
             </div>
             <div style={{ fontSize: 13.5, fontWeight: 700 }}>No requests yet</div>
-            <div style={{ fontSize: 12, color: "var(--fg4)", marginTop: 4, lineHeight: 1.5 }}>Send one from the left, or just tell Elliot what&apos;s wrong and he&apos;ll log it for you.</div>
+            <div style={{ fontSize: 12, color: "var(--fg4)", marginTop: 4, lineHeight: 1.5 }}>Send one using the form above, or just tell Elliot what&apos;s wrong and he&apos;ll log it for you.</div>
           </div>
         )}
 
@@ -179,7 +181,7 @@ function RequestRow({
               </span>
               <span style={{ flex: 1 }}>
                 <span style={{ display: "block", fontSize: 12.5, fontWeight: 500, color: "var(--fg1)", lineHeight: 1.5 }}>{u.text}</span>
-                <span style={{ display: "block", fontSize: 10, color: "var(--fg6-faint)", marginTop: 1 }}>{u.who === "team" ? "Everest team" : "You"} · {timeAgo(u.at)}</span>
+                <span style={{ display: "block", fontSize: 10, color: "var(--fg4)", marginTop: 1 }}>{u.who === "team" ? "Everest team" : "You"} · {timeAgo(u.at)}</span>
               </span>
             </div>
           ))}

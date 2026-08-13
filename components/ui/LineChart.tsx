@@ -41,7 +41,7 @@ export function LineChart({
 
   const W = Math.max(320, w);
   const H = height;
-  const padL = 34;
+  const padL = 38;
   const padR = 14;
   const padT = 14;
   const padB = 26;
@@ -70,14 +70,23 @@ export function LineChart({
           return (
             <g key={r}>
               <line x1={padL} y1={gy} x2={W - padR} y2={gy} stroke="rgba(0,32,63,.08)" strokeWidth={1} />
-              <text x={padL - 6} y={gy + 3} textAnchor="end" fontSize={9} fill="var(--fg4)" fontFamily="var(--font-body)">{val}</text>
+              <text x={padL - 6} y={gy + 3.5} textAnchor="end" fontSize={10} fill="var(--fg4)" fontFamily="var(--font-body)">{val}</text>
             </g>
           );
         })}
-        {/* x labels */}
-        {labels.map((lb, i) => (
-          <text key={i} x={x(i)} y={H - 8} textAnchor="middle" fontSize={9} fill="var(--fg4)" fontFamily="var(--font-body)">{lb}</text>
-        ))}
+        {/* x labels - thinned when the plot is too narrow to hold them all.
+            A date like "12 May" needs ~44px at 9px; below that the labels run
+            together into a smear, which is what a phone-width chart did. */}
+        {labels.map((lb, i) => {
+          const every = Math.max(1, Math.ceil((n * 44) / Math.max(1, plotW)));
+          const isLast = i === n - 1;
+          // The last label is always drawn, so drop any kept label sitting
+          // within 44px of it - a count-based guard let the final pair collide.
+          if (!isLast && (i % every !== 0 || x(n - 1) - x(i) < 44)) return null;
+          return (
+            <text key={i} x={x(i)} y={H - 8} textAnchor={isLast ? "end" : i === 0 ? "start" : "middle"} fontSize={10} fill="var(--fg4)" fontFamily="var(--font-body)">{lb}</text>
+          );
+        })}
         {/* series */}
         {series.map((s) => (
           <g key={s.label}>

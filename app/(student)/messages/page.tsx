@@ -111,7 +111,7 @@ function MessagesInner() {
   );
 
   const title = active ? (active.kind === "admin" ? "Everest Support" : active.tutor?.name ?? "") : "";
-  const subtitle = active ? (active.kind === "admin" ? "The Everest team · typically replies within a day" : (active.course ?? "") + " · tied to your class") : "";
+  const subtitle = active ? (active.kind === "admin" ? "The Everest team · typically replies within a day" : (active.course ?? "")) : "";
 
   return (
     <div className="ev-split" style={{ display: "grid", gridTemplateColumns: "286px 1fr", gap: 16, height: "calc(100vh - 210px)", minHeight: 480, animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
@@ -186,11 +186,11 @@ function MessagesInner() {
                   </div>
                   <div style={{ fontSize: 11, color: unread ? "var(--fg2)" : "var(--fg4)", fontWeight: unread ? 600 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {t.kind === "admin" ? "" : (t.course ?? "") + " · "}
-                    {last ? (last.role === "system" ? "Update" : (last.senderId === STUDENT_ME ? "You: " : "") + (last.text || "Attachment")) : "No messages yet"}
+                    {last ? (last.role === "system" ? "Update" : (last.senderId === STUDENT_ME ? "You: " : "") + (last.text ? last.text.replace(/[.\s]+$/, "") : "Attachment")) : "No messages yet"}
                   </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flex: "none" }}>
-                  {last && <span style={{ fontSize: 9.5, color: "var(--fg6-faint)" }}>{fmtWhen(last.sentAt, Date.now())}</span>}
+                  {last && <span style={{ fontSize: 9.5, color: "var(--fg4)" }}>{fmtWhen(last.sentAt, Date.now())}</span>}
                   <UnreadBadge n={unread} />
                 </div>
               </button>

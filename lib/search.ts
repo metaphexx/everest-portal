@@ -122,7 +122,20 @@ function buildIndex(outlines: Outline[], dueCount: number): Indexable[] {
     { name: "Settings", meta: "Page · profile and login", color: "#66707F", page: "/settings" },
     { name: "You have " + dueCount + " worksheets due", meta: "Dashboard · submit from My Drive", color: "#E04141", page: "/drive" }
   );
-  return idx;
+  // The static seed list and the live index both describe some of the same
+  // things (a course, an uploaded outline), so "chemistry" was returning
+  // "Chemistry" twice and inflating the result count. Same name pointing at the
+  // same page is the same result - keep whichever entry says more.
+  const byKey = new Map<string, Indexable>();
+  for (const item of idx) {
+    // Key on the name plus the CATEGORY (the bit before the first "·"), not the
+    // page: the seed entry and the live one often route differently while
+    // describing the same thing.
+    const k = item.name.toLowerCase() + "|" + item.meta.split("·")[0].trim().toLowerCase();
+    const seen = byKey.get(k);
+    if (!seen || item.meta.length > seen.meta.length) byKey.set(k, item);
+  }
+  return [...byKey.values()];
 }
 
 /** Question-shaped queries get a direct answer row above the results. */

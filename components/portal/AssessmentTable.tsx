@@ -33,6 +33,7 @@ function ScoreCell({ a, onSave }: { a: Assessment; onSave: (score: string) => vo
           setEditing(true);
         }}
         title={a.score ? "Edit your score" : "Add the score you got"}
+        className="ev-tap-area"
         style={{
           border: "1px dashed " + (a.score ? "transparent" : "rgba(0,32,63,.25)"),
           background: a.score ? (pct !== null && pct >= 75 ? "rgba(34,160,91,.12)" : pct !== null && pct >= 55 ? "rgba(245,166,35,.16)" : "rgba(224,65,65,.12)") : "transparent",
@@ -82,6 +83,7 @@ function WeightCell({ a, onSave }: { a: Assessment; onSave: (weight: string) => 
           setEditing(true);
         }}
         title="Edit the weighting"
+        className="ev-tap-area"
         style={{ border: "none", background: "transparent", fontFamily: "inherit", fontSize: 12.5, fontWeight: 700, color: a.weight ? "var(--fg1)" : "var(--fg4)", cursor: "pointer", padding: 0, textDecoration: "underline dotted rgba(0,32,63,.3)", textUnderlineOffset: 3 }}
       >
         {a.weight || "add"}
@@ -122,8 +124,43 @@ export function AssessmentTable({
   const cols = compact ? "auto 1.6fr .55fr .6fr .75fr" : "auto 1.7fr .8fr .5fr .6fr .55fr .75fr";
   return (
     <div>
-      <div className="ev-scroll-x">
-      <div>
+      {/* Phones get cards. A 620px table scrolling sideways inside a 289px card
+          slices the TYPE badge in half at the boundary, which reads as broken
+          rather than as scrollable - and a student should not have to swipe to
+          see the weight of an assessment. */}
+      <div className="ev-only-mobile" style={{ flexDirection: "column", gap: 10 }}>
+        {outline.assessments.map((a) => (
+          <div key={a.id} style={{ border: "1px solid rgba(0,32,63,.08)", borderRadius: 14, background: "rgba(255,255,255,.6)", padding: "12px 14px", opacity: a.done ? 0.72 : 1 }}>
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={!!a.done}
+                onChange={(e) => onUpdate(a.id, { done: e.target.checked })}
+                aria-label={"Mark " + a.name + " as done"}
+                className="ev-tap-area"
+                style={{ marginTop: 1 }}
+              />
+              <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, textDecoration: a.done ? "line-through" : "none", textDecorationColor: "rgba(0,32,63,.35)" }}>{a.name}</span>
+              {!compact && (
+                <span style={{ flex: "none", fontSize: 10.5, fontWeight: 700, color: "var(--brand-600)", background: "rgba(0,157,255,.1)", padding: "3px 9px", borderRadius: 980 }}>{a.type}</span>
+              )}
+            </label>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px 16px", marginTop: 9, fontSize: 12, color: "var(--fg3)" }}>
+              {!compact && <span>Week {a.week}</span>}
+              <span>{a.due}</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                Weight <WeightCell a={a} onSave={(weight) => onUpdate(a.id, { weight })} />
+              </span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginLeft: "auto" }}>
+                Score <ScoreCell a={a} onSave={(score) => onUpdate(a.id, { score: score || undefined, done: score ? true : a.done })} />
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="ev-scroll-x ev-only-desktop">
+      <div style={{ minWidth: compact ? 420 : 620 }}>
       <div style={{ display: "grid", gridTemplateColumns: cols, gap: 10, padding: "8px 10px", fontSize: 10.5, fontWeight: 700, letterSpacing: 0.5, color: "var(--fg4)", borderBottom: "1px solid rgba(0,32,63,.1)", alignItems: "center" }}>
         <div style={{ width: 16 }} aria-hidden="true" />
         <div>ASSESSMENT</div>
@@ -161,7 +198,7 @@ export function AssessmentTable({
       ))}
       </div>
       </div>
-      <div style={{ fontSize: 10.5, color: "var(--fg6-faint)", padding: "8px 10px 0" }}>
+      <div style={{ fontSize: 11.5, color: "var(--fg4)", padding: "8px 10px 0" }}>
         Tick assessments off as you sit them, and tap a weight or score to edit. Your tutor sees the same progress.
       </div>
     </div>

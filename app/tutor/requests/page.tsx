@@ -81,7 +81,7 @@ export default function MyRequestsPage() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search requests by reference, class, file or status"
+              placeholder="Search requests"
               aria-label="Search requests"
               style={{ border: "none", background: "transparent", fontFamily: "inherit", fontSize: 13, color: "var(--fg1)", flex: 1, minWidth: 0 }}
             />
@@ -95,7 +95,61 @@ export default function MyRequestsPage() {
             {visible.length} of {requests.length} request{requests.length === 1 ? "" : "s"}
           </span>
         </div>
-        <div className="ev-scroll-x"><div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr .7fr auto auto auto", gap: "0 14px", alignItems: "center", minWidth: 680 }}>
+        {/* Phones get cards. At 375px the 680px grid cut the DATE column through
+            the middle of a glyph ("1 Ju", "202"), which reads as a rendering
+            fault rather than as a table you can swipe. */}
+        <div className="ev-only-mobile" style={{ flexDirection: "column", gap: 10 }}>
+          {visible.map((r) => {
+            const am = APPROVAL_META[r.approval];
+            const pm = PRINTING_META[r.printing];
+            const open = openId === r.id;
+            return (
+              <div key={r.id} style={{ border: "1px solid rgba(0,32,63,.08)", borderRadius: 14, background: "rgba(255,255,255,.6)", padding: "13px 15px" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700 }}>{r.ref}</div>
+                    <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 2 }}>{r.classText} · {r.date}</div>
+                  </div>
+                  <span style={{ flex: "none" }}><StatPill label={am.label} color={am.color} bg={am.bg} /></span>
+                </div>
+                <div style={{ fontSize: 12, color: "var(--fg3)", marginTop: 7 }}>
+                  {r.items.length} file{r.items.length === 1 ? "" : "s"} · {r.items.reduce((n, it) => n + it.qty, 0)} copies
+                  {r.approval === "approved" ? " · " + pm.label : ""}
+                </div>
+                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                  {r.approval === "pending" && (
+                    <button onClick={() => { editRequest(r.id); router.push("/tutor/cart"); }} className="btn-primary press" style={{ flex: 1, height: 36, borderRadius: 9, fontSize: 12 }}>Edit</button>
+                  )}
+                  <button onClick={() => setOpenId(open ? null : r.id)} className="btn-ghost press" style={{ flex: 1, height: 36, borderRadius: 9, fontSize: 12, color: "var(--brand-600)", background: "rgba(255,255,255,.7)" }}>
+                    {open ? "Hide details" : "View details"}
+                  </button>
+                </div>
+                {open && (
+                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(0,32,63,.08)", fontSize: 12.5, color: "var(--fg2)", lineHeight: 1.65 }}>
+                    <DetailLabel>FILES REQUESTED</DetailLabel>
+                    {r.items.map((it) => (
+                      <div key={it.itemId} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "3px 0" }}>
+                        <span style={{ minWidth: 0 }}>{it.name}</span>
+                        <span style={{ fontWeight: 700, color: "var(--fg3)", flex: "none" }}>× {it.qty}</span>
+                      </div>
+                    ))}
+                    <DetailLabel style={{ marginTop: 10 }}>PRINT JOB</DetailLabel>
+                    {r.printer}
+                    <br />
+                    {r.format.paper} · {r.format.sides} · {r.format.colour} · {r.format.orientation} · {r.format.staple}
+                    <DetailLabel style={{ marginTop: 10 }}>REMARK</DetailLabel>
+                    {r.remark}
+                    {r.note && (
+                      <div style={{ marginTop: 10, fontWeight: 600, color: "var(--danger-500)", background: "rgba(224,65,65,.08)", borderRadius: 10, padding: "8px 11px" }}>{r.note}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="ev-scroll-x ev-only-desktop"><div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr .7fr auto auto auto", gap: "0 14px", alignItems: "stretch", minWidth: 680 }}>
           <HeadCell>REQUEST</HeadCell>
           <HeadCell>FOR</HeadCell>
           <HeadCell>DATE</HeadCell>

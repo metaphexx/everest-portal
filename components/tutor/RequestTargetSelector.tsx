@@ -18,7 +18,7 @@ function Tile({ icon, title, subtitle, chip, active, onClick }: { icon: string; 
   return (
     <button
       onClick={onClick}
-      className="list-hover"
+      className="list-hover ev-wrap-row"
       style={{
         display: "flex",
         alignItems: "center",
@@ -36,8 +36,8 @@ function Tile({ icon, title, subtitle, chip, active, onClick }: { icon: string; 
       <span style={{ width: 38, height: 38, borderRadius: "50%", flex: "none", background: "linear-gradient(135deg,var(--accent-violet-light),var(--accent-blue-light))", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Icon path={icon} size={18} />
       </span>
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: "block", fontSize: 13, fontWeight: 700, color: "var(--fg1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</span>
+      <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
+        <span className="ev-title-2" style={{ display: "block", fontSize: 13, fontWeight: 700, color: "var(--fg1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</span>
         <span style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{subtitle}</span>
       </span>
       {chip}
@@ -100,7 +100,7 @@ export function RequestTargetSelector({ hideCartLink }: { hideCartLink?: boolean
             </span>
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 13.5, fontWeight: 700, color: "var(--fg1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <span className="ev-title-2" style={{ fontSize: 13.5, fontWeight: 700, color: "var(--fg1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {ctxClass ? classLabel(ctxClass) : "Custom Request"}
                 </span>
                 {ctxCd && <DeliveryChip delivery={ctxCd.delivery} />}

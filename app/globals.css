@@ -217,6 +217,46 @@ select:focus-visible,
   border-color: var(--brand-500);
 }
 
+/* Native <select> is the one control the OS still draws itself, and a raw
+   grey system dropdown next to a frosted glass card is the loudest break in
+   the whole language. Styling the element type (not a class) means every
+   select in both portals inherits it - there are 24 of them. */
+/* The !important flags are deliberate: every one of these selects carries an
+   inline `background:` shorthand or `padding:` shorthand from its page, and a
+   shorthand would otherwise wipe out the chevron image and its gutter. */
+select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  box-sizing: border-box;
+  border-radius: 11px;
+  border: 1px solid var(--border-default);
+  background-color: rgba(255, 255, 255, 0.8);
+  /* Our own chevron, drawn in --fg3 so it matches the icon set. */
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%235B7085' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  padding-right: 32px !important;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--fg1);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+select:hover:not(:disabled) {
+  border-color: rgba(0, 157, 255, 0.4);
+}
+select:disabled {
+  background-color: rgba(0, 32, 63, 0.04);
+  color: var(--fg4);
+  cursor: not-allowed;
+  opacity: 1; /* Safari greys disabled selects out to near-invisible */
+}
+/* The options list itself is OS-drawn; only the colours are ours to set. */
+select option {
+  color: var(--fg1);
+  background: #ffffff;
+}
+
 /* Scrollbars stay quiet */
 .thin-scroll::-webkit-scrollbar {
   width: 8px;
@@ -320,6 +360,47 @@ select:focus-visible,
   }
 }
 
+/* ---------- Loading mark ("summit draw") ----------
+   The brand loader: the Everest peak draws itself in outline, fills, then
+   fades and repeats. Pure SVG + CSS, no JS. Rendered by
+   `components/ui/Loader.tsx` - use that rather than hand-rolling a spinner.
+
+   --ev-size  sets the WIDTH; the mark is 1000x629, so height is 0.63x that.
+   --ev-speed is a loop multiplier (1 = the slow original).
+   The mark inherits `currentColor`, so set `color` for dark heroes. */
+.ev-loader {
+  --ev-size: 64px;
+  --ev-speed: 1.7;
+  display: inline-block;
+  width: var(--ev-size);
+  color: var(--brand-500);
+}
+.ev-loader svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* The stroke sits half outside the viewBox; at these sizes that is well
+     under a pixel, but visible clipping would look like a broken glyph. */
+  overflow: visible;
+}
+.ev-loader path {
+  stroke-dasharray: 100;
+  animation: ev-loader-draw calc(2.6s / var(--ev-speed)) cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+@keyframes ev-loader-draw {
+  0% { stroke-dashoffset: 100; fill-opacity: 0; }
+  55% { stroke-dashoffset: 0; fill-opacity: 0; }
+  70% { fill-opacity: 1; }
+  86% { opacity: 1; }
+  96%, 100% { stroke-dashoffset: 0; fill-opacity: 1; opacity: 0; }
+}
+/* Unlike the decorative loops above, this one is stopped outright rather than
+   slowed: it is a self-drawing mark, so a 6s crawl would read as a hung page.
+   The static filled peak still says "working" without any motion. */
+@media (prefers-reduced-motion: reduce) {
+  .ev-loader path { animation: none; }
+}
+
 .row-hover { transition: background 0.18s ease; }
 .row-hover:hover { background: rgba(255, 255, 255, 0.5); }
 
@@ -359,8 +440,17 @@ select:focus-visible,
 /* Small isolated icon buttons (mark-as-read, table row actions) that have
    room around them - grown more generously since there is no tight neighbour
    to risk overlapping with. */
+/* Expands a small control's tap area by 8px on every side. The pseudo-element
+   is absolutely positioned OUTSIDE the element's box, so on a control sitting
+   at the right edge of a row it adds ~7px of scrollable overflow to that row -
+   invisible, but a real horizontal scroll. On phones the shared `.ev-tap`
+   rules already guarantee a 40px box, so the outset is redundant there and is
+   pulled back in. */
 .hit-area-8 { position: relative; }
 .hit-area-8::after { content: ""; position: absolute; inset: -8px; }
+@media (max-width: 720px) {
+  .hit-area-8::after { inset: 0; }
+}
 
 .fab-btn:hover { transform: scale(1.06); }
 .fab-btn:active { transform: scale(0.94); }
@@ -491,6 +581,16 @@ select:focus-visible,
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  /* Photo heroes hold absolutely-positioned content, so they cannot grow with
+     it. At 375px the title wraps to two lines and the "Next session" value was
+     clipped by the bottom edge. */
+  .ev-hero-tall { min-height: 240px !important; }
+
+  /* Tab strips scroll sideways rather than wrapping a stray tab onto a second
+     line underneath the pill container. */
+  .ev-tabs-scroll { flex-wrap: nowrap !important; }
+  .ev-tabs-scroll > button { white-space: nowrap; flex: none; }
 }
 
 /* Two-up card grids fold to one column a little later, on phones. */
@@ -582,13 +682,38 @@ select:focus-visible,
     gap: 0 10px !important;
     align-items: start !important;
   }
+  /* The third and fourth cells ARE the controls - they are direct grid items,
+     not wrappers around one - so the button/link selectors have to be written
+     against the item itself. Default everything to hugging its content, then
+     stretch only real actions: the third cell is sometimes a status pill, and
+     stretching that turned a small coral "Rejected" chip into a full-width bar
+     that read as a destructive button above the real one. */
   .ev-upcoming-grid > :nth-child(4n + 3),
   .ev-upcoming-grid > :nth-child(4n + 4) {
     grid-column: 2;
     justify-self: start;
     margin-bottom: 8px;
   }
-  .ev-upcoming-grid > :nth-child(4n + 2) { padding-bottom: 4px !important; }
+  .ev-upcoming-grid > button:nth-child(4n + 3),
+  .ev-upcoming-grid > a:nth-child(4n + 3),
+  .ev-upcoming-grid > button:nth-child(4n + 4),
+  .ev-upcoming-grid > a:nth-child(4n + 4) {
+    justify-self: stretch;
+    width: 100%;
+    justify-content: center;
+  }
+  /* The row divider is drawn on the text cell. Once the actions wrap below it,
+     that line lands INSIDE the row and the buttons read as belonging to the
+     next class - so the divider moves to the last cell of the group. */
+  .ev-upcoming-grid > :nth-child(4n + 2) {
+    padding-bottom: 4px !important;
+    border-bottom: none !important;
+  }
+  .ev-upcoming-grid > :nth-child(4n + 4) {
+    border-bottom: 1px solid rgba(0, 32, 63, 0.06);
+    padding-bottom: 10px;
+    width: 100%;
+  }
 }
 @media (max-width: 420px) {
   .ev-hide-mobile { display: none !important; }
@@ -598,8 +723,47 @@ select:focus-visible,
 
 /* Genuinely tabular content scrolls sideways on small screens instead of
    crushing or blowing out the page. */
+/* Checkboxes are the last OS-drawn control in the app. Chrome's stock 18px
+   white square with a grey border sits badly next to the custom pills and
+   chips. Note the tick uses ::before, not ::after - `.ev-tap-area::after` is
+   already spoken for by the invisible 44px hit area. */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 17px;
+  height: 17px;
+  border: 1.5px solid rgba(0, 32, 63, 0.28);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  vertical-align: -3px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+input[type="checkbox"]::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: #ffffff;
+  transform: scale(0);
+  transition: transform 0.12s var(--ease-out);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+input[type="checkbox"]:checked {
+  background: var(--brand-500);
+  border-color: var(--brand-500);
+}
+input[type="checkbox"]:checked::before { transform: scale(1); }
+input[type="checkbox"]:hover:not(:disabled) { border-color: rgba(0, 157, 255, 0.5); }
+input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Horizontal scroll for genuinely wide tables. It deliberately does NOT set a
+   min-width on its child any more: a blanket 600px floor silently forced plain
+   row lists to overflow and cut their text off at the screen edge. Each table
+   declares the width it actually needs. */
 .ev-scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.ev-scroll-x > * { min-width: 600px; }
 
 /* Three-up card grids: 2-up on tablet, 1-up on phones. */
 @media (max-width: 1024px) and (min-width: 721px) {
@@ -688,3 +852,196 @@ select:focus-visible,
     min-height: 44px !important;
   }
 }
+
+/* --- mobile row wrapping ----------------------------------------------------
+   The single most damaging mobile pattern in this app is the desktop list row:
+   [icon] [flexible text] [pill] [pill] [button]. The text column is the only
+   `flex: 1` child, so at 375px it absorbs every pixel of the shortfall and
+   collapses - names truncated to "Lucas...", metadata rendered one word per
+   line down a 55px column, and the trailing button sliced off the card edge.
+
+   The fix is to let the row wrap and give the text a flex-basis wide enough to
+   claim the first line: leading icons in this app are 32-42px plus an 11-14px
+   gap, so `100% - 56px` keeps icon and text together on line one and pushes
+   every trailing control onto line two. Mobile only; desktop rows are
+   untouched. Add `.ev-wrap-cta` to a trailing action to make it full-width. */
+@media (max-width: 720px) {
+  .ev-wrap-row {
+    flex-wrap: wrap !important;
+    row-gap: 8px !important;
+  }
+  /* flex-shrink is 0 on purpose. Flexbox fills a line by SHRINKING items and
+     only breaks one when it cannot fit at its minimum - so with the default
+     shrink of 1 a 9px status dot would ride along on line one and squeeze the
+     title instead of wrapping. Refusing to shrink forces the break. That makes
+     the basis load-bearing: it must leave less slack than the narrowest
+     trailing control, hence 58px for an icon lead and 80px for a date chip. */
+  .ev-wrap-row > .ev-wrap-main {
+    flex: 1 0 calc(100% - 58px) !important;
+    min-width: 0 !important;
+  }
+  /* For rows whose leading element is a wide date chip rather than an icon.
+     The basis has to stay under the space actually left on line one, or the
+     text column wraps and strands the chip on a line by itself. */
+  .ev-wrap-row > .ev-wrap-lead-lg { flex-basis: calc(100% - 92px) !important; }
+  .ev-wrap-row > .ev-wrap-cta {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Timetable list rows: date chip and class on line one, time / tutor /
+     actions on line two, indented to line up under the class name. */
+  .ev-cal-row {
+    flex-wrap: wrap !important;
+    column-gap: 10px !important;
+    row-gap: 2px !important;
+  }
+  .ev-cal-row > .ev-cal-main { flex: 1 1 calc(100% - 96px) !important; }
+  /* No indent: with a Join button present the second line ran out of room and
+     pushed Details onto a third, so only that one row was taller. */
+  .ev-cal-row > .ev-cal-time { order: 4; }
+  .ev-cal-row > .ev-cal-tutor { order: 5; }
+  .ev-cal-row > .ev-cal-join { order: 6; }
+  .ev-cal-row > .ev-cal-details { order: 7; margin-left: auto; }
+
+  /* Native artefacts. The resize grabber is drawn by the browser in the corner
+     of every textarea and reads as an unfinished control on a phone, where you
+     cannot drag it anyway. Selects keep their own height on desktop but get the
+     40px minimum here. Both need `!important` to beat page-level inline styles. */
+  textarea { resize: none !important; }
+  select { min-height: 40px !important; }
+
+  /* Stat strips: 2-up rather than three near-empty full-width bands, and a
+     tighter box so three of them do not eat the whole first screen. */
+  .ev-stats-2up { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  /* A lone third card spanning the full width is the same near-empty band the
+     2-up was meant to remove, so an odd one out just stays half width. */
+  .glass-stat { padding: 12px 14px; }
+  .glass-stat-value { font-size: 21px; margin-top: 4px; }
+
+  /* Groups pushed to the far right on desktop sit flush against the card edge
+     on a phone once the row wraps. */
+  .ev-push-end { margin-left: 0 !important; }
+
+  /* A hero title block and its action row cannot share a line at 375px - the
+     second button was being sliced off at the card edge. */
+  .ev-wrap-row > .ev-wrap-full { flex: 1 1 100% !important; min-width: 0 !important; }
+
+  /* CSS multi-column attendance rosters read as two ragged, misaligned lists on
+     a phone. One column keeps the rows in step. */
+  .ev-cols-2 { columns: 1 !important; }
+
+  /* P / L / A / E attendance toggles are 24x22 on desktop. Four of them sit
+     3px apart, so the invisible-hit-area trick would overlap and misroute
+     taps - these have to actually grow. */
+  .ev-att-btn {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 11px !important;
+  }
+
+  /* 15-16px checkboxes are fiddly with a thumb. The invisible hit area covers
+     the tap; this makes them look tappable too. */
+  input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* A flexible spacer that right-aligns a button pair on desktop leaves those
+     buttons stranded on their own right-aligned line once the row wraps on a
+     phone. Collapsing it lets them sit under the text they belong to. */
+  .ev-spacer-flex { display: none !important; }
+
+  /* Course hero content is absolutely positioned, so the box cannot grow with
+     it. At 375px the meta pills wrap to a second row and the last one was
+     sliced in half by the hero's bottom edge. */
+  .ev-hero-course { min-height: 300px !important; }
+
+  /* A 224px card in a 335px viewport leaves a 100px peek that slices the next
+     title mid-word. One card plus a modest peek reads as "swipe me" instead. */
+  .ev-carousel-card { flex: 0 0 calc(100% - 26px) !important; }
+
+  /* Attendance toggles get their own line, so they can reach 40px without
+     starving the student name beside them. */
+  .ev-att-btn { width: 40px !important; height: 40px !important; font-size: 11px !important; }
+
+  /* Trailing row action pinned right, so a column of similar rows does not
+     have its button start at a different x on every line. */
+  .ev-row-end { margin-left: auto !important; }
+
+  /* A 75px desktop indent leaves these chips ~214px on a phone, which cut the
+     booklet name mid-word. The indent is decorative; the name is not. */
+  .ev-chip-row { padding-left: 0 !important; }
+
+  /* Filenames are the one string where the tail matters (the extension), so a
+     single-line ellipsis is the wrong trade. Two lines, then clamp. */
+  .ev-title-2 {
+    white-space: normal !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Stacked hero actions size themselves to their labels, so two buttons on
+     top of each other came out different widths. Full width squares them up. */
+  .ev-hero-actions { width: 100%; flex-wrap: wrap !important; }
+  .ev-hero-actions > * {
+    flex: 1 1 100% !important;
+    justify-content: center !important;
+    box-sizing: border-box;
+  }
+
+  /* A tab strip needs the same inset on both sides or the last label reads as
+     cut off even when it fits. The strip carries an inline `padding: 3`, so the
+     override has to be !important; the tabs tighten to pay for the extra gutter
+     rather than pushing the strip back into a scroll. */
+  .ev-tabs-scroll { padding-left: 9px !important; padding-right: 9px !important; }
+  /* Segmented filter strips: same reasoning, but they carry their own border so
+     the gutter goes on the scroll container rather than the pill. */
+  .ev-filter-scroll { padding-right: 6px; }
+  .ev-tabs-scroll > button { padding: 0 9px !important; font-size: 11.5px !important; }
+
+  /* Exactly three stat cards go 3-up rather than leaving an empty half cell. */
+  .ev-stats-2up:has(> :nth-child(3):last-child) {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  .ev-stats-2up:has(> :nth-child(3):last-child) .glass-stat-label { font-size: 9.5px; letter-spacing: 0.3px; }
+
+  /* A nested scroller with a fixed max-height inside a page that already
+     scrolls just hides rows on a phone - the list said "7 of 7" and showed 4. */
+  .ev-uncap-mobile {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+}
+
+/* Search fields nest a borderless <input> inside a rounded frosted pill, so the
+   input's own focus ring drew a hard square rectangle inside the rounded shape.
+   The ring belongs on the pill. */
+.glass-control:focus-within {
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px rgba(0, 157, 255, 0.16);
+}
+.glass-control input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* A tab strip clipped at the screen edge reads as broken rather than
+   scrollable, so on phones the tabs are tightened until the set fits instead.
+   The strip still scrolls if a longer label set ever appears. */
+@media (max-width: 720px) {
+}
+
+/* Show a block on one form factor only. Both start from the desktop state so
+   that a missing media query fails towards the full table, not towards nothing. */
+.ev-only-mobile { display: none !important; }
+.ev-only-mobile-t { display: none !important; }
+@media (max-width: 720px) {
+  .ev-only-mobile { display: flex !important; }
+  .ev-only-mobile-t { display: inline !important; }
+  .ev-only-desktop { display: none !important; }
+}
+

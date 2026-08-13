@@ -118,7 +118,7 @@ export default function StudentOutlinesPage() {
           <h2 className="portal-section-title" style={{ fontSize: 15 }}>Outline overview</h2>
           <span style={{ fontSize: 11.5, color: "var(--fg4)" }}>Across all your classes</span>
         </div>
-        <div className="ev-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 8 }}>
+        <div className="ev-stats-2up" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 8 }}>
           {[
             { label: "STUDENTS", value: stats.total, color: "var(--fg1)" },
             { label: "SUBMITTED", value: stats.done, color: "var(--success-700)" },
@@ -132,12 +132,12 @@ export default function StudentOutlinesPage() {
           ))}
         </div>
         {outstanding.length > 0 && (
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, background: "rgba(245,166,35,.08)", border: "1px solid rgba(245,166,35,.28)", borderRadius: 12, padding: "10px 14px", flexWrap: "wrap" }}>
+          <div className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, background: "rgba(245,166,35,.08)", border: "1px solid rgba(245,166,35,.28)", borderRadius: 12, padding: "10px 14px", flexWrap: "wrap" }}>
             <Icon path="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1 5h2v6h-2V7Zm0 8h2v2h-2v-2Z" size={17} style={{ color: "var(--warn-700)", flex: "none" }} />
-            <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: "var(--fg2)" }}>
+            <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: "var(--fg2)" }}>
               <b>{outstanding.length} Year 7-10 student{outstanding.length === 1 ? "" : "s"}</b> haven&apos;t uploaded a school outline. They are reminded automatically - you can also send a manual nudge.
             </span>
-            <button onClick={nudgeAll} className="btn-primary press" style={{ height: 32, padding: "0 15px", borderRadius: 9, fontSize: 12, fontWeight: 700, flex: "none" }}>
+            <button onClick={nudgeAll} className="btn-primary press ev-wrap-cta" style={{ height: 32, padding: "0 15px", borderRadius: 9, fontSize: 12, fontWeight: 700, flex: "none" }}>
               Nudge all outstanding
             </button>
           </div>
@@ -172,14 +172,14 @@ export default function StudentOutlinesPage() {
             >
               <span aria-hidden className="ev-kenburns" style={{ position: "absolute", inset: 0, backgroundImage: `url(${cd.photo})`, backgroundSize: "cover", backgroundPosition: "center" }} />
               <span aria-hidden style={{ position: "absolute", inset: 0, background: cd.grad }} />
-              <span style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 12, padding: "16px 20px", minHeight: 80, boxSizing: "border-box", color: "#fff" }}>
+              <span className="ev-wrap-row" style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 12, padding: "16px 20px", minHeight: 80, boxSizing: "border-box", color: "#fff" }}>
                 <span style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(255,255,255,.2)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", backdropFilter: "blur(4px)" }}>
                   <Icon path={cd.icon} size={19} />
                 </span>
-                <span style={{ flex: 1, minWidth: 0 }}>
+                <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: "block", fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 800, letterSpacing: -0.2 }}>{cd.name}</span>
                   <span style={{ display: "block", fontSize: 11.5, opacity: 0.88, marginTop: 2 }}>
-                    {cd.year} · {done.length} of {roster.length} outlines in{isReminderYear(cid) ? " · auto-reminders on" : ""}
+                    {cd.year} · {done.length} of {roster.length} outlines received{isReminderYear(cid) ? " · auto-reminders on" : ""}
                   </span>
                 </span>
                 {classAvg !== null && (
@@ -188,7 +188,7 @@ export default function StudentOutlinesPage() {
                 {missing > 0 && (
                   <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: "rgba(224,65,65,.85)", padding: "5px 11px", borderRadius: 980, flex: "none" }}>{missing} missing</span>
                 )}
-                <Icon path="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6 1.4-1.4Z" size={16} style={{ color: "#fff", flex: "none", transition: "transform .2s ease", transform: open ? "rotate(180deg)" : "none" }} />
+                <Icon path="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6 1.4-1.4Z" size={16} style={{ color: "#fff", flex: "none", marginLeft: "auto", transition: "transform .2s ease", transform: open ? "rotate(180deg)" : "none" }} />
               </span>
             </button>
 
@@ -203,9 +203,9 @@ export default function StudentOutlinesPage() {
                   const wasNudged = nudged.has(key(cid, e.name));
                   return (
                     <div key={e.name} style={{ borderTop: i === 0 ? "1px solid rgba(0,32,63,.06)" : "none", borderBottom: "1px solid rgba(0,32,63,.06)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 0" }}>
+                      <div className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 0" }}>
                         <span style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,32,63,.06)", color: cd.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10.5, fontWeight: 700, flex: "none" }}>{e.init}</span>
-                        <span style={{ flex: 1, minWidth: 0 }}>
+                        <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
                           <span style={{ display: "block", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.name}</span>
                           {e.outline && (
                             <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>

@@ -99,7 +99,7 @@ export const TUTOR_COURSES: Record<TutorCourseId, TutorCourseDef> = {
   chem11: {
     id: "chem11",
     photo: "/courses/chem.jpg",
-    grad: "linear-gradient(165deg,rgba(122,90,248,.45) 0%,rgba(64,44,158,.62) 45%,rgba(0,32,63,.94) 100%)",
+    grad: "linear-gradient(165deg,rgba(122,90,248,.55) 0%,rgba(64,44,158,.72) 45%,rgba(0,32,63,.94) 100%)",
     name: "Year 11 Chemistry",
     year: "Year 11",
     centre: "Online",
@@ -127,7 +127,7 @@ export const TUTOR_COURSES: Record<TutorCourseId, TutorCourseDef> = {
   sci9: {
     id: "sci9",
     photo: "/courses/sci9.jpg",
-    grad: "linear-gradient(165deg,rgba(18,181,165,.42) 0%,rgba(11,110,99,.6) 45%,rgba(4,54,48,.94) 100%)",
+    grad: "linear-gradient(165deg,rgba(14,140,128,.58) 0%,rgba(9,88,79,.76) 45%,rgba(4,54,48,.96) 100%)",
     name: "Year 9 Science",
     year: "Year 9",
     centre: "Harrisdale SHS",
@@ -153,7 +153,7 @@ export const TUTOR_COURSES: Record<TutorCourseId, TutorCourseDef> = {
   found10: {
     id: "found10",
     photo: "/courses/found10.jpg",
-    grad: "linear-gradient(165deg,rgba(245,166,35,.45) 0%,rgba(178,108,14,.6) 45%,rgba(58,38,3,.94) 100%)",
+    grad: "linear-gradient(165deg,rgba(178,108,14,.62) 0%,rgba(140,84,10,.78) 45%,rgba(58,38,3,.96) 100%)",
     name: "Year 10 Chemistry Foundations",
     year: "Year 10",
     centre: "Piara Waters",
@@ -178,7 +178,7 @@ export const TUTOR_COURSES: Record<TutorCourseId, TutorCourseDef> = {
   block8: {
     id: "block8",
     photo: "/courses/block8.jpg",
-    grad: "linear-gradient(165deg,rgba(0,157,255,.4) 0%,rgba(0,85,140,.62) 45%,rgba(0,32,63,.94) 100%)",
+    grad: "linear-gradient(165deg,rgba(0,157,255,.5) 0%,rgba(0,85,140,.72) 45%,rgba(0,32,63,.94) 100%)",
     name: "Year 8 Core Block",
     year: "Year 8",
     centre: "Online",

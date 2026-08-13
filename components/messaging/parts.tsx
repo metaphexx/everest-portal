@@ -253,7 +253,7 @@ export function Bubble({
         {cat && !mine && (
           <span style={{ fontSize: 9.5, fontWeight: 700, color: cat.color, background: cat.bg, padding: "1px 7px", borderRadius: 980 }}>{cat.label}</span>
         )}
-        <span style={{ fontSize: 10, color: "var(--fg6-faint)" }}>{fmtTime(msg.sentAt)}</span>
+        <span style={{ fontSize: 10, color: "var(--fg4)" }}>{fmtTime(msg.sentAt)}</span>
         {mine && <DeliveryState msg={msg} read={read} />}
       </span>
     </div>
@@ -414,7 +414,12 @@ export function Composer({
           <Icon path={IC.send} size={15} />
         </button>
       </div>
-      <div style={{ fontSize: 10, color: "var(--fg6-faint)", marginTop: 5, paddingLeft: 2 }}>Enter to send · Shift+Enter for a new line · drag files anywhere in the thread</div>
+      {/* Keyboard shortcuts and drag-and-drop are desktop affordances - on a
+          phone they are noise, and the line wrapped to two orphaned words. */}
+      <div style={{ fontSize: 11, color: "var(--fg3)", marginTop: 5, paddingLeft: 2 }}>
+        <span className="ev-only-desktop">Enter to send · Shift+Enter for a new line · drag files anywhere in the thread</span>
+        <span className="ev-only-mobile-t">Tap the clip to attach a file.</span>
+      </div>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import Link from "@/components/ui/Link";
 import { usePortal } from "@/lib/store";
 import { OUTLINE_SUBJECTS, outlineAverage } from "@/lib/features";
 import { Icon } from "@/components/ui/Icon";
+import { Loader } from "@/components/ui/Loader";
 import { AssessmentTable, AverageChip } from "@/components/portal/AssessmentTable";
 
 const TERMS = ["Term 1", "Term 2", "Term 3", "Term 4"];
@@ -134,7 +135,7 @@ export default function OutlinePage() {
 
         {selected && selected.status === "pending" && (
           <div className="glass-card" style={{ padding: "40px 22px", textAlign: "center" }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", border: "3px solid rgba(0,157,255,.2)", borderTopColor: "var(--brand-500)", margin: "0 auto 14px", animation: "evspin2 .9s linear infinite" }} />
+            <Loader size={72} label="Scanning your outline" style={{ margin: "0 auto 14px" }} />
             <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Scanning your outline</div>
             <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 4 }}>Elliot is reading {selected.fileName} for assessments and weekly topics.</div>
           </div>
@@ -153,11 +154,14 @@ export default function OutlinePage() {
             <div className="glass-card" style={{ padding: "20px 22px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 4, flexWrap: "wrap" }}>
                 <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 800 }}>Assessment tracker</h2>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {/* Four items on one line is a desktop shape. On a phone the
+                    two text items were each squeezed into a ~60px column and
+                    wrapped to three lines, so they stay on one line each. */}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <AverageChip assessments={selected.assessments} />
-                  <span style={{ fontSize: 11.5, color: "var(--fg4)" }}>{selected.subject} · {selected.term}</span>
+                  <span style={{ fontSize: 11.5, color: "var(--fg4)", whiteSpace: "nowrap" }}>{selected.subject} · {selected.term}</span>
                   {selected.courseId && (
-                    <Link href={"/courses/" + selected.courseId} style={{ fontSize: 11.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Open course page</Link>
+                    <Link href={"/courses/" + selected.courseId} className="ev-tap-link" style={{ fontSize: 11.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600, whiteSpace: "nowrap" }}>Open course page</Link>
                   )}
                   <button
                     onClick={() => deleteOutline(selected.id)}
