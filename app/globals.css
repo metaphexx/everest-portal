@@ -976,7 +976,26 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
   /* Course hero content is absolutely positioned, so the box cannot grow with
      it. At 375px the meta pills wrap to a second row and the last one was
      sliced in half by the hero's bottom edge. */
-  .ev-hero-course { min-height: 300px !important; }
+  /* The hero's content is absolutely positioned, so the box cannot grow with
+     it - which meant a guessed min-height and a large void between the icon and
+     the title block. On a phone the content joins the flow instead, so the card
+     is exactly as tall as it needs to be and the gaps are even. */
+  .ev-hero-course { min-height: 0 !important; }
+  .ev-hero-content {
+    /* relative, NOT static: the content carries z-index 2 to sit above the
+       photo and the scrim, and z-index is ignored on a static element - so
+       static let the scrim paint straight over the title, pills and buttons.
+       relative joins the flow just the same and keeps the stacking. */
+    position: relative !important;
+    padding: 18px 18px 20px !important;
+    gap: 16px;
+  }
+  .ev-hero-foot { gap: 14px !important; }
+  .ev-hero-next { text-align: left !important; }
+  /* The next-session block is right-anchored on desktop, where it sits beside
+     the title. Stacked under it on a phone, that leaves it alone against the
+     right edge while everything above is left-aligned. */
+  .ev-hero-foot > :last-child { justify-content: flex-start !important; }
 
   /* A 224px card in a 335px viewport leaves a 100px peek that slices the next
      title mid-word. One card plus a modest peek reads as "swipe me" instead. */

@@ -352,15 +352,15 @@ export default function DashboardPage() {
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           {recent.map((r, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < recent.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+            <div key={i} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < recent.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
               <div style={{ width: 40, height: 40, borderRadius: 12, flex: "none", background: ACCENT[r.course].bg, color: r.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Icon path={iconForResource(r.icon)} size={17} />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
                 <div className="ev-title-2" style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</div>
                 <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 1 }}>{COURSE_DEFS[r.course].name} · {r.meta}</div>
               </div>
-              <button onClick={() => setPreview({ name: r.name, meta: r.meta })} className="btn-ghost" style={{ height: 30, padding: "0 14px", borderRadius: 9, fontSize: 11.5, color: "var(--brand-600)", background: "rgba(255,255,255,.7)", flex: "none" }}>
+              <button onClick={() => setPreview({ name: r.name, meta: r.meta })} className="btn-ghost ev-row-end" style={{ height: 30, padding: "0 14px", borderRadius: 9, fontSize: 11.5, color: "var(--brand-600)", background: "rgba(255,255,255,.7)", flex: "none" }}>
                 Preview
               </button>
             </div>
@@ -378,11 +378,11 @@ export default function DashboardPage() {
           {ws.map((w, i) => {
             const d = !!done[w.id];
             return (
-              <div key={w.id} style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 0", borderBottom: i < ws.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+              <div key={w.id} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 0", borderBottom: i < ws.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                 <span style={{ width: 34, height: 34, borderRadius: 10, background: d ? "rgba(34,160,91,.12)" : "rgba(0,157,255,.1)", color: d ? "var(--success-500)" : "var(--brand-600)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", transition: "background .25s ease" }}>
                   <Icon path={ICON.doc} size={15} />
                 </span>
-                <span style={{ flex: 1, minWidth: 0 }}>
+                <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, fontWeight: 600, color: d ? "var(--fg4)" : "var(--fg1)", transition: "color .25s ease" }}>
                     {/* The dot belongs to the worksheet, not to the button - as a
                         sibling of the row it wrapped onto the action line. */}
@@ -393,7 +393,7 @@ export default function DashboardPage() {
                 </span>
                 <button
                   onClick={() => submitWorksheet(w.id, w.name)}
-                  className="press ev-tap-h"
+                  className="press ev-tap-h ev-row-end"
                   style={{
                     height: 30,
                     padding: "0 14px",
