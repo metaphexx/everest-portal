@@ -2,18 +2,44 @@ import React, { useState } from "react";
 import { usePortal } from "@/lib/store";
 import { gradeBase, wsBase, GradeRow } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
+import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
 
 type Filter = "all" | "graded" | "pending";
 
 export default function GradesPage() {
-  const { done, submittedCount, gradedCount, completionPct, notWired } = usePortal();
+  const { done, submittedCount, gradedCount, completionPct, notWired, markedForMe } = usePortal();
+  const [preview, setPreview] = useState<{ name: string; meta: string } | null>(null);
   const [gq, setGq] = useState("");
   const [gf, setGf] = useState<Filter>("all");
 
   const dyn: GradeRow[] = wsBase()
     .filter((w) => done[w.id])
     .map((w) => ({ cls: "Upcoming class", wsName: w.name, file: "Maya_" + w.name.split(" ")[0] + ".pdf", at: "Just now", grade: "Pending", graded: false, fb: "Awaiting feedback from your tutor." }));
-  const allRows = [...dyn, ...gradeBase()];
+  // Anything the tutor has marked and returned in this session outranks the
+  // seeded row for the same worksheet, so a just-marked piece shows its grade,
+  // feedback and marked copy straight away.
+  const returned = markedForMe();
+  const merged: GradeRow[] = [...dyn, ...gradeBase()].map((r) => {
+    const hit = returned.find((m) => m.wsName === r.wsName);
+    return hit
+      ? { ...r, grade: hit.grade, graded: true, fb: hit.feedback, returnedFile: hit.returnedFile ?? r.returnedFile }
+      : r;
+  });
+  // Work the tutor marked that Maya has no seeded row for still has to appear,
+  // otherwise returning a piece from the tutor portal silently goes nowhere.
+  const extra: GradeRow[] = returned
+    .filter((m) => !merged.some((r) => r.wsName === m.wsName))
+    .map((m) => ({
+      cls: "Returned by your tutor",
+      wsName: m.wsName,
+      file: m.file,
+      at: "Just now",
+      grade: m.grade,
+      graded: true,
+      fb: m.feedback,
+      returnedFile: m.returnedFile,
+    }));
+  const allRows: GradeRow[] = [...extra, ...merged];
   const ql = gq.trim().toLowerCase();
   const rows = allRows
     .filter((r) => (gf === "all" ? true : gf === "graded" ? r.graded : !r.graded))
@@ -60,6 +86,15 @@ export default function GradesPage() {
                 <span style={{ flex: "none", fontSize: 11.5, fontWeight: 700, padding: "4px 11px", borderRadius: 980, background: g.graded ? "rgba(34,160,91,.12)" : "rgba(245,166,35,.16)", color: g.graded ? "var(--success-700)" : "var(--warn-700)" }}>{g.grade}</span>
               </div>
               <div style={{ fontSize: 12, color: "var(--fg2)", lineHeight: 1.45, marginTop: 8 }}>{g.fb}</div>
+              {g.returnedFile && (
+                <button
+                  onClick={() => setPreview({ name: g.returnedFile!, meta: "Marked by your tutor" })}
+                  className="btn-soft press ev-tap-h"
+                  style={{ marginTop: 8, height: 32, padding: "0 13px", borderRadius: 9, fontSize: 11.5, fontWeight: 600 }}
+                >
+                  View marked copy
+                </button>
+              )}
               <a href="#" onClick={(e) => { e.preventDefault(); notWired("Downloading your file"); }} className="ev-tap-link" style={{ fontSize: 11.5, color: "var(--fg3)", textDecoration: "none", marginTop: 2 }}>{g.file}</a>
             </div>
           ))}
@@ -79,7 +114,17 @@ export default function GradesPage() {
                 </div>
                 <div style={{ fontSize: 12, color: "var(--fg3)" }}>{g.at}</div>
                 <div><span style={{ display: "inline-block", fontSize: 11.5, fontWeight: 700, padding: "4px 11px", borderRadius: 980, background: g.graded ? "rgba(34,160,91,.12)" : "rgba(245,166,35,.16)", color: g.graded ? "var(--success-700)" : "var(--warn-700)" }}>{g.grade}</span></div>
-                <div style={{ fontSize: 12, color: "var(--fg2)", lineHeight: 1.45 }}>{g.fb}</div>
+                <div style={{ fontSize: 12, color: "var(--fg2)", lineHeight: 1.45 }}>
+                  {g.fb}
+                  {g.returnedFile && (
+                    <button
+                      onClick={() => setPreview({ name: g.returnedFile!, meta: "Marked by your tutor" })}
+                      style={{ display: "block", marginTop: 4, border: "none", background: "none", padding: 0, cursor: "pointer", fontFamily: "inherit", fontSize: 11.5, fontWeight: 600, color: "var(--brand-600)" }}
+                    >
+                      View marked copy
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -93,6 +138,9 @@ export default function GradesPage() {
           </div>
         </div>
       </div>
+      {preview && (
+        <PdfPreviewModal open onClose={() => setPreview(null)} fileName={preview.name} meta={preview.meta} annotate={false} />
+      )}
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { usePathname } from "@/lib/router";
 import { Icon, ICON } from "@/components/portal/nav-icons";
 import { useTutor } from "@/lib/tutor-store";
 import { TUTOR_ME, useMessaging } from "@/lib/messaging";
+import { TUTOR } from "@/lib/tutor-data";
+import { DrawerAccount } from "@/components/portal/DrawerAccount";
 
 interface NavItem {
   href: string;
@@ -58,7 +60,7 @@ function GroupLabel({ children }: { children: React.ReactNode }) {
 
 export function TutorSidebar() {
   const pathname = usePathname();
-  const { cart, toMarkCount, hasInPerson, hasOnline } = useTutor();
+  const { cart, toMarkCount, hasInPerson, hasOnline, notWired } = useTutor();
   const { unreadTotal } = useMessaging();
 
   // The nav reshapes around the tutor's assigned duties: in-person tutors get
@@ -150,6 +152,17 @@ export function TutorSidebar() {
           </>
         )}
       </nav>
+
+      {/* Phone only: the header's search / profile / sign out live here. */}
+      <DrawerAccount
+        searchPath="/tutor/search"
+        settingsPath="/tutor"
+        name={TUTOR.name}
+        initials={TUTOR.initials}
+        role={TUTOR.role}
+        accent="var(--accent-violet)"
+        onSignOut={() => notWired("Sign out")}
+      />
     </aside>
   );
 }

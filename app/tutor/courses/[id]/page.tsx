@@ -112,7 +112,7 @@ export default function TutorCoursePage() {
               {cd.isBlock ? " · one room, three rosters" : ""}
             </div>
           </div>
-          <div className="ev-wrap-full" style={{ display: "flex", gap: 9, flex: "none", flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <div className="ev-wrap-full ev-hero-actions" style={{ display: "flex", gap: 9, flex: "none", flexWrap: "wrap", justifyContent: "flex-end" }}>
             {cd.delivery === "online" && (
               <Link href="/tutor/grade" className="btn-ghost" style={{ height: 36, padding: "0 16px", borderRadius: 11, fontSize: 12.5, display: "inline-flex", alignItems: "center", textDecoration: "none", background: "rgba(255,255,255,.9)" }}>
                 Mark work{toMark.length > 0 ? " (" + toMark.length + ")" : ""}

@@ -36,9 +36,21 @@ interface PdfPreviewModalProps {
   // When false, a "doc" preview just loads the document with no annotation
   // toolbar or drawing canvas - a plain read-only viewer (used by My Booklets).
   annotate?: boolean;
+  // Total pages in the real document. The preview only ever renders the first
+  // `previewLimit`, but the tutor is told the true length so they know what
+  // they are assigning.
+  pages?: number;
+  previewLimit?: number;
+  /**
+   * When supplied, the footer offers a primary "Save marked copy" action. Used
+   * by the marking queue so a tutor can annotate a submission and hand the
+   * marked-up version straight back, instead of only viewing it.
+   */
+  onSaveAnnotations?: () => void;
+  saveLabel?: string;
 }
 
-export function PdfPreviewModal({ open, onClose, fileName, meta, kind = "doc", url, annotate = true }: PdfPreviewModalProps) {
+export function PdfPreviewModal({ open, onClose, fileName, meta, kind = "doc", url, annotate = true, pages, previewLimit = 4, onSaveAnnotations, saveLabel = "Save marked copy" }: PdfPreviewModalProps) {
   const canAnnotate = kind === "doc" && annotate;
   const [tool, setTool] = useState<Tool>("highlight");
   const [notes, setNotes] = useState<{ id: number; x: number; y: number; text: string }[]>([]);
@@ -282,15 +294,26 @@ export function PdfPreviewModal({ open, onClose, fileName, meta, kind = "doc", u
               </div>
             ))}
           </div>
-          <div style={{ textAlign: "center", fontSize: 11, color: "var(--fg4)", marginTop: 10 }}>Page 1 of 1 · demo preview</div>
+          <div style={{ textAlign: "center", fontSize: 11, color: "var(--fg4)", marginTop: 10 }}>
+            {pages
+              ? pages > previewLimit
+                ? "Preview of the first " + previewLimit + " pages · " + pages + " pages in total"
+                : pages + " page" + (pages === 1 ? "" : "s")
+              : "Page 1 of 1 · demo preview"}
+          </div>
         </div>
         )}
 
         {/* footer - deliberately no download action */}
-        <div style={{ borderTop: "1px solid rgba(0,32,63,.08)", padding: "14px 20px", display: "flex", justifyContent: "flex-end" }}>
-          <button onClick={onClose} className="btn-primary" style={{ height: 38, padding: "0 20px", borderRadius: 11, fontSize: 13, fontWeight: 700 }}>
-            Done
+        <div style={{ borderTop: "1px solid rgba(0,32,63,.08)", padding: "14px 20px", display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
+          <button onClick={onClose} className={onSaveAnnotations ? "btn-ghost" : "btn-primary"} style={{ height: 38, padding: "0 20px", borderRadius: 11, fontSize: 13, fontWeight: 700, background: onSaveAnnotations ? "rgba(255,255,255,.8)" : undefined, color: onSaveAnnotations ? "var(--fg2)" : undefined }}>
+            {onSaveAnnotations ? "Cancel" : "Done"}
           </button>
+          {onSaveAnnotations && (
+            <button onClick={onSaveAnnotations} className="btn-primary press" style={{ height: 38, padding: "0 20px", borderRadius: 11, fontSize: 13, fontWeight: 700 }}>
+              {saveLabel}
+            </button>
+          )}
         </div>
     </Modal>
   );

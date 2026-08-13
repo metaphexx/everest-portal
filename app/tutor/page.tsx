@@ -503,7 +503,7 @@ export default function TutorDashboard() {
                   <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cd.name}</span>
                   <span style={{ fontSize: 9, fontWeight: 800, color: dm.color, background: dm.bg, padding: "2px 7px", borderRadius: 980, flex: "none" }}>{dm.short}</span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 5, paddingLeft: 2 }}>
+                <div className="ev-day-actions" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 5, paddingLeft: 2 }}>
                   {inPerson && <span style={{ fontSize: 9.5, fontWeight: 700, color: bm.color, background: bm.bg, padding: "2px 8px", borderRadius: 980, flex: "none" }}>{bm.label}</span>}
                   {!isPast && inPerson && needsRequest && (
                     <button onClick={() => requestFor(c)} className="btn-primary press" style={{ height: 24, padding: "0 10px", borderRadius: 7, fontSize: 10, fontWeight: 700 }}>

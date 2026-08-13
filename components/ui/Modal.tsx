@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 const FOCUSABLE = 'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
@@ -10,6 +11,14 @@ const FOCUSABLE = 'a[href],button:not([disabled]),textarea:not([disabled]),input
  * of reimplementing it per component. Callers keep full control of the
  * panel's own look - this only supplies the backdrop, semantics and keyboard
  * handling around whatever panel content they pass as children.
+ *
+ * Rendered through a portal to <body>. Without it the backdrop is a child of
+ * `.ev-main`, which sets `position: relative; z-index: 1` and so becomes a
+ * stacking context - trapping the modal's --z-modal (95) INSIDE a layer that
+ * itself sits at 1. The result was the mobile top bar (--z-dropdown, 60)
+ * painting straight over the top of every dialog, hiding its title and close
+ * button. A z-index only competes with siblings in the same stacking context,
+ * so the fix is to leave the context, not to raise the number.
  */
 export function Modal({
   onClose,
@@ -63,7 +72,7 @@ export function Modal({
     };
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
       onClick={onClose}
       style={{
@@ -104,6 +113,7 @@ export function Modal({
       >
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

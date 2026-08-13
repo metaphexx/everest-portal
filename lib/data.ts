@@ -48,9 +48,12 @@ export interface GradeRow {
   wsName: string;
   file: string;
   at: string;
+  /** Whole letters only: A, B, C, D, or "Needs review". No plus/minus bands. */
   grade: string;
   graded: boolean;
   fb: string;
+  /** The tutor's marked-up copy, when one was handed back. */
+  returnedFile?: string;
 }
 
 export interface LibResource {
@@ -243,11 +246,11 @@ export function wsBase(): Worksheet[] {
 export function gradeBase(): GradeRow[] {
   return [
     { cls: "GATE · Sat 27 Jun", wsName: "Quantitative Paper 2", file: "Maya_Quant2.pdf", at: "26 Jun, 4:44pm", grade: "Pending", graded: false, fb: "Awaiting feedback from David Chen." },
-    { cls: "Chemistry · Thu 25 Jun", wsName: "Stoichiometry Set 5", file: "Maya_Stoich5.pdf", at: "24 Jun, 6:12pm", grade: "A", graded: true, fb: "Excellent working. Watch unit conversions in Q4." },
-    { cls: "Verbal · Tue 23 Jun", wsName: "Passage Analysis 11", file: "Maya_Passage11.pdf", at: "23 Jun, 8:40am", grade: "B+", graded: true, fb: "Stronger thesis this week. Quote more precisely." },
-    { cls: "Chemistry · Thu 18 Jun", wsName: "Organic Naming Quiz", file: "Maya_Naming.pdf", at: "17 Jun, 9:02pm", grade: "A-", graded: true, fb: "Nearly perfect. Revisit ester suffixes." },
+    { cls: "Chemistry · Thu 25 Jun", wsName: "Stoichiometry Set 5", file: "Maya_Stoich5.pdf", at: "24 Jun, 6:12pm", grade: "A", graded: true, fb: "Excellent working. Watch unit conversions in Q4.", returnedFile: "Maya_Stoich5 (marked).pdf" },
+    { cls: "Verbal · Tue 23 Jun", wsName: "Passage Analysis 11", file: "Maya_Passage11.pdf", at: "23 Jun, 8:40am", grade: "B", graded: true, fb: "Stronger thesis this week. Quote more precisely.", returnedFile: "Maya_Passage11 (marked).pdf" },
+    { cls: "Chemistry · Thu 18 Jun", wsName: "Organic Naming Quiz", file: "Maya_Naming.pdf", at: "17 Jun, 9:02pm", grade: "A", graded: true, fb: "Nearly perfect. Revisit ester suffixes." },
     { cls: "Verbal · Tue 16 Jun", wsName: "Vocabulary Sprint", file: "Maya_Vocab.pdf", at: "15 Jun, 5:30pm", grade: "B", graded: true, fb: "Solid list. Aim for nuance over synonyms." },
-    { cls: "GATE · Sat 13 Jun", wsName: "Abstract Reasoning 4", file: "Maya_AR4.pdf", at: "13 Jun, 7:55am", grade: "87%", graded: true, fb: "Great pace. Two careless slips in section C." },
+    { cls: "GATE · Sat 13 Jun", wsName: "Abstract Reasoning 4", file: "Maya_AR4.pdf", at: "13 Jun, 7:55am", grade: "B", graded: true, fb: "Great pace. Two careless slips in section C." },
     { cls: "Chemistry · Thu 11 Jun", wsName: "Moles and Mass Set", file: "Maya_Moles.pdf", at: "10 Jun, 7:18pm", grade: "A", graded: true, fb: "Beautiful setout. Keep showing units at each step." },
   ];
 }

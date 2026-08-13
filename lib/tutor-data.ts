@@ -540,6 +540,13 @@ export interface Submission {
   marked: boolean;
   grade?: string;
   feedback?: string;
+  /**
+   * The marked-up copy handed back to the student. Either annotated in the
+   * portal or uploaded by the tutor after marking it elsewhere - `returnedVia`
+   * records which, so the student can see where the marks came from.
+   */
+  returnedFile?: string;
+  returnedVia?: "annotated" | "uploaded";
 }
 
 export function seedSubmissions(): Submission[] {
@@ -549,12 +556,14 @@ export function seedSubmissions(): Submission[] {
     { id: "s3", student: "Ruby Chen", init: "RC", course: "sci9", wsName: "Forces Practical Report", file: "Ruby_Forces.pdf", when: "Yesterday, 6:40pm", marked: false },
     { id: "s4", student: "Zara Patel", init: "ZP", course: "chem11", wsName: "Equilibrium Quiz", file: "Zara_Equilibrium.pdf", when: "Tue, 7:55pm", marked: false },
     { id: "s5", student: "Dev Sharma", init: "DS", course: "found10", wsName: "Stoichiometry Warm-up", file: "Dev_Stoich.pdf", when: "Mon, 5:20pm", marked: false },
-    { id: "s6", student: "Maya Kapoor", init: "MK", course: "chem11", wsName: "Stoichiometry Set 5", file: "Maya_Stoich5.pdf", when: "24 Jun", marked: true, grade: "A", feedback: "Excellent working. Watch unit conversions in Q4." },
-    { id: "s7", student: "Oliver Reid", init: "OR", course: "chem11", wsName: "Stoichiometry Set 5", file: "Oliver_Stoich5.pdf", when: "24 Jun", marked: true, grade: "B+", feedback: "Good method. Show units at every step." },
+    { id: "s6", student: "Maya Kapoor", init: "MK", course: "chem11", wsName: "Stoichiometry Set 5", file: "Maya_Stoich5.pdf", when: "24 Jun", marked: true, grade: "A", feedback: "Excellent working. Watch unit conversions in Q4.", returnedFile: "Maya_Stoich5 (marked).pdf", returnedVia: "annotated" },
+    { id: "s7", student: "Oliver Reid", init: "OR", course: "chem11", wsName: "Stoichiometry Set 5", file: "Oliver_Stoich5.pdf", when: "24 Jun", marked: true, grade: "B", feedback: "Good method. Show units at every step.", returnedFile: "Oliver_Stoich5 (marked).pdf", returnedVia: "annotated" },
   ];
 }
 
-export const GRADE_OPTIONS = ["A", "A-", "B+", "B", "B-", "C+", "C", "Needs review"];
+// Everest marks whole letters only - no plus/minus bands - plus an explicit
+// "Needs review" for work that cannot be graded as it stands.
+export const GRADE_OPTIONS = ["A", "B", "C", "D", "Needs review"];
 
 // ---------- student outlines shared with the tutor (Feature 1, tutor side) ----------
 

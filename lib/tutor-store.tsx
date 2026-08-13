@@ -76,7 +76,7 @@ interface TutorContextValue extends TutorState {
   sendRequest: (opts: { printer: string; format: PrintFormat; remark: string }) => boolean;
   editRequest: (id: string) => void; // pending only: pull back into the cart
   // marking
-  markSubmission: (id: string, grade: string, feedback: string) => void;
+  markSubmission: (id: string, grade: string, feedback: string, returned?: { fileName: string; via: "annotated" | "uploaded" }) => void;
   // working mode
   hasInPerson: boolean;
   hasOnline: boolean;
@@ -161,6 +161,7 @@ export function TutorProvider({ children }: { children: React.ReactNode }) {
           if (Array.isArray(p.requests)) persisted.requests = p.requests;
           if (p.bookletOverride) persisted.bookletOverride = p.bookletOverride;
           if (Array.isArray(p.assignments)) persisted.assignments = p.assignments;
+          if (Array.isArray(p.submissions)) persisted.submissions = p.submissions;
         }
       }
     } catch {
@@ -192,12 +193,13 @@ export function TutorProvider({ children }: { children: React.ReactNode }) {
           requests: state.requests,
           bookletOverride: state.bookletOverride,
           assignments: state.assignments,
+          submissions: state.submissions,
         })
       );
     } catch {
       /* quota: state still lives in memory */
     }
-  }, [hydrated, state.mode, state.attendance, state.requests, state.bookletOverride, state.assignments]);
+  }, [hydrated, state.mode, state.attendance, state.requests, state.bookletOverride, state.assignments, state.submissions]);
 
   // ---- live sync from the student portal ("evr-portal") ----
   // Join events (attendance source) and worksheet submissions (round trip)
@@ -320,12 +322,16 @@ export function TutorProvider({ children }: { children: React.ReactNode }) {
   // ---- marking ----
 
   const markSubmission = useCallback(
-    (id: string, grade: string, feedback: string) => {
+    (id: string, grade: string, feedback: string, returned?: { fileName: string; via: "annotated" | "uploaded" }) => {
       setState((s) => ({
         ...s,
-        submissions: s.submissions.map((sub) => (sub.id === id ? { ...sub, marked: true, grade, feedback } : sub)),
+        submissions: s.submissions.map((sub) =>
+          sub.id === id
+            ? { ...sub, marked: true, grade, feedback, returnedFile: returned?.fileName, returnedVia: returned?.via }
+            : sub
+        ),
       }));
-      showToast("Marked and returned to the student");
+      showToast(returned ? "Marked copy returned to the student" : "Marked and returned to the student");
     },
     [showToast]
   );

@@ -19,6 +19,7 @@ import {
 } from "@/lib/tutor-data";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
+import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
 
 const ONLINE_COURSE_IDS = (Object.keys(TUTOR_COURSES) as TutorCourseId[]).filter((id) => TUTOR_COURSES[id].delivery === "online");
 
@@ -51,7 +52,7 @@ function fileSizeLabel(f: DriveFile): string {
   return f.pages ? f.pages + " pages · " + size : size;
 }
 
-function FileRow({ file, folderName, why, selected, onToggle }: { file: DriveFile; folderName?: string; why?: string; selected: boolean; onToggle: () => void }) {
+function FileRow({ file, folderName, why, selected, onToggle, onPreview }: { file: DriveFile; folderName?: string; why?: string; selected: boolean; onToggle: () => void; onPreview?: () => void }) {
   return (
     <button
       onClick={onToggle}
@@ -79,9 +80,25 @@ function FileRow({ file, folderName, why, selected, onToggle }: { file: DriveFil
         <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>
           {folderName ? folderName + " · " : ""}
           {fileSizeLabel(file)}
+          {file.pages ? " · " + file.pages + " pages" : ""}
         </span>
         {why && <span style={{ display: "block", fontSize: 11, color: "var(--accent-purple)", marginTop: 2 }}>{why}</span>}
       </span>
+      {onPreview && (
+        // A tutor should be able to check a booklet is the right one before
+        // assigning it. stopPropagation so it does not also tick the row.
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label={"Preview " + file.name}
+          onClick={(e) => { e.stopPropagation(); onPreview(); }}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); e.preventDefault(); onPreview(); } }}
+          className="btn-ghost press ev-tap-h"
+          style={{ height: 28, padding: "0 11px", borderRadius: 9, fontSize: 11, fontWeight: 600, color: "var(--brand-600)", background: "rgba(255,255,255,.8)", flex: "none", display: "inline-flex", alignItems: "center", cursor: "pointer" }}
+        >
+          Preview
+        </span>
+      )}
       <span
         style={{
           width: 22,
@@ -110,9 +127,15 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
   const [activeFolder, setActiveFolder] = useState<string>(DRIVE_FOLDERS[0]?.id ?? "");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [course, setCourse] = useState<TutorCourseId>(courseId ?? ONLINE_COURSE_IDS[0]);
-  const [target, setTarget] = useState<AssignTarget>(fixedTarget ?? { kind: "class" });
+  // A list, not one value: a tutor usually wants the same booklet with several
+  // named students, and previously picking a second one silently replaced the
+  // first. Selection stays scoped to a single course - picking a chip under a
+  // different class starts a fresh selection there, which keeps assignMaterial's
+  // one-course contract intact.
+  const [targets, setTargets] = useState<AssignTarget[]>(fixedTarget ? [fixedTarget] : [{ kind: "class" }]);
   const [kind, setKind] = useState<MaterialKind>(defaultKind);
   const [due, setDue] = useState("");
+  const [preview, setPreview] = useState<DriveFile | null>(null);
   // Which course accordions are expanded in the ASSIGN TO section.
   const [openCourseIds, setOpenCourseIds] = useState<Set<string>>(new Set([courseId ?? ONLINE_COURSE_IDS[0]]));
 
@@ -127,9 +150,25 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
       else n.add(cid);
       return n;
     });
+  const sameTarget = (a: AssignTarget, b: AssignTarget) =>
+    a.kind === b.kind && (a.kind !== "student" || b.kind !== "student" || a.studentId === b.studentId);
+
   const selectTarget = (cid: TutorCourseId, t: AssignTarget) => {
+    // Switching class starts a new selection rather than mixing courses.
+    if (cid !== effectiveCourseId) {
+      setCourse(cid);
+      setTargets([t]);
+      return;
+    }
     setCourse(cid);
-    setTarget(t);
+    setTargets((prev) => {
+      // "Whole class" and named students are mutually exclusive - assigning to
+      // both would hand the same booklet to those students twice.
+      if (t.kind === "class") return prev.some((x) => x.kind === "class") ? [] : [t];
+      const withoutClass = prev.filter((x) => x.kind !== "class");
+      const hit = withoutClass.some((x) => sameTarget(x, t));
+      return hit ? withoutClass.filter((x) => !sameTarget(x, t)) : [...withoutClass, t];
+    });
   };
   const chipStyle = (on: boolean): React.CSSProperties => ({
     height: 30,
@@ -154,7 +193,7 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
     setKind(defaultKind);
     const initialCourse = courseId ?? ONLINE_COURSE_IDS[0];
     setCourse(initialCourse);
-    setTarget(fixedTarget ?? { kind: "class" });
+    setTargets(fixedTarget ? [fixedTarget] : [{ kind: "class" }]);
     setOpenCourseIds(new Set([initialCourse]));
     if (preselectFileId) {
       const file = DRIVE_FILES.find((f) => f.id === preselectFileId);
@@ -201,15 +240,19 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
   };
 
   const handleConfirm = () => {
-    if (selected.size === 0 || !effectiveCourseId) return;
-    assignMaterial({
-      fileIds: Array.from(selected),
-      courseId: effectiveCourseId,
-      target,
-      kind,
-      sessionISO,
-      due: kind === "worksheet" && due.trim() ? due.trim() : undefined,
-    });
+    if (selected.size === 0 || !effectiveCourseId || targets.length === 0) return;
+    // One assignment record per target, so each student's copy tracks its own
+    // status (assigned / submitted / graded) independently.
+    targets.forEach((t) =>
+      assignMaterial({
+        fileIds: Array.from(selected),
+        courseId: effectiveCourseId,
+        target: t,
+        kind,
+        sessionISO,
+        due: kind === "worksheet" && due.trim() ? due.trim() : undefined,
+      })
+    );
     reset();
     onClose();
   };
@@ -294,7 +337,7 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
             </div>
             <div style={{ maxHeight: 260, overflowY: "auto" }}>
               {searchResults.map(({ file, folder, why }) => (
-                <FileRow key={file.id} file={file} folderName={folder.name} why={why} selected={selected.has(file.id)} onToggle={() => toggleFile(file.id)} />
+                <FileRow key={file.id} file={file} folderName={folder.name} why={why} selected={selected.has(file.id)} onToggle={() => toggleFile(file.id)} onPreview={() => setPreview(file)} />
               ))}
               {query.trim() && searchResults.length === 0 && (
                 <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "14px 4px" }}>No matches. Try a different word, or browse folders instead.</div>
@@ -333,7 +376,7 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
             </div>
             <div style={{ maxHeight: 260, overflowY: "auto" }}>
               {folderFiles.map((file) => (
-                <FileRow key={file.id} file={file} selected={selected.has(file.id)} onToggle={() => toggleFile(file.id)} />
+                <FileRow key={file.id} file={file} selected={selected.has(file.id)} onToggle={() => toggleFile(file.id)} onPreview={() => setPreview(file)} />
               ))}
               {folderFiles.length === 0 && <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "14px 4px" }}>No files in this folder.</div>}
             </div>
@@ -350,7 +393,13 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
                 const cData = TUTOR_COURSES[cid];
                 const expanded = openCourseIds.has(cid);
                 const courseSelected = effectiveCourseId === cid;
-                const selLabel = courseSelected ? (target.kind === "class" ? "Whole class" : target.studentName) : null;
+                const selLabel = !courseSelected || targets.length === 0
+                  ? null
+                  : targets.some((t) => t.kind === "class")
+                    ? "Whole class"
+                    : targets.length === 1
+                      ? (targets[0] as { studentName: string }).studentName
+                      : targets.length + " students";
                 return (
                   <div
                     key={cid}
@@ -380,13 +429,13 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
                     </button>
                     {expanded && (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "0 12px 11px" }}>
-                        <button onClick={() => selectTarget(cid, { kind: "class" })} style={chipStyle(courseSelected && target.kind === "class")}>
+                        <button onClick={() => selectTarget(cid, { kind: "class" })} aria-pressed={courseSelected && targets.some((t) => t.kind === "class")} style={chipStyle(courseSelected && targets.some((t) => t.kind === "class"))}>
                           Whole class
                         </button>
                         {cData.students.map((st) => {
-                          const on = courseSelected && target.kind === "student" && target.studentId === st.name;
+                          const on = courseSelected && targets.some((t) => t.kind === "student" && t.studentId === st.name);
                           return (
-                            <button key={st.name} onClick={() => selectTarget(cid, { kind: "student", studentId: st.name, studentName: st.name })} style={chipStyle(on)}>
+                            <button key={st.name} onClick={() => selectTarget(cid, { kind: "student", studentId: st.name, studentName: st.name })} aria-pressed={on} title={on ? "Tap to unselect " + st.name : "Assign to " + st.name} style={chipStyle(on)}>
                               {st.name}
                             </button>
                           );
@@ -456,21 +505,40 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
         )}
 
         <div style={{ borderTop: "1px solid rgba(0,32,63,.08)", paddingTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <span style={{ fontSize: 12, color: "var(--fg3)" }}>{selected.size} file{selected.size === 1 ? "" : "s"} selected</span>
+          {/* Recipients matter as much as files now that several can be picked,
+              and an empty selection has to explain why Assign is disabled. */}
+          <span style={{ fontSize: 12, color: "var(--fg3)", minWidth: 0 }}>
+            {selected.size} file{selected.size === 1 ? "" : "s"}
+            {targets.length === 0
+              ? " · no one selected"
+              : targets.some((t) => t.kind === "class")
+                ? " · whole class"
+                : " · " + targets.length + " student" + (targets.length === 1 ? "" : "s")}
+          </span>
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={handleClose} className="btn-ghost" style={{ height: 40, padding: "0 18px", borderRadius: 12, fontSize: 13, color: "var(--fg2)", background: "rgba(255,255,255,.8)" }}>
               Cancel
             </button>
             <button
               onClick={handleConfirm}
-              disabled={selected.size === 0}
+              disabled={selected.size === 0 || targets.length === 0}
               className="btn-primary"
-              style={{ height: 40, padding: "0 22px", borderRadius: 12, fontSize: 13, fontWeight: 700, opacity: selected.size === 0 ? 0.5 : 1, cursor: selected.size === 0 ? "not-allowed" : "pointer" }}
+              style={{ height: 40, padding: "0 22px", borderRadius: 12, fontSize: 13, fontWeight: 700, opacity: selected.size === 0 || targets.length === 0 ? 0.5 : 1, cursor: selected.size === 0 || targets.length === 0 ? "not-allowed" : "pointer" }}
             >
               Assign {MATERIAL_KIND_META[kind].label.toLowerCase()}{selected.size > 1 ? "s" : ""}
             </button>
           </div>
         </div>
+      {preview && (
+        <PdfPreviewModal
+          open
+          onClose={() => setPreview(null)}
+          fileName={preview.name}
+          meta={fileSizeLabel(preview)}
+          pages={preview.pages}
+          annotate={false}
+        />
+      )}
     </Modal>
   );
 }

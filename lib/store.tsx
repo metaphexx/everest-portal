@@ -156,6 +156,8 @@ interface PortalContextValue extends PortalState {
   joinClass: (courseId: string, sessionISO: string, minsLate: number) => void;
   submitAssignedWorksheet: (assignmentId: string) => void;
   assignedToMe: () => MaterialAssignment[];
+  /** Work the tutor has marked and returned to Maya, newest first. */
+  markedForMe: () => { wsName: string; file: string; grade: string; feedback: string; returnedFile?: string; returnedVia?: string }[];
 }
 
 const PortalContext = createContext<PortalContextValue | null>(null);
@@ -566,6 +568,25 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
       .sort((a, b) => (a.assignedAt < b.assignedAt ? 1 : -1));
   }, [tutorSyncTick, state.worksheetSubmissions, hydrated]);
 
+  /** The tutor's marking queue, filtered to Maya and only what has been returned. */
+  const markedForMe = useCallback(() => {
+    void tutorSyncTick; // re-read on cross-portal writes, same as assignedToMe
+    if (!hydrated) return [];
+    const t = readTutorState();
+    const subs: { student?: string; marked?: boolean; wsName?: string; file?: string; grade?: string; feedback?: string; returnedFile?: string; returnedVia?: string }[] =
+      t && Array.isArray(t.submissions) ? t.submissions : [];
+    return subs
+      .filter((sub) => sub.marked && sub.student === STUDENT.name)
+      .map((sub) => ({
+        wsName: sub.wsName ?? "",
+        file: sub.file ?? "",
+        grade: sub.grade ?? "",
+        feedback: sub.feedback ?? "",
+        returnedFile: sub.returnedFile,
+        returnedVia: sub.returnedVia,
+      }));
+  }, [tutorSyncTick, hydrated]);
+
   const submittedNow = wsBase().filter((w) => state.done[w.id]).length;
   const submittedCount = gradeBase().length + submittedNow; // total submissions incl. base graded set + dynamic
   const submittedTotal = BASE_SUBMITTED + submittedNow;
@@ -615,6 +636,7 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
     joinClass,
     submitAssignedWorksheet,
     assignedToMe,
+    markedForMe,
   };
 
   return <PortalContext.Provider value={value}>{children}</PortalContext.Provider>;

@@ -6,6 +6,7 @@ import { useTutor } from "@/lib/tutor-store";
 import { GRADE_OPTIONS, TUTOR_COURSES, TUTOR_COURSE_ORDER } from "@/lib/tutor-data";
 import { ICON } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
+import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
 
 export default function GradePage() {
   const { submissions, markSubmission, toMarkCount, notWired, hasOnline } = useTutor();
@@ -14,6 +15,11 @@ export default function GradePage() {
   const [feedback, setFeedback] = useState("");
   const [filter, setFilter] = useState<"all" | string>("all");
   const [q, setQ] = useState("");
+  // The marked-up copy staged for the currently open submission, before it is
+  // returned. Cleared whenever a different submission is opened.
+  const [returned, setReturned] = useState<{ fileName: string; via: "annotated" | "uploaded" } | null>(null);
+  const [annotating, setAnnotating] = useState<{ id: string; file: string } | null>(null);
+  const uploadRef = React.useRef<HTMLInputElement>(null);
 
   const rows = submissions.filter((s) => {
     if (filter !== "all" && s.course !== filter) return false;
@@ -27,13 +33,21 @@ export default function GradePage() {
     setOpenId(openId === id ? null : id);
     setGrade("A");
     setFeedback("");
+    setReturned(null);
+  };
+
+  /** Name for the marked-up version, kept distinct from the student's original. */
+  const markedName = (file: string) => {
+    const dot = file.lastIndexOf(".");
+    return dot === -1 ? file + " (marked)" : file.slice(0, dot) + " (marked)" + file.slice(dot);
   };
 
   const submit = (id: string) => {
     if (!feedback.trim()) return;
-    markSubmission(id, grade, feedback.trim());
+    markSubmission(id, grade, feedback.trim(), returned ?? undefined);
     setOpenId(null);
     setFeedback("");
+    setReturned(null);
   };
 
   if (!hasOnline) {
@@ -134,6 +148,38 @@ export default function GradePage() {
                       </button>
                     ))}
                   </div>
+                  {/* Mark up the work itself. Two routes, because tutors split
+                      between annotating on screen and marking a printed or
+                      tablet copy and handing that back. */}
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                    <button
+                      onClick={() => setAnnotating({ id: s.id, file: s.file })}
+                      className="btn-soft press"
+                      style={{ height: 32, padding: "0 13px", borderRadius: 9, fontSize: 11.5, fontWeight: 600 }}
+                    >
+                      Annotate the file
+                    </button>
+                    <button
+                      onClick={() => uploadRef.current?.click()}
+                      className="btn-ghost press"
+                      style={{ height: 32, padding: "0 13px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, background: "rgba(255,255,255,.8)", color: "var(--fg2)" }}
+                    >
+                      Upload a marked copy
+                    </button>
+                    {returned && (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 700, color: "var(--success-700)", background: "rgba(34,160,91,.12)", padding: "5px 11px", borderRadius: 980 }}>
+                        {returned.via === "annotated" ? "Annotated" : "Uploaded"} · {returned.fileName}
+                        <button
+                          onClick={() => setReturned(null)}
+                          aria-label="Remove the marked copy"
+                          className="press"
+                          style={{ border: "none", background: "transparent", color: "var(--success-700)", cursor: "pointer", fontSize: 12, lineHeight: 1, padding: 0 }}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    )}
+                  </div>
                   <textarea
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
@@ -143,13 +189,17 @@ export default function GradePage() {
                     style={{ width: "100%", boxSizing: "border-box", borderRadius: 12, border: "1px solid rgba(0,32,63,.12)", background: "rgba(255,255,255,.85)", padding: "11px 13px", fontFamily: "inherit", fontSize: 13, color: "var(--fg1)", resize: "vertical" }}
                   />
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10 }}>
-                    <span style={{ fontSize: 11.5, color: "var(--fg4)" }}>The grade and feedback appear straight away in {s.student.split(" ")[0]}'s My Grades.</span>
+                    <span style={{ fontSize: 11.5, color: "var(--fg4)" }}>
+                      {returned
+                        ? "The grade, feedback and marked copy go straight to " + s.student.split(" ")[0] + "'s My Grades."
+                        : "The grade and feedback appear straight away in " + s.student.split(" ")[0] + "'s My Grades."}
+                    </span>
                     <button
                       onClick={() => submit(s.id)}
                       className="btn-primary press"
                       style={{ height: 36, padding: "0 20px", borderRadius: 11, fontSize: 12.5, opacity: feedback.trim() ? 1 : 0.5 }}
                     >
-                      Return with grade {grade}
+                      Return to student
                     </button>
                   </div>
                 </div>
@@ -158,6 +208,30 @@ export default function GradePage() {
           );
         })}
       </div>
+
+      <input
+        ref={uploadRef}
+        type="file"
+        accept=".pdf,image/*"
+        style={{ display: "none" }}
+        onChange={(e) => {
+          const name = e.target.files?.[0]?.name;
+          if (name) setReturned({ fileName: name, via: "uploaded" });
+          e.target.value = "";
+        }}
+      />
+      {annotating && (
+        <PdfPreviewModal
+          open
+          onClose={() => setAnnotating(null)}
+          fileName={annotating.file}
+          meta="Marking - your annotations are saved onto a copy"
+          onSaveAnnotations={() => {
+            setReturned({ fileName: markedName(annotating.file), via: "annotated" });
+            setAnnotating(null);
+          }}
+        />
+      )}
 
       {/* MARKED */}
       <div className="glass-card" style={{ gridColumn: "span 12", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .18s backwards" }}>
@@ -170,6 +244,11 @@ export default function GradePage() {
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span className="ev-title-2" style={{ display: "block", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.student} · {s.wsName}</span>
                 <span className="ev-title-2" style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>&ldquo;{s.feedback}&rdquo;</span>
+                {s.returnedFile && (
+                  <span style={{ display: "block", fontSize: 10.5, color: "var(--brand-600)", fontWeight: 600, marginTop: 2 }}>
+                    Marked copy returned · {s.returnedFile}
+                  </span>
+                )}
               </span>
               <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--success-700)", background: "rgba(34,160,91,.12)", padding: "5px 12px", borderRadius: 980, flex: "none" }}>{s.grade}</span>
             </div>

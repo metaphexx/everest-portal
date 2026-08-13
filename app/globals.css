@@ -504,14 +504,17 @@ select option {
   .ev-mobilebar-logo {
     width: 168px; height: auto; display: block; max-width: calc(100% - 112px);
   }
+  /* Menu button on the RIGHT: the drawer now holds search, profile and sign
+     out, so the button is the single entry point to all of them and sits under
+     the thumb rather than across the screen from it. */
   .ev-hamburger {
-    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
     width: 40px; height: 40px; flex: none; border-radius: 11px; border: 1px solid var(--border-default);
     background: rgba(255, 255, 255, 0.8); color: var(--fg2); cursor: pointer;
     display: flex; align-items: center; justify-content: center;
   }
   /* The sidebar becomes an off-canvas drawer. */
-  .ev-sidewrap { display: block; position: fixed; inset: 0 auto 0 0; z-index: var(--z-drawer); transform: translateX(-102%); transition: transform 0.28s var(--ease-out); }
+  .ev-sidewrap { display: block; position: fixed; inset: 0 0 0 auto; z-index: var(--z-drawer); transform: translateX(102%); transition: transform 0.28s var(--ease-out); }
   .ev-sidewrap[data-open="true"] {
     transform: translateX(0);
     box-shadow: 0 0 60px -6px rgba(0, 32, 63, 0.4);
@@ -657,6 +660,9 @@ select option {
    not fit one row and was clipping the sign-out button off the right edge.
    Let it wrap, and give search its own full-width line above the rest. */
 @media (max-width: 620px) {
+  /* The whole cluster moved into the drawer on phones. Kept in the DOM for
+     desktop; simply not rendered here. */
+  .ev-header-controls { display: none !important; }
   .ev-header-controls {
     flex-wrap: wrap !important;
     justify-content: flex-end;
@@ -1013,6 +1019,21 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
      booklet name mid-word. The indent is decorative; the name is not. */
   .ev-chip-row { padding-left: 0 !important; }
 
+  /* Calendar day actions: a 24px button at the far left and a bare text link at
+     the far right read as two unrelated things with a hole between them. The
+     status chip keeps the left edge and the actions group at the right, at a
+     real tap height. */
+  .ev-day-actions { flex-wrap: wrap !important; gap: 8px !important; }
+  .ev-day-actions > span:first-child { margin-right: auto; }
+  .ev-day-actions > button,
+  .ev-day-actions > a {
+    min-height: 32px !important;
+    display: inline-flex !important;
+    align-items: center;
+    margin-left: 0 !important;
+  }
+  .ev-day-actions > button { padding: 0 13px !important; font-size: 11px !important; }
+
   /* The composer's action row is indented to line up under the textarea on
      desktop. On a phone that indent costs 43px of a 289px card, so the row
      goes full width and Post pins to the right edge. */
@@ -1092,9 +1113,18 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
 /* Show a block on one form factor only. Both start from the desktop state so
    that a missing media query fails towards the full table, not towards nothing. */
 .ev-only-mobile { display: none !important; }
+/* Search / profile / sign out inside the nav drawer. Desktop keeps them in the
+   page header, so this block only exists below the phone breakpoint. */
+.ev-drawer-account { display: none; }
 .ev-only-mobile-t { display: none !important; }
 @media (max-width: 720px) {
   .ev-only-mobile { display: flex !important; }
+  .ev-drawer-account {
+    display: block;
+    margin-top: auto;
+    padding: 14px 10px 4px;
+    border-top: 1px solid rgba(0, 32, 63, 0.08);
+  }
   .ev-only-mobile-t { display: inline !important; }
   .ev-only-desktop { display: none !important; }
 }

@@ -3,6 +3,9 @@ import Link from "@/components/ui/Link";
 import { usePathname } from "@/lib/router";
 import { Icon, ICON } from "./nav-icons";
 import { STUDENT_ME, useMessaging } from "@/lib/messaging";
+import { STUDENT } from "@/lib/data";
+import { usePortal } from "@/lib/store";
+import { DrawerAccount } from "./DrawerAccount";
 
 interface NavItem {
   href: string;
@@ -73,6 +76,7 @@ function GroupLabel({ children }: { children: React.ReactNode }) {
 export function Sidebar() {
   const pathname = usePathname();
   const { unreadTotal } = useMessaging();
+  const { notWired } = usePortal();
   const HELP: NavItem[] = [
     { href: "/messages", label: "Message a Tutor", icon: ICON.mail, badge: unreadTotal(STUDENT_ME) },
     { href: "/chat", label: "Chat with Elliot", icon: ICON.chat },
@@ -119,6 +123,17 @@ export function Sidebar() {
           <NavLink key={n.href} item={n} active={isActive(pathname, n.href)} />
         ))}
       </nav>
+
+      {/* Phone only: the header's search / profile / sign out live here. */}
+      <DrawerAccount
+        searchPath="/search"
+        settingsPath="/settings"
+        name={STUDENT.name}
+        initials={STUDENT.initials}
+        role={STUDENT.year}
+        accent="var(--brand-500)"
+        onSignOut={() => notWired("Sign out")}
+      />
     </aside>
   );
 }
