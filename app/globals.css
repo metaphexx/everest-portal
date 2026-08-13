@@ -382,7 +382,15 @@ select:focus-visible,
 .ev-scrim { display: none; }
 .ev-mobilebar { display: none; }
 .ev-main { flex: 1; min-width: 0; height: 100%; overflow-y: auto; position: relative; z-index: 1; }
-.ev-main-inner { max-width: 1180px; margin: 0 auto; padding: 28px 36px 52px; box-sizing: border-box; }
+.ev-main-inner { max-width: 1180px; margin: 0 auto; padding: 28px 36px 52px; box-sizing: border-box; min-width: 0; }
+/* Grid and flex children default to min-width:auto, so a long file name or
+   placeholder can push a track past its container - the classic blowout. On a
+   phone this made whole pages (My Booklets, Schedule, Student Outlines) render
+   wider than the screen and scroll sideways inside .ev-main, which reads as
+   "cut off" rather than as an overflow. Clamping the top-level page blocks
+   stops the cascade at the source. Desktop is unaffected: those blocks are
+   already narrower than the container. */
+.ev-main-inner > * { min-width: 0; max-width: 100%; }
 
 @media (max-width: 1024px) {
   .ev-main-inner { padding: 22px 24px 44px; }
@@ -390,23 +398,48 @@ select:focus-visible,
 
 @media (max-width: 720px) {
   .ev-shell { flex-direction: column; }
-  /* Mobile top bar: hamburger + logo, sticky to the top. */
+  /* Mobile top bar: the portal lockup CENTRED, hamburger floated left over it.
+     The logo is the brand moment on a phone, so it gets the middle of the bar
+     rather than being a 24px afterthought beside the menu button. */
   .ev-mobilebar {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 16px; flex: none; position: sticky; top: 0; z-index: var(--z-dropdown);
+    display: flex; align-items: center; justify-content: center;
+    padding: 12px 16px; flex: none; position: sticky; top: 0; z-index: var(--z-dropdown);
     background: rgba(255, 248, 242, 0.9);
     backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4);
     border-bottom: 1px solid var(--hairline);
   }
+  .ev-mobilebar-logo {
+    width: 168px; height: auto; display: block; max-width: calc(100% - 112px);
+  }
   .ev-hamburger {
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
     width: 40px; height: 40px; flex: none; border-radius: 11px; border: 1px solid var(--border-default);
     background: rgba(255, 255, 255, 0.8); color: var(--fg2); cursor: pointer;
     display: flex; align-items: center; justify-content: center;
   }
   /* The sidebar becomes an off-canvas drawer. */
   .ev-sidewrap { display: block; position: fixed; inset: 0 auto 0 0; z-index: var(--z-drawer); transform: translateX(-102%); transition: transform 0.28s var(--ease-out); }
-  .ev-sidewrap[data-open="true"] { transform: translateX(0); box-shadow: 0 0 60px -6px rgba(0, 32, 63, 0.4); }
-  .ev-sidewrap[data-open="true"] + .ev-scrim { display: block; position: fixed; inset: 0; z-index: calc(var(--z-drawer) - 1); background: rgba(0, 32, 63, 0.42); animation: evfadein 0.2s ease-out; }
+  .ev-sidewrap[data-open="true"] {
+    transform: translateX(0);
+    box-shadow: 0 0 60px -6px rgba(0, 32, 63, 0.4);
+  }
+  /* The drawer panel needs to be near-opaque: at the sidebar's desktop glass
+     opacity the page showed straight through the menu and the nav labels were
+     hard to read. Keeps the ivory tone, loses the bleed-through. */
+  .ev-sidewrap {
+    background: rgba(255, 248, 242, 0.98);
+    backdrop-filter: blur(24px) saturate(1.3);
+    -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  }
+  /* Scrim: light enough that the page still reads behind the drawer. A heavy
+     42% navy made the whole screen go dark when the menu opened; a soft wash
+     plus a small blur separates the layers without dimming everything. */
+  .ev-sidewrap[data-open="true"] + .ev-scrim {
+    display: block; position: fixed; inset: 0; z-index: calc(var(--z-drawer) - 1);
+    background: rgba(0, 32, 63, 0.18);
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    animation: evfadein 0.2s ease-out;
+  }
   .ev-main-inner { padding: 16px 16px 40px; }
 }
 
@@ -473,10 +506,53 @@ select:focus-visible,
   .ev-search-input { width: 100% !important; }
   .ev-hide-narrow { display: none !important; }
 }
+/* Phones: the control cluster (mode switcher + search + avatar + sign out) does
+   not fit one row and was clipping the sign-out button off the right edge.
+   Let it wrap, and give search its own full-width line above the rest. */
+@media (max-width: 620px) {
+  .ev-header-controls {
+    flex-wrap: wrap !important;
+    justify-content: flex-end;
+    gap: 8px !important;
+    width: 100%;
+  }
+  /* Search shares its row with the avatar and sign-out (it grows to fill the
+     gap) rather than taking a whole line and stranding them on another. */
+  .ev-header-search {
+    flex: 1 1 140px !important;
+    min-width: 0;
+  }
+  .ev-header-search > .glass-control { width: 100%; }
+  /* Working-mode switcher keeps its own full-width row - it is first in the
+     DOM, so it wraps alone and the rest flow onto the line beneath. */
+  .ev-mode-switch {
+    flex: 1 1 100% !important;
+    justify-content: space-between;
+    height: auto !important;      /* let the taller buttons set the height */
+  }
+  /* Its options were 34px - under the 40px rule - now that the switcher is
+     shown on phones rather than hidden. */
+  .ev-mode-switch > button { flex: 1 1 0; min-height: 40px !important; }
+
+  /* "Upcoming classes" rows: four columns (date | detail | status | action)
+     cannot fit a phone - the detail column collapsed and the centre name
+     wrapped mid-phrase. Drop to two columns and let the status pill and the
+     action button stack underneath the detail, aligned to the same edge. */
+  .ev-upcoming-grid {
+    grid-template-columns: 56px minmax(0, 1fr) !important;
+    gap: 0 10px !important;
+    align-items: start !important;
+  }
+  .ev-upcoming-grid > :nth-child(4n + 3),
+  .ev-upcoming-grid > :nth-child(4n + 4) {
+    grid-column: 2;
+    justify-self: start;
+    margin-bottom: 8px;
+  }
+  .ev-upcoming-grid > :nth-child(4n + 2) { padding-bottom: 4px !important; }
+}
 @media (max-width: 420px) {
   .ev-hide-mobile { display: none !important; }
-  /* Tightest phones: let the search shrink so the cluster still fits one row. */
-  .ev-header-search { flex: 0 1 150px; }
 }
 
 /* --- responsive audit utilities --- */
@@ -506,6 +582,13 @@ select:focus-visible,
   grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
 }
 .ev-main-inner div[style*="repeat(7,1fr)"] > * { min-width: 0; }
+/* On a phone the day cells are ~39px wide, so any event chip inside must clip
+   rather than push the track. Without this the tutor schedule's month grid was
+   108px wider than the screen and scrolled sideways inside the content area. */
+@media (max-width: 720px) {
+  .ev-main-inner div[style*="repeat(7,1fr)"] > * { overflow: hidden; }
+  .ev-main-inner div[style*="repeat(7,1fr)"] > * * { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+}
 
 /* --- mobile tap targets (mobile-only; desktop stays pixel-identical) ---------
    Our own contract asks for a 40px minimum hit area. Several controls are

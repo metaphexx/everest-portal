@@ -260,12 +260,12 @@ export default function DashboardPage() {
             <button onClick={nextMonth} className="mini-nav" style={{ width: 28, height: 28, borderRadius: 9, fontSize: 14 }}>›</button>
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, textAlign: "center", fontSize: 10.5, color: "var(--fg4)", fontWeight: 700, marginBottom: 4 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,minmax(0,1fr))", gap: 2, textAlign: "center", fontSize: 10.5, color: "var(--fg4)", fontWeight: 700, marginBottom: 4 }}>
           {DOWS_MON.map((d, i) => (
             <div key={i}>{d}</div>
           ))}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, textAlign: "center" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,minmax(0,1fr))", gap: 2, textAlign: "center" }}>
           {cells.map((c, i) => {
             const isToday = c.k === tKey;
             const isSel = c.k === sel;

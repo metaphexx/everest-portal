@@ -117,8 +117,11 @@ export function TutorHeader() {
         {/* Working-mode switcher - only for tutors assigned both duties. Plain
             toggle buttons with aria-pressed rather than a half-finished
             role="radio" pattern - honestly accessible without roving tabindex. */}
+        {/* Previously hidden below 420px, which left tutors on a small phone
+            unable to switch working mode at all. It now wraps onto its own
+            full-width row instead of disappearing. */}
         {canToggle && (
-        <div className="glass-control ev-hide-mobile" style={{ display: "flex", alignItems: "center", gap: 2, borderRadius: 12, padding: 4, height: 44, boxSizing: "border-box" }} title="You are assigned both duties. Switch the view between in-person booklet requests and online teaching.">
+        <div className="glass-control ev-mode-switch" style={{ display: "flex", alignItems: "center", gap: 2, borderRadius: 12, padding: 4, height: 44, boxSizing: "border-box" }} title="You are assigned both duties. Switch the view between in-person booklet requests and online teaching.">
           {MODES.map((m) => (
             <button
               key={m.id}

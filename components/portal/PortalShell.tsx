@@ -27,8 +27,9 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
         <button className="ev-hamburger" aria-label="Open menu" onClick={() => setNavOpen(true)}>
           <Icon path="M3 6h18M3 12h18M3 18h18" size={20} stroke />
         </button>
+        {/* Full portal lockup (mark + "Student Portal" script), centred. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/everest-logo.png" alt="Everest Tutoring" style={{ height: 24, width: "auto" }} />
+        <img className="ev-mobilebar-logo" src="/student-portal-logo.png" alt="Everest Tutoring - Student Portal" />
       </div>
 
       <div className="ev-sidewrap" data-open={navOpen}>

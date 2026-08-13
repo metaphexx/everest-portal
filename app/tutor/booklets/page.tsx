@@ -140,7 +140,7 @@ export default function BookletsPage() {
   }
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 16 }}>
       {/* SEARCH + prominent Assign CTA */}
       <div className="glass-card" style={{ padding: "16px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .06s backwards" }}>
         <div className="ev-stack-sm" style={{ display: "flex", alignItems: "center", gap: 12 }}>

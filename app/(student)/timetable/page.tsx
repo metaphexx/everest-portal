@@ -110,10 +110,10 @@ export default function TimetablePage() {
 
         {view === "month" && (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", textAlign: "center", fontSize: 10.5, color: "var(--fg4)", fontWeight: 700, paddingBottom: 6 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,minmax(0,1fr))", textAlign: "center", fontSize: 10.5, color: "var(--fg4)", fontWeight: 700, paddingBottom: 6 }}>
               {DOWS_MON.map((d, i) => <div key={i}>{d}</div>)}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", borderTop: "1px solid rgba(0,32,63,.08)", borderLeft: "1px solid rgba(0,32,63,.08)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,minmax(0,1fr))", borderTop: "1px solid rgba(0,32,63,.08)", borderLeft: "1px solid rgba(0,32,63,.08)" }}>
               {cells.map((c, i) => {
                 const isToday = c.k === tKey;
                 const hit = (EVENTS[c.k] || [])[0];

@@ -103,12 +103,12 @@ export default function TutorSchedulePage() {
 
         {view === "month" ? (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, textAlign: "center", fontSize: 10.5, color: "var(--fg4)", fontWeight: 700, marginBottom: 6 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,minmax(0,1fr))", gap: 4, textAlign: "center", fontSize: 10.5, color: "var(--fg4)", fontWeight: 700, marginBottom: 6 }}>
               {DOWS_MON.map((d, i) => (
                 <div key={i}>{d}</div>
               ))}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,minmax(0,1fr))", gap: 4 }}>
               {cells.map((c, i) => {
                 const evs = byDay[c.k] || [];
                 const isToday = c.k === tKey;

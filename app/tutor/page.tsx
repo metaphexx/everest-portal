@@ -272,7 +272,7 @@ export default function TutorDashboard() {
           <h2 className="portal-section-title" style={{ fontSize: 15 }}>Upcoming classes</h2>
           <Link href="/tutor/schedule" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Full schedule</Link>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "70px 1fr auto auto", gap: "0 12px", alignItems: "center" }}>
+        <div className="ev-upcoming-grid" style={{ display: "grid", gridTemplateColumns: "70px 1fr auto auto", gap: "0 12px", alignItems: "center" }}>
           {upcoming.map((c, i) => {
             const cd = TUTOR_COURSES[c.course];
             const dm = DELIVERY_META[cd.delivery];
@@ -445,12 +445,12 @@ export default function TutorDashboard() {
             <button onClick={nextMonth} className="mini-nav" style={{ width: 28, height: 28, borderRadius: 9, fontSize: 14 }}>›</button>
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, textAlign: "center", fontSize: 10.5, color: "var(--fg4)", fontWeight: 700, marginBottom: 4 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,minmax(0,1fr))", gap: 2, textAlign: "center", fontSize: 10.5, color: "var(--fg4)", fontWeight: 700, marginBottom: 4 }}>
           {DOWS_MON.map((d, i) => (
             <div key={i}>{d}</div>
           ))}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, textAlign: "center" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,minmax(0,1fr))", gap: 2, textAlign: "center" }}>
           {cells.map((c, i) => {
             const isToday = c.k === tKey;
             const isSel = c.k === sel;

@@ -21,7 +21,7 @@ export default function MyDrivePage() {
   }
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 16 }}>
       <div
         className="glass-card"
         style={{
