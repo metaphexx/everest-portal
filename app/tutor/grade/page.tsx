@@ -62,6 +62,9 @@ export default function GradePage() {
                 padding: "0 15px",
                 border: "none",
                 cursor: "pointer",
+                /* Keeps "Year 11" on one line - the strip already scrolls
+                   sideways, so wrapping just made the tabs two lines tall. */
+                whiteSpace: "nowrap",
                 fontFamily: "inherit",
                 fontSize: 12.5,
                 fontWeight: 600,
@@ -92,9 +95,9 @@ export default function GradePage() {
           const open = openId === s.id;
           return (
             <React.Fragment key={s.id}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: !open && i < queue.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
+              <div className="ev-row-stack" style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: !open && i < queue.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                 <span style={{ width: 36, height: 36, borderRadius: "50%", background: cd.bg, color: cd.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flex: "none" }}>{s.init}</span>
-                <span style={{ flex: 1, minWidth: 0 }}>
+                <span className="ev-row-main" style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: "block", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.student} · {s.wsName}</span>
                   <span style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", marginTop: 1 }}>{cd.name} · submitted {s.when}</span>
                 </span>

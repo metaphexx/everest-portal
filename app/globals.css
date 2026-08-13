@@ -99,7 +99,10 @@ body {
 :focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
-  border-radius: 4px;
+  /* No border-radius here. It used to force 4px, which OVERRODE the element's
+     own radius while focused - a rounded pill or search field squared off the
+     moment you tabbed into it, so the focus ring read as a raw browser
+     outline. Omitting it lets the outline follow each control's real shape. */
 }
 input:focus-visible,
 textarea:focus-visible,
@@ -440,18 +443,54 @@ select:focus-visible,
     backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
     animation: evfadein 0.2s ease-out;
   }
-  .ev-main-inner { padding: 16px 16px 40px; }
+  /* Safe area for the floating Elliot button. It is fixed at bottom-right and
+     was sitting ON TOP of real controls on most pages - clipping "Preview",
+     "Post", "Mark resolved", "Download" and even a password field. The content
+     now ends above it instead of underneath it. */
+  .ev-main-inner { padding: 16px 16px 104px; }
+
+  /* Native resize grabbers are a desktop affordance and cannot be used
+     meaningfully on a phone; they just look unfinished in the composer. */
+  textarea { resize: none; }
 }
 
 /* --- page grids collapse to a single column --- */
 /* minmax(0,1fr) (not 1fr) so a wide child can't force the track past the
    viewport; min-width:0 lets the children themselves shrink. */
+/* Phones: single-value stat chips go 2-up instead of full width. Stacked
+   full-bleed they burned ~110px each to show one number, so three or four of
+   them filled the whole first screen with near-empty cards before any real
+   content. Everything else still spans the full width. */
 @media (max-width: 1024px) {
   .ev-page-grid { grid-template-columns: minmax(0, 1fr) !important; }
   .ev-page-grid > * { grid-column: 1 / -1 !important; min-width: 0 !important; }
   /* App-like split panes (messages, chat) stop being viewport-locked. */
   .ev-split { grid-template-columns: minmax(0, 1fr) !important; height: auto !important; min-height: 0 !important; }
   .ev-split > * { grid-column: 1 / -1 !important; min-width: 0 !important; max-height: none !important; }
+}
+
+/* Phones: single-value stat chips go 2-up instead of full width. Stacked
+   full-bleed they burned ~110px each to show one number, so three or four of
+   them filled the whole first screen with near-empty cards before any real
+   content. Everything else still spans the full width.
+   MUST come after the 1024px block above, which would otherwise win. */
+@media (max-width: 720px) {
+  .ev-page-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .ev-page-grid > * { grid-column: span 2 !important; }
+  .ev-page-grid > .glass-stat { grid-column: span 1 !important; }
+
+  /* Desktop list rows that put fixed-width buttons beside flexible text crush
+     that text on a phone: the marking queue was truncating student names to
+     "Ma..." and wrapping the metadata one word per line beside a long file
+     pill. The row now wraps - identity on the first line, actions beneath. */
+  .ev-row-stack { flex-wrap: wrap !important; row-gap: 8px !important; }
+  .ev-row-stack > .ev-row-main { flex: 1 1 calc(100% - 48px) !important; min-width: 0; }
+  .ev-row-stack > button {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 /* Two-up card grids fold to one column a little later, on phones. */
