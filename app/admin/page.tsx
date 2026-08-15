@@ -29,6 +29,17 @@ export default function AdminDashboard() {
   const failed = printJobs.filter((r) => r.printing === "failed");
   const copies = (r: (typeof printJobs)[number]) => r.items.reduce((n, i) => n + i.qty, 0);
 
+  // Copies requested per booklet, biggest first. Derived from the real requests
+  // rather than a separate seed, so the bars always agree with the queue.
+  const topBooklets = useMemo(() => {
+    const tally = new Map<string, number>();
+    for (const r of printJobs) for (const it of r.items) tally.set(it.name, (tally.get(it.name) ?? 0) + it.qty);
+    return [...tally.entries()]
+      .map(([name, n]) => ({ name, n }))
+      .sort((a, b) => b.n - a.n)
+      .slice(0, 6);
+  }, [printJobs]);
+
   const stats = [
     { label: "TO APPROVE", value: pendingCount, sub: "print requests from tutors", color: pendingCount ? "var(--warn-700)" : "var(--fg2)" },
     { label: "TO PRINT", value: toPrintCount, sub: "approved and waiting", color: toPrintCount ? "var(--brand-600)" : "var(--fg2)" },
@@ -196,12 +207,32 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* MOST REQUESTED. The live dashboard puts this in a donut, where three
+          slices carry three numbers and the legend does the actual work. Bars
+          sorted by size say the same thing and can be read across a room. */}
+      <div className="glass-card" style={{ gridColumn: "span 12", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .4s backwards" }}>
+        <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 4px" }}>Most requested booklets this term</h2>
+        <p style={{ margin: "0 0 12px", fontSize: 11.5, color: "var(--fg3)" }}>Copies printed, so you can see what to keep in stock.</p>
+        {topBooklets.length === 0 && <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "10px 0" }}>Nothing requested yet this term.</div>}
+        {topBooklets.map((b) => (
+          <div key={b.name} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0" }}>
+            <span style={{ flex: "0 1 260px", minWidth: 0, fontSize: 12.5, color: "var(--fg2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={b.name}>
+              {b.name}
+            </span>
+            <span style={{ flex: 1, minWidth: 60, height: 8, borderRadius: 4, background: "rgba(0,32,63,.07)", overflow: "hidden" }}>
+              <span style={{ display: "block", width: Math.round((b.n / topBooklets[0].n) * 100) + "%", height: "100%", borderRadius: 4, background: "var(--accent-teal)" }} />
+            </span>
+            <span style={{ flex: "none", fontSize: 12.5, fontWeight: 800, color: "var(--fg2)", minWidth: 34, textAlign: "right" }}>{b.n}</span>
+          </div>
+        ))}
+      </div>
+
       {/* STAFF */}
       <div className="glass-card" style={{ gridColumn: "span 12", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .42s backwards" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
           <h2 className="portal-section-title" style={{ fontSize: 15, margin: 0 }}>Tutors on the roster</h2>
           <span className="ev-spacer-flex" style={{ flex: 1 }} />
-          <Link href="/admin/tutors" style={{ fontSize: 12, fontWeight: 700, color: "var(--accent-teal)", textDecoration: "none" }} className="ev-tap-link">
+          <Link href="/admin/masters?tab=tutors" style={{ fontSize: 12, fontWeight: 700, color: "var(--accent-teal)", textDecoration: "none" }} className="ev-tap-link">
             Manage tutors
           </Link>
         </div>

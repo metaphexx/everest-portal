@@ -30,8 +30,8 @@ function pageMeta(pathname: string, pending: number, toPrint: number): { t: stri
   if (pathname.startsWith("/admin/approvals")) return { t: "Approvals", s: "Print requests from tutors, waiting on your decision." };
   if (pathname.startsWith("/admin/printing")) return { t: "Print Queue", s: "Approved jobs, with the exact print spec for each." };
   if (pathname.startsWith("/admin/classes")) return { t: "Classes", s: "Every class Everest runs, across all centres and online." };
-  if (pathname.startsWith("/admin/tutors")) return { t: "Tutors", s: "Staff, the duties you have granted them, and how to reach them." };
-  if (pathname.startsWith("/admin/students")) return { t: "Students", s: "Enrolments, attendance and parent contacts." };
+  if (pathname.startsWith("/admin/masters")) return { t: "Master Records", s: "Centres, printers, systems, people, courses and Drive folders." };
+  if (pathname.startsWith("/admin/history")) return { t: "Print History", s: "Everything that has actually been printed, by centre." };
   if (pathname.startsWith("/admin/catalogue")) return { t: "Catalogue", s: "The booklets tutors can request and assign." };
   if (pathname.startsWith("/admin/files")) return { t: "Shared Files", s: "Every file shared on the platform, and who sent it to whom." };
   if (pathname.startsWith("/admin/safeguarding")) return { t: "Safeguarding", s: "Flagged messages. Each one needs a person, not a filter." };

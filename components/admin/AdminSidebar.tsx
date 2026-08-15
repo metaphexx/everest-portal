@@ -66,15 +66,19 @@ export function AdminSidebar() {
   const { pendingCount, toPrintCount } = useAdmin();
   const openFlags = SAFEGUARDING.filter((f) => f.status === "open").length;
 
+  // Flat, and ordered by the job. The live portal buries fourteen master
+  // screens in three collapsing groups, so a tutor record is three clicks and a
+  // guess away; here every destination is one click, and the master screens
+  // share a single page with a tab strip.
   const MAIN: NavItem[] = [{ href: "/admin", label: "Dashboard", icon: ICON.grid }];
   const QUEUES: NavItem[] = [
-    { href: "/admin/approvals", label: "Approvals", icon: ICON.clipboard, badge: pendingCount },
+    { href: "/admin/approvals", label: "Booklet Requests", icon: ICON.clipboard, badge: pendingCount },
     { href: "/admin/printing", label: "Print Queue", icon: ICON.doc, badge: toPrintCount },
+    { href: "/admin/history", label: "Print History", icon: ICON.play },
   ];
   const RECORDS: NavItem[] = [
     { href: "/admin/classes", label: "Classes", icon: ICON.courses },
-    { href: "/admin/tutors", label: "Tutors", icon: ICON.text },
-    { href: "/admin/students", label: "Students", icon: ICON.grade },
+    { href: "/admin/masters", label: "Master Records", icon: ICON.text },
     { href: "/admin/catalogue", label: "Catalogue", icon: ICON.library },
   ];
   const OVERSIGHT: NavItem[] = [

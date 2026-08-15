@@ -29,5 +29,5 @@ export const ADMIN_NOTIFS: NotifItem[] = [
   { id: "a-safeguard", dot: "var(--danger-500)", title: "Ruby Chen's message was flagged for wellbeing", meta: "Safeguarding · this morning", href: "/admin/safeguarding", read: false },
   { id: "a-request", dot: "var(--warn-500)", title: "Priya Rao requested booklets for Year 9 Science", meta: "Approvals · 1 Jul", href: "/admin/approvals", read: false },
   { id: "a-print", dot: "var(--brand-500)", title: "A Year 10 Foundations job failed at the Piara Waters printer", meta: "Print Queue · 30 Jun", href: "/admin/printing", read: false },
-  { id: "a-trial", dot: "var(--success-500)", title: "Cooper Hall is on a trial that ends this week", meta: "Students · 29 Jun", href: "/admin/students", read: true },
+  { id: "a-trial", dot: "var(--success-500)", title: "Cooper Hall is on a trial that ends this week", meta: "Students · 29 Jun", href: "/admin/masters?tab=students", read: true },
 ];

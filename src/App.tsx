@@ -14,8 +14,8 @@ import AdminDashboard from "@/app/admin/page";
 import AdminApprovals from "@/app/admin/approvals/page";
 import AdminPrinting from "@/app/admin/printing/page";
 import AdminClasses from "@/app/admin/classes/page";
-import AdminTutors from "@/app/admin/tutors/page";
-import AdminStudents from "@/app/admin/students/page";
+import AdminMasters from "@/app/admin/masters/page";
+import AdminHistory from "@/app/admin/history/page";
 import AdminCatalogue from "@/app/admin/catalogue/page";
 import AdminFiles from "@/app/admin/files/page";
 import AdminSafeguarding from "@/app/admin/safeguarding/page";
@@ -117,8 +117,8 @@ export default function App() {
         <Route path="/admin/approvals" element={<AdminApprovals />} />
         <Route path="/admin/printing" element={<AdminPrinting />} />
         <Route path="/admin/classes" element={<AdminClasses />} />
-        <Route path="/admin/tutors" element={<AdminTutors />} />
-        <Route path="/admin/students" element={<AdminStudents />} />
+        <Route path="/admin/masters" element={<AdminMasters />} />
+        <Route path="/admin/history" element={<AdminHistory />} />
         <Route path="/admin/catalogue" element={<AdminCatalogue />} />
         <Route path="/admin/files" element={<AdminFiles />} />
         <Route path="/admin/safeguarding" element={<AdminSafeguarding />} />
