@@ -12,6 +12,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import { Icon } from "@/components/ui/Icon";
+import { ElliotMark } from "@/components/ui/ElliotMark";
 import { seedSharedOutlines, SharedOutline } from "@/lib/tutor-data";
 import { SUGGESTIONS_PER_BATCH, TutorSuggestion, tutorElliotReply, tutorSuggestions } from "@/lib/tutor-elliot";
 
@@ -95,8 +96,8 @@ export default function TutorElliotPage() {
         <div className="thin-scroll" style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "20px 20px 8px" }}>
           {msgs.length === 0 && (
             <div style={{ textAlign: "center", padding: "26px 10px" }}>
-              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg,var(--accent-violet),var(--brand-500))", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", margin: "0 auto 14px", boxShadow: "0 14px 30px -12px rgba(0,157,255,.55)" }}>
-                <Icon path={IC.spark} size={24} />
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+                <ElliotMark size={88} title="Elliot" />
               </div>
               <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 800 }}>Ask Elliot about your students</div>
               <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 6, maxWidth: 420, marginInline: "auto", lineHeight: 1.6 }}>

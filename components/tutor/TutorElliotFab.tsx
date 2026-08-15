@@ -12,6 +12,7 @@ import React, { useMemo, useState } from "react";
 import { usePathname, useRouter } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import { Icon } from "@/components/ui/Icon";
+import { ElliotMark } from "@/components/ui/ElliotMark";
 import { useDismissable } from "@/lib/use-dismissable";
 import { seedSharedOutlines, SharedOutline } from "@/lib/tutor-data";
 import { SUGGESTIONS_PER_BATCH, TutorSuggestion, tutorSuggestions } from "@/lib/tutor-elliot";
@@ -175,7 +176,7 @@ export function TutorElliotFab() {
         className="fab-btn press"
         style={{ position: "relative", width: 56, height: 56, borderRadius: "50%", border: "none", background: "linear-gradient(135deg,var(--accent-violet),var(--brand-500))", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 18px 36px -12px rgba(0,32,63,.5)" }}
       >
-        <Icon path={IC.spark} size={22} />
+        <ElliotMark size={30} tone="solid" />
         {items.length > 0 && !open && (
           <span style={{ position: "absolute", top: -2, right: -2, minWidth: 20, height: 20, padding: "0 5px", borderRadius: 980, background: "var(--danger-500)", color: "#fff", fontSize: 11, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", border: "2px solid var(--bg-page)" }}>
             {items.length}

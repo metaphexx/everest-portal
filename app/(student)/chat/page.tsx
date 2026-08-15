@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { usePortal } from "@/lib/store";
 import { chatSeeds } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
+import { ElliotMark } from "@/components/ui/ElliotMark";
 
 export default function ChatPage() {
   const { chatMsgs, chatActive, setChatActive, chatTyping, sendChat, notWired, elliotCapped } = usePortal();
@@ -57,7 +58,7 @@ export default function ChatPage() {
         <div ref={scrollRef} className="thin-scroll" style={{ flex: 1, overflowY: "auto", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 10 }}>
           {empty && (
             <div style={{ margin: "auto", textAlign: "center", maxWidth: 380 }}>
-              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg,var(--accent-blue-light),var(--accent-violet-light))", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 22, margin: "0 auto 14px", boxShadow: "0 14px 30px -12px rgba(0,157,255,.55)" }}>E</div>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}><ElliotMark size={92} title="Elliot" /></div>
               <div style={{ fontFamily: "var(--font-display)", fontSize: 19, fontWeight: 800, letterSpacing: -0.3 }}>Hi Maya, I&apos;m Elliot</div>
               <div style={{ fontSize: 13, color: "var(--fg3)", margin: "6px 0 16px", lineHeight: 1.5 }}>Ask me anything about your courses, worksheets or upcoming classes. I know where you&apos;re at.</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>

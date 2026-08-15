@@ -8,6 +8,7 @@ import { ChatAction, ChatMsg, usePortal } from "@/lib/store";
 import { STUDENT_ME, useMessaging } from "@/lib/messaging";
 import { elliotAgent } from "@/lib/elliot-agent";
 import { Icon } from "@/components/ui/Icon";
+import { ElliotMark } from "@/components/ui/ElliotMark";
 
 export function ElliotFab() {
   const portal = usePortal();
@@ -100,7 +101,7 @@ export function ElliotFab() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "13px 15px 9px", borderBottom: "1px solid rgba(0,32,63,.07)" }}>
-            <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,var(--accent-blue-light),var(--accent-violet-light))", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 14, flex: "none" }}>E</div>
+            <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(0,157,255,.1)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}><ElliotMark size={22} /></div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13.5, fontWeight: 700 }}>Elliot</div>
               <div style={{ fontSize: 10.5, color: "var(--fg4)" }}>Can answer, navigate and log issues for you</div>
