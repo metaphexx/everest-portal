@@ -832,6 +832,10 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
     min-height: 40px !important;
     display: inline-flex !important;
     align-items: center !important;
+    /* A button centres its label by default, but inline-flex does not inherit
+       that - without this, any full-width .ev-tap-h button (Show more, Load
+       more) drops its label to the left edge on phones only. */
+    justify-content: center !important;
   }
   /* Inline text links that act as buttons need a real touch area too. */
   .ev-tap-link {

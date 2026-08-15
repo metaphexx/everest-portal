@@ -146,7 +146,7 @@ export default function TutorElliotPage() {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); ask(); } }}
-              placeholder={elliotCapped ? "Question allowance used for today" : "Ask about a student, or what to assign next"}
+              placeholder={elliotCapped ? "Allowance used for today" : "Ask about a student"}
               aria-label="Ask Elliot"
               className="field"
               style={{ flex: 1, minWidth: 0, height: 44 }}

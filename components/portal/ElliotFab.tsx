@@ -101,7 +101,9 @@ export function ElliotFab() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "13px 15px 9px", borderBottom: "1px solid rgba(0,32,63,.07)" }}>
-            <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(0,157,255,.1)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}><ElliotMark size={22} /></div>
+            {/* Same darker ground as the button that opened it, so the mark does
+                not change character between closed and open. */}
+            <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,var(--accent-violet),var(--brand-500))", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}><ElliotMark size={20} tone="solid" /></div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13.5, fontWeight: 700 }}>Elliot</div>
               <div style={{ fontSize: 10.5, color: "var(--fg4)" }}>Can answer, navigate and log issues for you</div>

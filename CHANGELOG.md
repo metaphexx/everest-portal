@@ -4,6 +4,107 @@ Updates made to the prototype after the initial handoff. Each entry is part of t
 specification: the production build must include it. See `HANDOFF.md` for the full
 system description and `DESIGN-FIDELITY.md` for the UI contract.
 
+## 2026-08-15 - Marking, assigning, tutor Elliot, and the phone header
+
+Everything below is spec. Grouped by area rather than by commit; `git log` carries
+the reasoning for each individual change.
+
+### Marking work and returning it (new)
+
+- A tutor opens a submission, annotates it, and sends the marked copy back with
+  written feedback. A tutor who prefers their own tools can download the file,
+  mark it up elsewhere, and re-upload it as the returned copy. The student sees
+  **View marked copy** and **Download** on that submission in My Grades.
+- **Grades are A, B, C, D or "Needs review". There are no plus or minus grades.**
+  Do not add them, and do not accept a numeric mark in this field.
+- `markSubmission(id, grade, feedback, returned?)` in `lib/tutor-store.tsx`.
+  `submissions` is part of the persisted `evr-tutor` payload - it has to be, or the
+  student portal never sees the marked copy.
+- Downloads are real client-side files (`lib/download.ts`, a hand-assembled minimal
+  PDF plus a Blob and `<a download>`), and they work on a phone. The function
+  returns `false` when the browser blocks it so the caller can say so.
+
+### Assigning and requesting: online and in-person are not the same
+
+- **Requesting materials for printing is in-person only.** An online class has
+  nothing to print.
+- **Assigning digital materials is online only.** In-person students have no login
+  yet, so assigning to them would silently go nowhere.
+- **Assigning to a whole class reaches the whole class.** `assignedToMe()` now
+  scopes a class-target assignment to the courses the student is actually enrolled
+  in; before, any class target matched every student.
+- The booklet picker takes multiple students, each individually unselectable, and
+  previews a booklet while you search: the first four pages, with the true total
+  page count shown. The four-page limit is a product decision, not a technical one.
+
+### The office can see tutor files, and tutors are told so
+
+Every file a tutor uploads, assigns or shares is visible to the Everest office,
+along with who sent it and when. `components/tutor/OfficeVisibilityNotice.tsx`
+states this on My Drive, in the classroom composer and in the message thread.
+Keep the notice; the point is that it is visible, not buried in a policy page.
+
+### Elliot for tutors
+
+- Suggestions (`lib/tutor-elliot.ts`) are derived on the device from student
+  outlines, recorded scores and the Drive index - free, unlimited, and always
+  traceable to the assessment or score that raised them. Three at a time, then
+  "Show N more". A one-tap **Yes, assign it** does the assignment.
+- Alerts fire below a weighted average of `LOW_SCORE_PCT` (60%).
+- Free-text questions are model calls, so they are rationed:
+  `TUTOR_ELLIOT_DAILY_ASKS = 22`, same AUD 1.00/day posture as the student's
+  Elliot. **The tutor is shown the remaining allowance; the student never is.** A
+  tutor is staff, and a silent ceiling reads as a broken app.
+- `/tutor/elliot` is the full chat surface with its own sidebar item. The floating
+  button stays a glance at suggestions and hides itself on that page.
+
+### Tutor settings, messaging, search
+
+- `/tutor/settings`: profile photo, email, mobile, password, notification
+  preferences. Name and role are read-only with an explanation of who sets them -
+  a greyed field with no explanation just looks broken. Safeguarding alerts cannot
+  be switched off.
+- The role string is **"Everest Tutor"**, defined once in `lib/tutor-data.ts`.
+- A tutor can start a conversation with any student, filtered by class.
+- Search was a hardcoded eleven-item substring filter. `lib/search-core.ts` and
+  `lib/tutor-search.ts` build a live index each call - every nav destination, class,
+  classroom, student, Drive file, catalogue booklet, live request and submission -
+  with synonym expansion and weighted ranking. A Drive file and its print-catalogue
+  twin are labelled by what they do ("Assign digitally" / "Order for printing")
+  rather than de-duped, because they are different actions.
+
+### Shell, chrome and brand
+
+- **The phone header** carries the account avatar top left beside the logo and the
+  hamburger top right. Search, profile and sign out live in the drawer and the
+  avatar menu; an unread badge has to be visible without opening anything, which is
+  why the avatar is in the bar and not the drawer.
+- `components/ui/Modal.tsx` portals to `document.body`. Inside `.ev-main` it was
+  trapped in that stacking context and the mobile bar painted over it.
+- `components/ui/Loader.tsx` is the brand loading mark; it replaces the ring
+  spinners. Reduced motion stops it outright - a crawling self-drawing mark reads
+  as a hung page.
+- `components/ui/ElliotMark.tsx` is the AI mark, SVG so it is crisp from 20px to
+  92px. It reuses the loader's peak path, so the brand shape is defined once.
+  `tone="solid"` on coloured grounds; the gradient tone is for light surfaces.
+  Gradient ids are per instance or several marks share the first one's stops.
+- The student account chip no longer carries a completion ring or a "% complete"
+  line. A running progress score in the chrome of every page is pressure, not
+  information; the figure stays on My Grades where it is asked for.
+
+### Two phone-only defects worth knowing about
+
+- A `<button>` centres its label by default, but `display: inline-flex` does not
+  inherit that. `.ev-tap-h` sets inline-flex at 720px and below, so every full-width button
+  carrying it dropped its label to the left edge on phones only. It now sets
+  `justify-content: center`.
+- Seed data had wrong avatar initials (Priya Rao as "DR", Grace Lin as "ML", David
+  Chen as "MC"). Fixed in `lib/messaging.tsx`. Worth deriving initials from the
+  name in production rather than storing them.
+
+Verified across 31 routes at 390px: zero horizontal page overflow, zero console
+errors.
+
 ## 2026-08-13 - Mobile pass: the app is now built to work on a phone
 
 The prototype was desktop-correct and phone-broken. An automated overflow probe
