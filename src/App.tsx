@@ -41,6 +41,7 @@ import TutorClassroom from "@/app/tutor/classroom/[id]/page";
 import TutorMessages from "@/app/tutor/messages/page";
 import TutorSearch from "@/app/tutor/search/page";
 import TutorSettings from "@/app/tutor/settings/page";
+import TutorElliot from "@/app/tutor/elliot/page";
 
 function NotFound() {
   return (
@@ -91,6 +92,9 @@ export default function App() {
         <Route path="/tutor/search" element={<TutorSearch />} />
 
         <Route path="/tutor/settings" element={<TutorSettings />} />
+
+
+        <Route path="/tutor/elliot" element={<TutorElliot />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

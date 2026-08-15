@@ -291,7 +291,7 @@ export default function TutorCoursePage() {
                     {a.kind === "worksheet" && a.status === "submitted" && (
                       <button
                         onClick={() => setAssignmentStatus(a.id, "graded")}
-                        className="btn-ghost press ev-wrap-cta"
+                        className="btn-ghost press"
                         style={{ height: 26, padding: "0 10px", borderRadius: 8, fontSize: 11, flex: "none", background: "rgba(255,255,255,.7)", color: "var(--success-700)" }}
                       >
                         Mark as graded

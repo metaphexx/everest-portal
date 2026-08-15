@@ -51,6 +51,7 @@ function pageMeta(pathname: string, greeting: string, toMark: number, pending: n
     return { t: "Classroom", s: "" };
   }
   if (pathname === "/tutor/messages") return { t: "Messages", s: "Student conversations. Every message is monitored for safety." };
+  if (pathname === "/tutor/elliot") return { t: "Ask Elliot", s: "Suggestions and answers from your students\u2019 outlines and scores." };
   if (pathname === "/tutor/settings") return { t: "Settings", s: "Your contact details, password and notifications." };
   if (pathname === "/tutor/search") return { t: "Search", s: "Results from across your portal." };
   return { t: "Everest", s: "" };

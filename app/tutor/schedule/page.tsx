@@ -72,7 +72,7 @@ export default function TutorSchedulePage() {
                 </span>
                 <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>{cd.time} · {cd.centre}</span>
               </span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--brand-600)", flex: "none" }}>{inPerson ? "Request →" : "View class →"}</span>
+              <span className="ev-row-end" style={{ fontSize: 11, fontWeight: 700, color: "var(--brand-600)", flex: "none" }}>{inPerson ? "Request →" : "View class →"}</span>
             </button>
           );
         })}

@@ -203,12 +203,21 @@ export default function HistoryPage() {
                   </button>
                   <span style={{ flex: "none", fontSize: 11, fontWeight: 700, color: sm.color, background: sm.bg, padding: "5px 11px", borderRadius: 980, whiteSpace: "nowrap" }}>{sm.label}</span>
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px", marginTop: 8, fontSize: 12, color: "var(--fg3)" }}>
-                  <span>#{i + 1}</span>
-                  <span>{req.date}</span>
-                  <span>{centreOf(req)}</span>
-                  <span>{cat?.topic ?? req.subject}</span>
-                  <span style={{ fontWeight: 700, marginLeft: "auto" }}>{item.qty} copies</span>
+                {/* Labelled pairs, not bare values in a row: without labels the
+                    columns shifted on every card because centre names differ in
+                    length, so nothing lined up down the list. */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: "8px 14px", marginTop: 10, fontSize: 12 }}>
+                  {[
+                    ["Printed", req.date],
+                    ["Centre", centreOf(req)],
+                    ["Topic", cat?.topic ?? req.subject],
+                    ["Copies", String(item.qty)],
+                  ].map(([label, value]) => (
+                    <span key={label} style={{ minWidth: 0 }}>
+                      <span style={{ display: "block", fontSize: 10, fontWeight: 700, letterSpacing: 0.4, color: "var(--fg4)" }}>{label.toUpperCase()}</span>
+                      <span style={{ display: "block", color: "var(--fg2)", marginTop: 1 }}>{value}</span>
+                    </span>
+                  ))}
                 </div>
                 <button
                   onClick={() => setOpenKey(row.key)}

@@ -38,6 +38,7 @@ const DESTINATIONS: Indexable[] = [
   { name: "My Booklets", meta: "Assign digital booklets to an online class", kind: "Page", color: "#0E7AC2", page: "/tutor/booklets", keywords: "assign drive materials digital online share", boost: 30 },
   { name: "My Drive", meta: "Your own teaching files", kind: "Page", color: "#7A5AF8", page: "/tutor/drive", keywords: "upload personal files storage", boost: 30 },
   { name: "Messages", meta: "Conversations with students and the office", kind: "Page", color: "#009DFF", page: "/tutor/messages", keywords: "chat dm conversation contact parent reply", boost: 30 },
+  { name: "Ask Elliot", meta: "Suggestions and answers about your students", kind: "Page", color: "#7A5AF8", page: "/tutor/elliot", keywords: "ai assistant help suggest assign who is struggling chat", boost: 30 },
   { name: "Settings", meta: "Contact details, password and notifications", kind: "Page", color: "#66707F", page: "/tutor/settings", keywords: "account profile password email phone number photo picture sign out preferences", boost: 30 },
 ];
 
@@ -89,7 +90,7 @@ export function buildTutorIndex(live: TutorSearchInput = {}): Indexable[] {
   for (const f of DRIVE_FILES) {
     idx.push({
       name: f.name,
-      meta: "Drive file · " + (f.pages ? f.pages + " pages" : f.ext.toUpperCase()),
+      meta: "Assign digitally · " + (f.pages ? f.pages + " pages" : f.ext.toUpperCase()),
       kind: "File",
       color: "#0E7AC2",
       page: "/tutor/booklets",
@@ -100,8 +101,8 @@ export function buildTutorIndex(live: TutorSearchInput = {}): Indexable[] {
   for (const c of CATALOGUE) {
     idx.push({
       name: c.name,
-      meta: "Catalogue · " + c.year + " " + c.subject + " · " + c.topic,
-      kind: "Booklet",
+      meta: "Order for printing · " + c.year + " " + c.subject + " · " + c.topic,
+      kind: "Print catalogue",
       color: "#009DFF",
       page: "/tutor/materials?preview=" + c.id,
       keywords: "print request order " + c.topic + " " + c.subject,

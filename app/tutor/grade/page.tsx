@@ -67,7 +67,7 @@ export default function GradePage() {
         <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--danger-500)", background: "rgba(224,65,65,.1)", padding: "5px 12px", borderRadius: 980, flex: "none" }}>
           {toMarkCount} waiting
         </span>
-        <div className="thin-scroll ev-filter-scroll" style={{ display: "inline-flex", borderRadius: 11, border: "1px solid rgba(0,32,63,.1)", flex: "none", maxWidth: "100%", overflowX: "auto" }}>
+        <div className="thin-scroll ev-filter-scroll" style={{ display: "inline-flex", borderRadius: 11, border: "1px solid rgba(0,32,63,.1)", flex: "none", maxWidth: "calc(100% - 6px)", overflowX: "auto" }}>
           {[{ id: "all", label: "All classes" }, ...TUTOR_COURSE_ORDER.map((id) => ({ id, label: TUTOR_COURSES[id].year }))].map((f) => (
             <button
               key={f.id}

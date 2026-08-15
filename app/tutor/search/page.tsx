@@ -73,20 +73,38 @@ function TutorSearchInner() {
           </div>
         )}
 
-        {q && results.map((r, i) => (
-          <button
-            key={i}
-            onClick={() => router.push(r.page)}
-            className="list-hover"
-            style={{ display: "flex", width: "100%", textAlign: "left", alignItems: "center", gap: 13, padding: "12px 12px", borderRadius: 12, cursor: "pointer", border: "none", background: "none", fontFamily: "inherit" }}
-          >
-            <span style={{ width: 10, height: 10, borderRadius: 4, background: r.color, flex: "none" }} />
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span className="ev-title-2" style={{ display: "block", fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</span>
-              <span style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", marginTop: 1 }}>{r.meta}</span>
-            </span>
-            <Icon path="M9 6l6 6-6 6" size={15} style={{ color: "var(--fg5-decorative)", flex: "none" }} />
-          </button>
+        {/* Grouped by kind. A flat list interleaved pages, students, files and
+            catalogue entries, and because a Drive file and its print-catalogue
+            entry share a name, the same title appeared twice with only a small
+            grey line telling them apart - it read as a broken de-dupe rather
+            than as two genuinely different actions. */}
+        {q && Object.entries(
+          results.reduce<Record<string, typeof results>>((acc, r) => {
+            const k = r.kind ?? "Other";
+            (acc[k] ||= []).push(r);
+            return acc;
+          }, {})
+        ).map(([kind, rows]) => (
+          <div key={kind} style={{ marginBottom: 6 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.7, color: "var(--fg4)", padding: "10px 12px 4px" }}>
+              {kind.toUpperCase()}
+            </div>
+            {rows.map((r, i) => (
+              <button
+                key={kind + i}
+                onClick={() => router.push(r.page)}
+                className="list-hover"
+                style={{ display: "flex", width: "100%", textAlign: "left", alignItems: "center", gap: 13, padding: "12px 12px", borderRadius: 12, cursor: "pointer", border: "none", background: "none", fontFamily: "inherit" }}
+              >
+                <span style={{ width: 10, height: 10, borderRadius: 4, background: r.color, flex: "none" }} />
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span className="ev-title-2" style={{ display: "block", fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</span>
+                  <span style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", marginTop: 1 }}>{r.meta}</span>
+                </span>
+                <Icon path="M9 6l6 6-6 6" size={15} style={{ color: "var(--fg4)", flex: "none" }} />
+              </button>
+            ))}
+          </div>
         ))}
 
         {q && results.length === 0 && (

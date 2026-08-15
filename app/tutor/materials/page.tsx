@@ -133,7 +133,7 @@ function StudyMaterialsInner() {
           {ctxClass ? (
             <span style={{ fontSize: 12, color: "var(--fg4)", fontWeight: 600 }}>Set from {TUTOR_COURSES[ctxClass.course].name} · pick Custom Request to change</span>
           ) : (!topicChosen && !q.trim() && (
-            <span style={{ fontSize: 12, color: "var(--warn-700)", fontWeight: 600 }}>Choose down to a topic to see materials, or search the whole drive</span>
+            <span style={{ fontSize: 12, color: "var(--fg4)", fontWeight: 600 }}>Pick a topic to see its materials, or search the whole drive</span>
           ))}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10 }}>

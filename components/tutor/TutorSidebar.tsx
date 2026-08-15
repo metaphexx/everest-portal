@@ -94,6 +94,7 @@ export function TutorSidebar() {
       ]
     : [];
   const HELP: NavItem[] = [
+    ...(hasOnline ? [{ href: "/tutor/elliot", label: "Ask Elliot", icon: ICON.chat }] : []),
     ...(hasOnline ? [{ href: "/tutor/messages", label: "Messages", icon: ICON.mail, badge: unreadTotal(TUTOR_ME) }] : []),
     { href: "/tutor/settings", label: "Settings", icon: ICON.settings },
   ];

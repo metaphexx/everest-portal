@@ -102,7 +102,7 @@ export default function TutorDashboard() {
   const statCards = [
     { label: "CLASSES THIS TERM", value: String(myClasses.length), sub: myClasses.filter((c) => c.k < tKey).length + " taught, " + upcomingAll.length + " to go", color: "var(--brand-500)", show: true },
     { label: "TO MARK", value: String(toMarkCount), sub: "worksheets waiting on feedback", color: "var(--danger-500)", show: hasOnline },
-    { label: "REQUESTS PENDING", value: String(pendingRequests), sub: "print jobs awaiting approval", color: "var(--warn-700)", show: hasInPerson },
+    { label: "REQUESTS PENDING", value: String(pendingRequests), sub: pendingRequests === 1 ? "print job awaiting approval" : "print jobs awaiting approval", color: "var(--warn-700)", show: hasInPerson },
     { label: "MATERIALS ASSIGNED", value: String(effectiveAssignments.length), sub: "booklets and worksheets sent out", color: "var(--brand-600)", show: hasOnline },
     { label: "BOOKLETS PRINTED", value: String(pipeline[3].n), sub: rejected > 0 ? rejected + " need attention, see requests" : "all print jobs healthy", color: "var(--success-700)", show: hasInPerson && !hasOnline },
   ].filter((s) => s.show).slice(0, 4);

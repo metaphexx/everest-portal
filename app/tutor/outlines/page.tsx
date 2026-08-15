@@ -221,12 +221,12 @@ export default function StudentOutlinesPage() {
                           {e.status === "done" ? "Submitted · " + e.outline!.assessments.length + " assessments" : sc.label}
                         </span>
                         {e.status === "done" && (
-                          <button onClick={() => setOpenOutline(isOpen ? null : e.outline!.id)} className={isOpen ? "btn-ghost press" : "btn-primary press"} style={{ height: 28, padding: "0 12px", borderRadius: 8, fontSize: 11, flex: "none" }}>
+                          <button onClick={() => setOpenOutline(isOpen ? null : e.outline!.id)} className={(isOpen ? "btn-ghost press" : "btn-primary press") + " ev-row-end"} style={{ height: 28, padding: "0 12px", borderRadius: 8, fontSize: 11, flex: "none" }}>
                             {isOpen ? "Hide" : "View outline"}
                           </button>
                         )}
                         {e.status === "pending" && (
-                          <button onClick={() => setPreview(e.outline!)} className="btn-soft press" style={{ height: 28, padding: "0 12px", borderRadius: 8, fontSize: 11, flex: "none" }}>
+                          <button onClick={() => setPreview(e.outline!)} className="btn-soft press ev-row-end" style={{ height: 28, padding: "0 12px", borderRadius: 8, fontSize: 11, flex: "none" }}>
                             Preview file
                           </button>
                         )}
@@ -234,7 +234,7 @@ export default function StudentOutlinesPage() {
                           wasNudged ? (
                             <span style={{ fontSize: 11, fontWeight: 700, color: "var(--brand-600)", background: "rgba(0,157,255,.1)", padding: "5px 11px", borderRadius: 980, flex: "none" }}>Reminded</span>
                           ) : (
-                            <button onClick={() => nudge(cid, e.name)} className="btn-soft press" style={{ height: 28, padding: "0 12px", borderRadius: 8, fontSize: 11, flex: "none" }}>
+                            <button onClick={() => nudge(cid, e.name)} className="btn-soft press ev-row-end" style={{ height: 28, padding: "0 12px", borderRadius: 8, fontSize: 11, flex: "none" }}>
                               Send nudge
                             </button>
                           )
@@ -253,7 +253,7 @@ export default function StudentOutlinesPage() {
                               <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.outline.fileName}</span>
                               <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 1 }}>Original school outline · uploaded {e.outline.uploadedAt}</span>
                             </span>
-                            <button onClick={() => setPreview(e.outline!)} className="btn-soft press" style={{ height: 28, padding: "0 12px", borderRadius: 8, fontSize: 11, flex: "none" }}>
+                            <button onClick={() => setPreview(e.outline!)} className="btn-soft press ev-row-end" style={{ height: 28, padding: "0 12px", borderRadius: 8, fontSize: 11, flex: "none" }}>
                               Preview file
                             </button>
                           </div>
