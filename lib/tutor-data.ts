@@ -15,6 +15,7 @@ export const TUTOR = {
   initials: "PR",
   role: "Chemistry and Science tutor",
   email: "p.rao@everesttutoring.com.au",
+  phone: "0412 774 903",
   // The duties this tutor is actually assigned by the office. Priya Rao does
   // both, so she gets the in-person/online toggle. A single-duty tutor
   // (grants "in_person" or "online") has nothing to toggle, so the control
@@ -596,7 +597,7 @@ export function seedSharedOutlines(): SharedOutline[] {
     { id: "so1", student: "Maya Kapoor", init: "MK", course: "chem11", subject: "Chemistry ATAR", term: "Term 3", fileName: "Chemistry_Unit3_Outline.pdf", uploadedAt: "28 Jun", status: "done", ...withMarks(scanOutline("Chemistry ATAR", "Term 3"), ["82%", "76%"]) },
     { id: "so2", student: "Ethan Wu", init: "EW", course: "chem11", subject: "Physics ATAR", term: "Term 3", fileName: "Physics_Unit3_Outline.pdf", uploadedAt: "26 Jun", status: "done", ...withMarks(scanOutline("Physics ATAR", "Term 3"), ["68%"]) },
     { id: "so4", student: "Zara Patel", init: "ZP", course: "chem11", subject: "Chemistry ATAR", term: "Term 3", fileName: "Chem_ATAR_Outline.pdf", uploadedAt: "24 Jun", status: "done", ...withMarks(scanOutline("Chemistry ATAR", "Term 3"), ["91%", "88%"]) },
-    { id: "so5", student: "Bella Nguyen", init: "BN", course: "block8", subject: "Year 8 Mathematics", term: "Semester 2", fileName: "Yr8_Maths_Outline.pdf", uploadedAt: "23 Jun", status: "done", ...withMarks(scanOutline("Year 9 Science", "Semester 2"), ["74%"]) },
+    { id: "so5", student: "Bella Nguyen", init: "BN", course: "block8", subject: "Year 8 Mathematics", term: "Semester 2", fileName: "Yr8_Maths_Outline.pdf", uploadedAt: "23 Jun", status: "done", ...withMarks(scanOutline("Year 9 Science", "Semester 2"), ["48%", "55%"]) },
     { id: "so6", student: "Daisy Kim", init: "DK", course: "block8", subject: "Year 8 Science", term: "Semester 2", fileName: "Yr8_Science_Outline.pdf", uploadedAt: "Today", status: "pending", assessments: [], topics: [] },
     { id: "so3", student: "Ruby Chen", init: "RC", course: "sci9", subject: "Year 9 Science", term: "Term 3", fileName: "Science_Sem2_Outline.pdf", uploadedAt: "Today", status: "pending", assessments: [], topics: [] },
   ];

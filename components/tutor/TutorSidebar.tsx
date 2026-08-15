@@ -93,7 +93,10 @@ export function TutorSidebar() {
         { href: "/tutor/drive", label: "My Drive", icon: ICON.library },
       ]
     : [];
-  const HELP: NavItem[] = hasOnline ? [{ href: "/tutor/messages", label: "Messages", icon: ICON.mail, badge: unreadTotal(TUTOR_ME) }] : [];
+  const HELP: NavItem[] = [
+    ...(hasOnline ? [{ href: "/tutor/messages", label: "Messages", icon: ICON.mail, badge: unreadTotal(TUTOR_ME) }] : []),
+    { href: "/tutor/settings", label: "Settings", icon: ICON.settings },
+  ];
 
   return (
     <aside

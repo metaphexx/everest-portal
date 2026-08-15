@@ -6,6 +6,7 @@ import { TutorHeader } from "./TutorHeader";
 import { useTutor } from "@/lib/tutor-store";
 import { Icon } from "@/components/ui/Icon";
 import { AccountMenu } from "@/components/portal/AccountMenu";
+import { TutorElliotFab } from "./TutorElliotFab";
 import { TUTOR } from "@/lib/tutor-data";
 import { TUTOR_NOTIFS } from "@/lib/notifications";
 import { TUTOR_ME, useMessaging } from "@/lib/messaging";
@@ -85,6 +86,8 @@ export function TutorShell({ children }: { children: React.ReactNode }) {
         </div>
       </main>
       <TutorToast />
+
+      <TutorElliotFab />
     </div>
   );
 }

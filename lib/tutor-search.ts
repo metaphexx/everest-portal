@@ -38,6 +38,7 @@ const DESTINATIONS: Indexable[] = [
   { name: "My Booklets", meta: "Assign digital booklets to an online class", kind: "Page", color: "#0E7AC2", page: "/tutor/booklets", keywords: "assign drive materials digital online share", boost: 30 },
   { name: "My Drive", meta: "Your own teaching files", kind: "Page", color: "#7A5AF8", page: "/tutor/drive", keywords: "upload personal files storage", boost: 30 },
   { name: "Messages", meta: "Conversations with students and the office", kind: "Page", color: "#009DFF", page: "/tutor/messages", keywords: "chat dm conversation contact parent reply", boost: 30 },
+  { name: "Settings", meta: "Contact details, password and notifications", kind: "Page", color: "#66707F", page: "/tutor/settings", keywords: "account profile password email phone number photo picture sign out preferences", boost: 30 },
 ];
 
 export interface TutorSearchInput {
