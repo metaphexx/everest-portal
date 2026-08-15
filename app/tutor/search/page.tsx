@@ -4,7 +4,8 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "@/lib/router";
-import { TUTOR_SEARCH_ITEMS } from "@/lib/tutor-data";
+import { tutorSearch } from "@/lib/tutor-search";
+import { useTutor } from "@/lib/tutor-store";
 import { Icon } from "@/components/ui/Icon";
 
 export default function TutorSearchPage() {
@@ -18,16 +19,15 @@ export default function TutorSearchPage() {
 function TutorSearchInner() {
   const router = useRouter();
   const params = useSearchParams();
+  const { requests, submissions } = useTutor();
   const q = params.get("q") ?? "";
   const [draft, setDraft] = useState(q);
 
   useEffect(() => setDraft(q), [q]);
 
-  const results = useMemo(() => {
-    const ql = q.trim().toLowerCase();
-    if (!ql) return [];
-    return TUTOR_SEARCH_ITEMS.filter((it) => (it.name + " " + it.meta).toLowerCase().includes(ql));
-  }, [q]);
+  // Live index: pages, classes, students, Drive files, catalogue booklets, plus
+  // the requests and submissions that exist right now.
+  const results = useMemo(() => tutorSearch(q, { requests, submissions }, 24), [q, requests, submissions]);
 
   const runSearch = (text: string) => {
     const t = text.trim();

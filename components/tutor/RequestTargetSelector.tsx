@@ -59,8 +59,16 @@ export function RequestTargetSelector({ hideCartLink }: { hideCartLink?: boolean
   const [open, setOpen] = useState(false);
   const wrapRef = useDismissable<HTMLDivElement>(open, () => setOpen(false));
 
-  const upcoming = classes.filter((c) => c.k >= tKey).slice(0, 10);
-  const ctxClass = requestClassId ? classes.find((c) => c.id === requestClassId) : null;
+  // Printing only exists for in-person classes. An online class has no booklets
+  // to print - its materials are assigned digitally from My Booklets - so those
+  // sessions are not offerable here at all.
+  const upcoming = classes.filter((c) => c.k >= tKey && TUTOR_COURSES[c.course].delivery === "in_person").slice(0, 10);
+  // An online session can still be the stored context (a "Request booklets" CTA
+  // elsewhere, or state from before this rule). Printing does not apply to it,
+  // so it falls back to a custom request rather than showing a class that
+  // cannot be printed for.
+  const ctxCandidate = requestClassId ? classes.find((c) => c.id === requestClassId) : null;
+  const ctxClass = ctxCandidate && TUTOR_COURSES[ctxCandidate.course].delivery === "in_person" ? ctxCandidate : null;
   const ctxCd = ctxClass ? TUTOR_COURSES[ctxClass.course] : null;
 
   const choose = (id: string | null) => {

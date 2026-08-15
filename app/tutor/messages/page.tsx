@@ -123,12 +123,12 @@ export default function TutorMessagesPage() {
           title="Message a student"
           aria-label="Message a student"
           className="btn-primary press"
-          style={{ height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, flex: "none", fontSize: 12, fontWeight: 700 }}
+          style={{ height: 40, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, flex: "none", fontSize: 12.5, fontWeight: 700, marginTop: 2 }}
         >
           <Icon path={IC.plus} size={15} />
           Message a student
         </button>
-        <div style={{ display: "flex", gap: 5, flex: "none" }} role="tablist" aria-label="Filter conversations">
+        <div style={{ display: "flex", gap: 7, flex: "none", marginTop: 12 }} role="tablist" aria-label="Filter conversations">
           {(["all", "open", "resolved"] as Filter[]).map((f) => (
             <button
               key={f}
@@ -140,8 +140,13 @@ export default function TutorMessagesPage() {
                 border: "none",
                 cursor: "pointer",
                 borderRadius: 980,
-                padding: "4px 11px",
-                fontSize: 10.5,
+                // Horizontal padding has to scale with the 40px minimum tap
+                // height on phones, or the pill comes out tall and narrow.
+                padding: "0 16px",
+                height: 32,
+                display: "inline-flex",
+                alignItems: "center",
+                fontSize: 11.5,
                 fontWeight: 700,
                 fontFamily: "inherit",
                 background: filter === f ? "rgba(0,157,255,.14)" : "rgba(0,32,63,.05)",
@@ -264,7 +269,11 @@ export default function TutorMessagesPage() {
             )}
 
             <Composer
-              placeholder={active.kind === "admin" ? "Message the Everest office" : "Reply to " + active.student.name.split(" ")[0]}
+              placeholder={
+                active.kind === "admin"
+                  ? "Message the Everest office"
+                  : (activeMsgs.length === 0 ? "Message " : "Reply to ") + active.student.name.split(" ")[0]
+              }
               onSend={send}
               onError={showToast}
               registerDropTarget={(h) => (dropHandle.current = h)}
@@ -298,7 +307,12 @@ export default function TutorMessagesPage() {
                 <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17 }}>Message a student</div>
                 <div style={{ fontSize: 12, color: "var(--fg3)", marginTop: 3 }}>Pick anyone you teach. Filter by class if it is a long list.</div>
               </div>
-              <button onClick={() => setPicker(false)} aria-label="Close" className="btn-ghost ev-tap" style={{ width: 32, height: 32, borderRadius: 9, background: "#fff", flex: "none" }}>
+              <button
+                onClick={() => setPicker(false)}
+                aria-label="Close"
+                className="btn-ghost press"
+                style={{ width: 38, height: 38, borderRadius: 11, background: "rgba(255,255,255,.9)", color: "var(--fg2)", flex: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0 }}
+              >
                 <Icon path={IC.close} size={15} />
               </button>
             </div>

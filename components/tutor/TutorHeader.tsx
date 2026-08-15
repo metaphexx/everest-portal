@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import { TUTOR_ME, useMessaging } from "@/lib/messaging";
-import { TUTOR, TUTOR_COURSES, TUTOR_SEARCH_ITEMS, TutorCourseId } from "@/lib/tutor-data";
+import { TUTOR, TUTOR_COURSES, TutorCourseId } from "@/lib/tutor-data";
+import { tutorSearch } from "@/lib/tutor-search";
 import { useDebouncedValue } from "@/lib/use-debounce";
 import { useDismissable } from "@/lib/use-dismissable";
 import { Icon } from "@/components/ui/Icon";
@@ -57,7 +58,7 @@ function pageMeta(pathname: string, greeting: string, toMark: number, pending: n
 export function TutorHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const { now, toMarkCount, pendingRequests, notWired, mode, setMode } = useTutor();
+  const { now, toMarkCount, pendingRequests, notWired, mode, setMode, requests, submissions } = useTutor();
   const { unreadTotal } = useMessaging();
   const unreadMsgs = unreadTotal(TUTOR_ME);
   const [q, setQ] = useState("");
@@ -97,8 +98,8 @@ export function TutorHeader() {
   // once the tutor pauses typing, not on every keystroke.
   const ql = useDebouncedValue(q.trim().toLowerCase(), 200);
   const results = useMemo(
-    () => (ql ? TUTOR_SEARCH_ITEMS.filter((it) => (it.name + " " + it.meta).toLowerCase().includes(ql)).slice(0, 5) : []),
-    [ql]
+    () => (ql ? tutorSearch(ql, { requests, submissions }, 6) : []),
+    [ql, requests, submissions]
   );
   const searchOpen = q.trim().length > 0 && ql.length > 0;
 

@@ -143,7 +143,10 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
   // Every class the tutor teaches is assignable - a student sometimes needs a
   // booklet from a different year level, so the target is never locked to the
   // course the booklet was opened from (that course just becomes the default).
-  const assignCourseIds = TUTOR_COURSE_ORDER;
+  // Online classes only. In-person students have no portal login yet, so a
+  // digital assignment would go to nobody - those classes get printed booklets
+  // through Study Materials instead.
+  const assignCourseIds = TUTOR_COURSE_ORDER.filter((cid) => TUTOR_COURSES[cid].delivery === "online");
   const toggleCourseOpen = (cid: string) =>
     setOpenCourseIds((s) => {
       const n = new Set(s);
@@ -262,21 +265,25 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
     <Modal
       onClose={handleClose}
       labelledBy="booklet-picker-title"
-      panelClassName="thin-scroll"
-      panelStyle={{ width: 600, maxWidth: "94vw", maxHeight: "88vh", overflowY: "auto", background: "rgba(255,255,255,.96)", padding: 24 }}
+      panelStyle={{ width: 600, maxWidth: "94vw", maxHeight: "88vh", overflowY: "auto", background: "rgba(255,255,255,.96)" }}
+      panelClassName="thin-scroll ev-modal-pad"
     >
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
-          <div>
+        {/* Title and close on one line, everything else stacked beneath. The
+            office notice used to sit INSIDE this row, which squeezed the title
+            into a ~90px column on a phone. */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div id="booklet-picker-title" style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 800, letterSpacing: -0.3 }}>Assign materials</div>
             <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 4, lineHeight: 1.45 }}>
-              Search or browse the linked Drive, then assign materials to a class or a student.
+              Search or browse the linked Drive, then assign to an online class or one of its students. In-person classes order printed booklets from Study Materials instead.
             </div>
           </div>
-        <OfficeVisibilityNotice compact style={{ marginBottom: 14 }} />
-          <button onClick={handleClose} className="btn-ghost" style={{ width: 30, height: 30, borderRadius: 9, fontSize: 14, lineHeight: 1, flex: "none", background: "#fff" }}>
+          <button onClick={handleClose} aria-label="Close" className="btn-ghost ev-tap" style={{ width: 32, height: 32, borderRadius: 9, fontSize: 14, lineHeight: 1, flex: "none", background: "#fff" }}>
             ✕
           </button>
         </div>
+        <OfficeVisibilityNotice compact style={{ margin: "12px 0 14px" }} />
+
 
         {/* Search / browse toggle */}
         <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>

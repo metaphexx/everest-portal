@@ -51,7 +51,9 @@ export default function MyDrivePage() {
         <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 6, maxWidth: 380, marginLeft: "auto", marginRight: "auto", lineHeight: 1.55 }}>
           This is your own personal drive space for teaching files you keep for yourself, separate from the booklets the office shares with you.
         </div>
-        <OfficeVisibilityNotice style={{ marginBottom: 14 }} />
+        {/* Own breathing room, and left-aligned text: it is a paragraph of
+            policy, not part of the centred empty state above it. */}
+        <OfficeVisibilityNotice style={{ margin: "22px auto 4px", maxWidth: 420, textAlign: "left" }} />
         <button
           onClick={() => notWired("Uploading to My Drive")}
           className="btn-primary press"

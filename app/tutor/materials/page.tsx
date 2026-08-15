@@ -90,7 +90,10 @@ function StudyMaterialsInner() {
   }, [topicChosen, topic, subject, year, q]);
 
   const inCart = (id: string) => cart.some((c) => c.itemId === id);
-  const ctxClass = requestClassId ? classes.find((c) => c.id === requestClassId) : null;
+  // Same rule as the selector: printing does not apply to an online session, so
+  // an online context is ignored here rather than captioned as if it applied.
+  const ctxCandidate = requestClassId ? classes.find((c) => c.id === requestClassId) : null;
+  const ctxClass = ctxCandidate && TUTOR_COURSES[ctxCandidate.course].delivery === "in_person" ? ctxCandidate : null;
   const defaultQty = ctxClass ? TUTOR_COURSES[ctxClass.course].students.length : 8;
 
   // Filters are locked to the selected class (Custom Request keeps them free).

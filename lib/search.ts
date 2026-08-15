@@ -8,6 +8,7 @@
 
 import { SEARCH_ITEMS, TUTOR_FILES, BASE_SUBMISSIONS, libAll, gradeBase, wsBase, COURSE_DEFS } from "./data";
 import { Outline } from "./features";
+import { Indexable, rank } from "./search-core";
 
 export interface SearchHit {
   name: string;
@@ -28,71 +29,8 @@ export interface SearchResponse {
   hits: SearchHit[];
 }
 
-// Everyday words students use -> portal vocabulary.
-const SYNONYMS: Record<string, string[]> = {
-  homework: ["worksheet", "due"],
-  hw: ["worksheet", "due"],
-  test: ["assessment", "topic test"],
-  exam: ["assessment", "examination"],
-  sac: ["assessment"],
-  teacher: ["tutor"],
-  tutor: ["tutor", "message"],
-  class: ["session", "course", "timetable"],
-  lesson: ["session", "course"],
-  marks: ["grade", "score"],
-  results: ["grade", "score"],
-  score: ["grade", "assessment"],
-  recording: ["session recording", "library"],
-  video: ["recording", "library"],
-  notes: ["library", "study"],
-  chem: ["chemistry"],
-  maths: ["mathematics", "gate", "quantitative"],
-  english: ["verbal", "essay"],
-  file: ["drive", "pdf"],
-  upload: ["drive", "outline", "submit"],
-  outline: ["outline", "assessment tracker"],
-  help: ["support", "elliot"],
-  money: ["billing", "support"],
-  pay: ["billing", "support"],
-  timetable: ["timetable", "session"],
-  calendar: ["timetable"],
-  average: ["assessment tracker", "grade"],
-};
 
-function tokens(q: string): string[] {
-  const raw = q.toLowerCase().split(/[^a-z0-9%]+/).filter((t) => t.length > 1);
-  const out = new Set<string>(raw);
-  raw.forEach((t) => (SYNONYMS[t] ?? []).forEach((s) => s.split(" ").forEach((w) => out.add(w))));
-  return Array.from(out);
-}
 
-function scoreFor(hayName: string, hayMeta: string, toks: string[], rawQuery: string): number {
-  const name = hayName.toLowerCase();
-  const meta = hayMeta.toLowerCase();
-  let score = 0;
-  if (name.includes(rawQuery)) score += 60; // exact phrase in the title
-  let nameHits = 0;
-  let metaHits = 0;
-  for (const t of toks) {
-    if (name.includes(t)) {
-      nameHits += 1;
-      score += name.startsWith(t) ? 22 : 14;
-    } else if (meta.includes(t)) {
-      metaHits += 1;
-      score += 7;
-    }
-  }
-  if (nameHits === 0 && metaHits === 0) return 0;
-  if (nameHits >= 2) score += 12; // multi-token title match
-  return score;
-}
-
-interface Indexable {
-  name: string;
-  meta: string;
-  color: string;
-  page: string;
-}
 
 /** Build the live index: static items + everything dynamic the student owns. */
 function buildIndex(outlines: Outline[], dueCount: number): Indexable[] {
@@ -113,13 +51,22 @@ function buildIndex(outlines: Outline[], dueCount: number): Indexable[] {
       idx.push({ name: a.name, meta: "Assessment · Wk " + a.week + " · " + a.weight + (a.score ? " · you got " + a.score : ""), color: "#007ECC", page: "/outline" })
     );
   });
+  // Every destination in the nav, so search works as navigation and not only as
+  // a content lookup. "classroom" and "courses" previously returned nothing.
   idx.push(
-    { name: "Message a Tutor", meta: "Page · monitored messages", color: "#009DFF", page: "/messages" },
-    { name: "Everest Support", meta: "Message the Everest team", color: "#00203F", page: "/messages" },
-    { name: "Support requests", meta: "Page · track your requests", color: "#1B8049", page: "/support" },
-    { name: "Chat with Elliot", meta: "Page · AI study help", color: "#009DFF", page: "/chat" },
-    { name: "Assessment Tracker", meta: "Page · outlines and scores", color: "#7A5AF8", page: "/outline" },
-    { name: "Settings", meta: "Page · profile and login", color: "#66707F", page: "/settings" },
+    { name: "Dashboard", meta: "Page · your day at a glance", color: "#009DFF", page: "/", keywords: "home overview today", boost: 30 },
+    { name: "My Courses", meta: "Page · everything you are enrolled in", color: "#7A5AF8", page: "/courses", keywords: "classes subjects enrolled", boost: 30 },
+    { name: "Timetable", meta: "Page · your classes this term", color: "#0E9C8E", page: "/timetable", keywords: "calendar schedule when sessions", boost: 30 },
+    { name: "Classroom", meta: "Page · class stream, resources and questions", color: "#7A5AF8", page: "/classroom/chem11", keywords: "posts announcements discussion stream chemistry", boost: 30 },
+    { name: "Library", meta: "Page · notes, recordings and worksheets", color: "#D68910", page: "/library", keywords: "materials resources recordings notes", boost: 30 },
+    { name: "My Drive", meta: "Page · your uploads and shared files", color: "#7A5AF8", page: "/drive", keywords: "upload submit files worksheets", boost: 30 },
+    { name: "My Grades", meta: "Page · marks and tutor feedback", color: "#22A05B", page: "/grades", keywords: "marks results feedback marked", boost: 30 },
+    { name: "Message a Tutor", meta: "Page · monitored messages", color: "#009DFF", page: "/messages", keywords: "chat contact dm conversation", boost: 30 },
+    { name: "Everest Support", meta: "Message the Everest team", color: "#00203F", page: "/messages", keywords: "help office admin billing" },
+    { name: "Support requests", meta: "Page · track your requests", color: "#1B8049", page: "/support", keywords: "help problem issue report", boost: 20 },
+    { name: "Chat with Elliot", meta: "Page · AI study help", color: "#009DFF", page: "/chat", keywords: "ask question tutor bot help", boost: 20 },
+    { name: "Assessment Tracker", meta: "Page · outlines and scores", color: "#7A5AF8", page: "/outline", keywords: "school outline assessments weights due", boost: 30 },
+    { name: "Settings", meta: "Page · profile and login", color: "#66707F", page: "/settings", keywords: "account password profile sign out notifications", boost: 30 },
     { name: "You have " + dueCount + " worksheets due", meta: "Dashboard · submit from My Drive", color: "#E04141", page: "/drive" }
   );
   // The static seed list and the live index both describe some of the same
@@ -165,11 +112,7 @@ function directAnswer(q: string, outlines: Outline[], dueCount: number): SearchA
 export function aiSearch(q: string, outlines: Outline[], dueCount: number, limit = 6): SearchResponse {
   const raw = q.trim().toLowerCase();
   if (!raw) return { answer: null, hits: [] };
-  const toks = tokens(raw);
-  const hits = buildIndex(outlines, dueCount)
-    .map((it) => ({ ...it, score: scoreFor(it.name, it.meta, toks, raw) }))
-    .filter((h) => h.score > 0)
-    .sort((a, b) => b.score - a.score)
+  const hits = rank(buildIndex(outlines, dueCount), raw, limit * 3)
     // de-dupe by name+page keeping the best score
     .filter((h, i, arr) => arr.findIndex((x) => x.name === h.name && x.page === h.page) === i)
     .slice(0, limit);

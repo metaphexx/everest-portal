@@ -1118,6 +1118,13 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Show a block on one form factor only. Both start from the desktop state so
    that a missing media query fails towards the full table, not towards nothing. */
+/* Dialog padding: roomy on desktop, tighter on a phone where 24px each side
+   costs a sixth of the screen. */
+.ev-modal-pad { padding: 24px; }
+@media (max-width: 720px) {
+  .ev-modal-pad { padding: 16px; }
+}
+
 .ev-only-mobile { display: none !important; }
 /* Search / profile / sign out inside the nav drawer. Desktop keeps them in the
    page header, so this block only exists below the phone breakpoint. */
