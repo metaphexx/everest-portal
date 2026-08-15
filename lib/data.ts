@@ -84,8 +84,10 @@ export const ICON = {
   drive: "M10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2Z",
   support:
     "M12 2a9 9 0 0 0-9 9v7a3 3 0 0 0 3 3h3v-8H5v-2a7 7 0 0 1 14 0v2h-4v8h3a3 3 0 0 0 3-3v-7a9 9 0 0 0-9-9Z",
+  // Sliders, not a gear: a 12-tooth cog turns to mush at the 17px the sidebar
+  // draws it at, where three tracks and their knobs stay legible.
   settings:
-    "M19.14 12.94a7.5 7.5 0 0 0 0-1.88l2-1.55-2-3.46-2.36.95a7.3 7.3 0 0 0-1.62-.94l-.36-2.51h-4l-.36 2.51c-.58.24-1.12.55-1.62.94l-2.36-.95-2 3.46 2 1.55a7.5 7.5 0 0 0 0 1.88l-2 1.55 2 3.46 2.36-.95c.5.39 1.04.7 1.62.94l.36 2.51h4l.36-2.51c.58-.24 1.12-.55 1.62-.94l2.36.95 2-3.46-2-1.55ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z",
+    "M3 17v2h6v-2H3ZM3 5v2h10V5H3Zm10 16v-2h8v-2h-8v-2h-2v6h2ZM7 9v2H3v2h4v2h2V9H7Zm14 4v-2H11v2h10Zm-6-4h2V7h4V5h-4V3h-2v6Z",
   clipboard:
     "M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3Zm0 2H6v14h12V6h-3v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V6Zm1-2v2h4V4h-4Z",
   mail: "M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5-8-5V6l8 5 8-5v2Z",

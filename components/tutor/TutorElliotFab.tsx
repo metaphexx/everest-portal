@@ -14,7 +14,7 @@ import { useTutor } from "@/lib/tutor-store";
 import { Icon } from "@/components/ui/Icon";
 import { useDismissable } from "@/lib/use-dismissable";
 import { seedSharedOutlines, SharedOutline } from "@/lib/tutor-data";
-import { TutorSuggestion, tutorSuggestions } from "@/lib/tutor-elliot";
+import { SUGGESTIONS_PER_BATCH, TutorAskAnswer, TutorSuggestion, tutorElliotReply, tutorSuggestions } from "@/lib/tutor-elliot";
 
 const IC = {
   spark: "M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6L12 2Zm6 10 .9 2.6L21 15l-2.1.8L18 18l-.9-2.2L15 15l2.1-.4L18 12Z",
@@ -30,20 +30,44 @@ const TONE: Record<TutorSuggestion["kind"], { label: string; color: string; bg: 
 
 export function TutorElliotFab() {
   const router = useRouter();
-  const { assignMaterial, submissions, showToast, hasOnline } = useTutor();
+  const { assignMaterial, submissions, showToast, hasOnline, toMarkCount, pendingRequests, elliotRemaining, elliotCapped, countElliotAsk } = useTutor();
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [doneIds, setDoneIds] = useState<Set<string>>(new Set());
+  const [tab, setTab] = useState<"suggest" | "ask">("suggest");
+  // Suggestions arrive in batches so the panel opens on a decision, not a wall.
+  const [shown, setShown] = useState(SUGGESTIONS_PER_BATCH);
+  const [draft, setDraft] = useState("");
+  const [thread, setThread] = useState<{ who: "you" | "e"; text: string; actions?: { label: string; href: string }[] }[]>([]);
+  const [thinking, setThinking] = useState(false);
   const wrapRef = useDismissable<HTMLDivElement>(open, () => setOpen(false));
 
   // The student portal writes outlines into its own blob; the tutor sees the
   // shared seed plus anything shared since.
   const outlines: SharedOutline[] = useMemo(() => seedSharedOutlines(), []);
-  const all = useMemo(() => tutorSuggestions(outlines, submissions, 8), [outlines, submissions]);
+  const all = useMemo(() => tutorSuggestions(outlines, submissions, 12), [outlines, submissions]);
   const items = all.filter((s) => !dismissed.has(s.id));
 
   // Only online teaching has anything to assign.
   if (!hasOnline) return null;
+
+  const ask = () => {
+    const q = draft.trim();
+    if (!q || thinking) return;
+    setDraft("");
+    setThread((t) => [...t, { who: "you", text: q }]);
+    if (elliotCapped) {
+      setThread((t) => [...t, { who: "e", text: "That is my question allowance for today. The suggestions tab keeps working - it is worked out on your device, so it costs nothing and never runs out." }]);
+      return;
+    }
+    setThinking(true);
+    window.setTimeout(() => {
+      const a: TutorAskAnswer = tutorElliotReply(q, { outlines, submissions, toMarkCount, pendingRequests });
+      setThread((t) => [...t, { who: "e", text: a.text, actions: (a.actions ?? []).filter((x) => x.href) }]);
+      setThinking(false);
+      countElliotAsk();
+    }, 700);
+  };
 
   const accept = (s: TutorSuggestion) => {
     if (!s.file) return;
@@ -81,9 +105,11 @@ export function TutorElliotFab() {
         >
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 4 }}>
             <div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 15.5, fontWeight: 800 }}>What to assign next</div>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 15.5, fontWeight: 800 }}>Elliot</div>
               <div style={{ fontSize: 11.5, color: "var(--fg3)", marginTop: 3, lineHeight: 1.5 }}>
-                Worked out from your students&apos; school outlines and their scores so far.
+                {tab === "suggest"
+                  ? "Worked out from your students' school outlines and their scores so far."
+                  : "Ask about a student, what to assign, or who is behind."}
               </div>
             </div>
             <button onClick={() => setOpen(false)} aria-label="Close" className="btn-ghost press" style={{ width: 32, height: 32, borderRadius: 9, background: "rgba(255,255,255,.9)", color: "var(--fg2)", flex: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
@@ -91,13 +117,82 @@ export function TutorElliotFab() {
             </button>
           </div>
 
-          {items.length === 0 && (
+          <div style={{ display: "flex", gap: 6, background: "rgba(0,32,63,.05)", borderRadius: 11, padding: 3, margin: "12px 0 2px" }} role="tablist">
+            {([["suggest", "Suggestions"], ["ask", "Ask Elliot"]] as const).map(([k, label]) => (
+              <button
+                key={k}
+                role="tab"
+                aria-selected={tab === k}
+                onClick={() => setTab(k)}
+                style={{ flex: 1, height: 32, borderRadius: 9, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 11.5, fontWeight: 700, background: tab === k ? "#fff" : "transparent", color: tab === k ? "var(--fg1)" : "var(--fg3)", boxShadow: tab === k ? "0 2px 6px rgba(0,32,63,.12)" : "none" }}
+              >
+                {label}
+                {k === "suggest" && items.length > 0 ? " (" + items.length + ")" : ""}
+              </button>
+            ))}
+          </div>
+
+          {tab === "ask" && (
+            <div>
+              {thread.length === 0 && (
+                <div style={{ padding: "14px 4px 6px", fontSize: 12, color: "var(--fg3)", lineHeight: 1.55 }}>
+                  Try &ldquo;how is Maya going?&rdquo;, &ldquo;who is struggling?&rdquo;, &ldquo;what should I assign next?&rdquo; or &ldquo;who still owes an outline?&rdquo;
+                </div>
+              )}
+              {thread.map((m, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: m.who === "you" ? "flex-end" : "flex-start", marginTop: 8 }}>
+                  <div style={{ maxWidth: "88%", borderRadius: 14, padding: "9px 12px", fontSize: 12.5, lineHeight: 1.5, background: m.who === "you" ? "var(--brand-500)" : "rgba(0,32,63,.05)", color: m.who === "you" ? "#fff" : "var(--fg1)" }}>
+                    {m.text}
+                    {m.actions && m.actions.length > 0 && (
+                      <span style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                        {m.actions.map((a) => (
+                          <button
+                            key={a.label}
+                            onClick={() => { setOpen(false); router.push(a.href); }}
+                            className="press"
+                            style={{ height: 28, padding: "0 11px", borderRadius: 8, border: "none", background: "rgba(255,255,255,.85)", color: "var(--brand-600)", fontFamily: "inherit", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
+                          >
+                            {a.label}
+                          </button>
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {thinking && <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 8 }}>Elliot is thinking…</div>}
+
+              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <input
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); ask(); } }}
+                  placeholder={elliotCapped ? "Question allowance used for today" : "Ask Elliot about a student"}
+                  aria-label="Ask Elliot"
+                  className="field"
+                  style={{ flex: 1, minWidth: 0, height: 40 }}
+                />
+                <button onClick={ask} disabled={!draft.trim() || thinking} className="btn-primary press" style={{ height: 40, padding: "0 16px", borderRadius: 11, fontSize: 12.5, fontWeight: 700, opacity: !draft.trim() || thinking ? 0.5 : 1 }}>
+                  Ask
+                </button>
+              </div>
+              {/* The rule, stated rather than hidden: suggestions are free
+                  because they are derived on the device; questions are not. */}
+              <div style={{ fontSize: 10.5, color: "var(--fg4)", marginTop: 7, lineHeight: 1.5 }}>
+                {elliotCapped
+                  ? "Question allowance used up for today. Suggestions keep working - they are worked out on your device."
+                  : elliotRemaining + " question" + (elliotRemaining === 1 ? "" : "s") + " left today. Suggestions are unlimited."}
+              </div>
+            </div>
+          )}
+
+          {tab === "suggest" && items.length === 0 && (
             <div style={{ padding: "18px 4px", textAlign: "center", fontSize: 12.5, color: "var(--fg4)" }}>
               Nothing to suggest right now. Once students share their outlines and record scores, suggestions appear here.
             </div>
           )}
 
-          {items.map((s) => {
+          {tab === "suggest" && items.slice(0, shown).map((s) => {
             const tone = TONE[s.kind];
             const assigned = doneIds.has(s.id);
             return (
@@ -144,6 +239,15 @@ export function TutorElliotFab() {
               </div>
             );
           })}
+          {tab === "suggest" && items.length > shown && (
+            <button
+              onClick={() => setShown((n) => n + SUGGESTIONS_PER_BATCH)}
+              className="btn-ghost press ev-tap-h"
+              style={{ width: "100%", height: 38, marginTop: 10, borderRadius: 11, fontSize: 12, fontWeight: 700, background: "rgba(255,255,255,.8)", color: "var(--fg2)" }}
+            >
+              Show {Math.min(SUGGESTIONS_PER_BATCH, items.length - shown)} more
+            </button>
+          )}
         </div>
       )}
 

@@ -40,6 +40,7 @@ const SEED_NOW = Date.parse("2026-07-02T18:00:00");
 interface TutorState {
   now: number;
   toast: string;
+  elliotAsks: { dateKey: string; replies: number };
   // booklet flow
   cart: RequestItem[];
   requestClassId: string | null; // class the request is for, null = custom request
@@ -77,6 +78,15 @@ interface TutorContextValue extends TutorState {
   editRequest: (id: string) => void; // pending only: pull back into the cart
   // marking
   markSubmission: (id: string, grade: string, feedback: string, returned?: { fileName: string; via: "annotated" | "uploaded" }) => void;
+  // ---- Elliot (tutor) ----
+  // Suggestions are derived locally and cost nothing, so they are unlimited.
+  // A free-text question is a model call, so it is rationed the same way the
+  // student's Elliot is. Unlike students, a tutor is shown the remaining
+  // allowance: they are staff, and a silent ceiling would just look broken.
+  elliotAsks: { dateKey: string; replies: number };
+  elliotRemaining: number;
+  elliotCapped: boolean;
+  countElliotAsk: () => void;
   // working mode
   hasInPerson: boolean;
   hasOnline: boolean;
@@ -107,6 +117,11 @@ interface TutorContextValue extends TutorState {
   selectDay: (k: string) => void;
 }
 
+/** Daily allowance for tutor questions, on the same AUD 1.00/day posture. */
+export const TUTOR_ELLIOT_DAILY_BUDGET_AUD = 1.0;
+export const TUTOR_ELLIOT_COST_PER_REPLY_AUD = 0.045;
+export const TUTOR_ELLIOT_DAILY_ASKS = Math.floor(TUTOR_ELLIOT_DAILY_BUDGET_AUD / TUTOR_ELLIOT_COST_PER_REPLY_AUD);
+
 const TutorContext = createContext<TutorContextValue | null>(null);
 
 export function useTutor(): TutorContextValue {
@@ -128,6 +143,7 @@ export function TutorProvider({ children }: { children: React.ReactNode }) {
     return {
       now: SEED_NOW,
       toast: "",
+      elliotAsks: { dateKey: new Date(SEED_NOW).toISOString().slice(0, 10), replies: 0 },
       cart: [],
       requestClassId: "chem11:2026-07-09",
       requests: seedRequests(),
@@ -162,6 +178,7 @@ export function TutorProvider({ children }: { children: React.ReactNode }) {
           if (p.bookletOverride) persisted.bookletOverride = p.bookletOverride;
           if (Array.isArray(p.assignments)) persisted.assignments = p.assignments;
           if (Array.isArray(p.submissions)) persisted.submissions = p.submissions;
+          if (p.elliotAsks) persisted.elliotAsks = p.elliotAsks;
         }
       }
     } catch {
@@ -194,12 +211,13 @@ export function TutorProvider({ children }: { children: React.ReactNode }) {
           bookletOverride: state.bookletOverride,
           assignments: state.assignments,
           submissions: state.submissions,
+          elliotAsks: state.elliotAsks,
         })
       );
     } catch {
       /* quota: state still lives in memory */
     }
-  }, [hydrated, state.mode, state.attendance, state.requests, state.bookletOverride, state.assignments, state.submissions]);
+  }, [hydrated, state.mode, state.attendance, state.requests, state.bookletOverride, state.assignments, state.submissions, state.elliotAsks]);
 
   // ---- live sync from the student portal ("evr-portal") ----
   // Join events (attendance source) and worksheet submissions (round trip)
@@ -320,6 +338,15 @@ export function TutorProvider({ children }: { children: React.ReactNode }) {
   );
 
   // ---- marking ----
+
+  /** Count one paid question against today's allowance, rolling the day over. */
+  const countElliotAsk = useCallback(() => {
+    setState((s) => {
+      const today = new Date(s.now).toISOString().slice(0, 10);
+      const u = s.elliotAsks.dateKey === today ? s.elliotAsks : { dateKey: today, replies: 0 };
+      return { ...s, elliotAsks: { ...u, replies: u.replies + 1 } };
+    });
+  }, []);
 
   const markSubmission = useCallback(
     (id: string, grade: string, feedback: string, returned?: { fileName: string; via: "annotated" | "uploaded" }) => {
@@ -521,6 +548,10 @@ export function TutorProvider({ children }: { children: React.ReactNode }) {
     [state.attendance, state.now, portalJoinEvents]
   );
 
+  const asksToday = state.elliotAsks.dateKey === new Date(state.now).toISOString().slice(0, 10) ? state.elliotAsks.replies : 0;
+  const elliotRemaining = Math.max(0, TUTOR_ELLIOT_DAILY_ASKS - asksToday);
+  const elliotCapped = elliotRemaining === 0;
+
   const value: TutorContextValue = {
     ...state,
     classes,
@@ -536,6 +567,9 @@ export function TutorProvider({ children }: { children: React.ReactNode }) {
     sendRequest,
     editRequest,
     markSubmission,
+    elliotRemaining,
+    elliotCapped,
+    countElliotAsk,
     hasInPerson: state.mode !== "online",
     hasOnline: state.mode !== "in_person",
     setMode,
