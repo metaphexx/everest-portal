@@ -52,7 +52,7 @@ function pageMeta(pathname: string, greeting: string, dueCount: number): { t: st
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const { now, dueCount, completionPct, completionDeg, notWired, outlines } = usePortal();
+  const { now, dueCount, notWired, outlines } = usePortal();
   const { unreadTotal } = useMessaging();
   const unreadMsgs = unreadTotal(STUDENT_ME);
   const [q, setQ] = useState("");
@@ -199,31 +199,34 @@ export function Header() {
             aria-haspopup="menu"
             aria-label="Notifications"
             className="glass-control"
-            style={{ display: "flex", alignItems: "center", gap: 10, borderRadius: 12, padding: "5px 12px 5px 5px", height: 44, boxSizing: "border-box", cursor: "pointer", border: "none", fontFamily: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: 10, borderRadius: 12, padding: "5px 12px 5px 5px", height: 44, boxSizing: "border-box", cursor: "pointer", border: "none", fontFamily: "inherit", textAlign: "left" }}
           >
+            {/* Plain avatar. It used to carry a conic-gradient completion ring
+                with a "% complete" line under the name - a progress score in the
+                chrome of every page, which is pressure, not information. The
+                figure still lives on My Grades where it is asked for. */}
             <span
               style={{
                 position: "relative",
                 width: 34,
                 height: 34,
                 borderRadius: "50%",
-                background: `conic-gradient(var(--brand-500) ${completionDeg}deg,rgba(0,32,63,.12) 0deg)`,
+                background: "linear-gradient(135deg,var(--accent-blue-light),var(--accent-violet-light))",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: 11,
                 flex: "none",
               }}
             >
-              <span style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,var(--accent-blue-light),var(--accent-violet-light))", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: 11 }}>
-                {STUDENT.initials}
-              </span>
+              {STUDENT.initials}
               {hasUnread && <span style={{ position: "absolute", top: -1, right: -1, width: 9, height: 9, borderRadius: "50%", background: "var(--danger-500)", border: "1.5px solid #fff", animation: "evbreathe 2.4s ease-in-out infinite" }} />}
             </span>
             <span className="ev-hide-narrow">
               <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{STUDENT.name}</span>
-              <span style={{ display: "block", fontSize: 10.5, color: "var(--fg4)" }}>
-                {STUDENT.year} · {completionPct}% complete
-              </span>
+              <span style={{ display: "block", fontSize: 10.5, color: "var(--fg4)" }}>{STUDENT.year}</span>
             </span>
           </button>
           {notif && (

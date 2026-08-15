@@ -230,7 +230,7 @@ export function TutorHeader() {
             aria-haspopup="menu"
             aria-label="Notifications"
             className="glass-control"
-            style={{ display: "flex", alignItems: "center", gap: 10, borderRadius: 12, padding: "5px 12px 5px 5px", height: 44, boxSizing: "border-box", cursor: "pointer", border: "none", fontFamily: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: 10, borderRadius: 12, padding: "5px 12px 5px 5px", height: 44, boxSizing: "border-box", cursor: "pointer", border: "none", fontFamily: "inherit", textAlign: "left" }}
           >
             <span
               style={{

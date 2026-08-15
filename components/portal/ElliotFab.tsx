@@ -197,10 +197,13 @@ export function ElliotFab() {
           height: 54,
           borderRadius: "50%",
           border: "none",
-          background: "linear-gradient(135deg,var(--accent-blue-light),var(--accent-violet-light))",
+          // Same darker gradient as the tutor's Elliot button, so the assistant
+          // reads as one thing across both portals. The mark is the solid tone:
+          // a gradient mark on a gradient ground muddies both.
+          background: "linear-gradient(135deg,var(--accent-violet),var(--brand-500))",
           color: "#fff",
           cursor: "pointer",
-          boxShadow: "0 16px 34px -12px rgba(0,157,255,.45)",
+          boxShadow: "0 16px 34px -12px rgba(0,32,63,.5)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -208,7 +211,7 @@ export function ElliotFab() {
         }}
         className="fab-btn"
       >
-        <Icon path="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z" size={22} />
+        <ElliotMark size={29} tone="solid" />
       </button>
     </div>
   );
