@@ -32,7 +32,7 @@ import {
   TUTOR,
   TUTOR_COURSES,
 } from "./tutor-data";
-import { readPortalState } from "./live-sync";
+import { readPortalState, readTutorState } from "./live-sync";
 
 // Same deterministic first-paint clock as the student store (demo today = Thu 2 Jul 2026).
 const SEED_NOW = Date.parse("2026-07-02T18:00:00");
@@ -244,6 +244,26 @@ export function TutorProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setState((s) => (s.joinEvents === portalJoinEvents ? s : { ...s, joinEvents: portalJoinEvents }));
   }, [portalJoinEvents]);
+
+  // ---- live sync from the admin portal ----
+  // The office approves, rejects and prints requests by patching this same
+  // blob, so re-read it when that happens and the tutor sees the decision
+  // without a reload. Compared by value: setting a fresh array every tick
+  // would write to localStorage again and loop.
+  useEffect(() => {
+    if (!hydrated) return;
+    const load = () => {
+      const t = readTutorState();
+      if (!t || !Array.isArray(t.requests)) return;
+      setState((s) => (JSON.stringify(s.requests) === JSON.stringify(t.requests) ? s : { ...s, requests: t.requests }));
+    };
+    window.addEventListener("storage", load);
+    window.addEventListener("evr-sync", load);
+    return () => {
+      window.removeEventListener("storage", load);
+      window.removeEventListener("evr-sync", load);
+    };
+  }, [hydrated]);
 
   const showToast = useCallback((msg: string) => {
     clearTimeout(toastTimer.current);

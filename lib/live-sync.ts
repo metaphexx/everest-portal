@@ -26,3 +26,20 @@ export function readPortalState(): any | null {
 export function readTutorState(): any | null {
   return readBlob("evr-tutor");
 }
+
+/**
+ * Merges a patch into the tutor blob. The office writes here when it approves,
+ * rejects or prints a request, so the decision lands in the tutor's My Requests
+ * exactly as it would through a backend. Same-tab listeners get a manual event
+ * because the browser only fires "storage" in OTHER tabs.
+ */
+export function patchTutorState(patch: Record<string, any>): void {
+  if (typeof window === "undefined") return;
+  try {
+    const current = readBlob("evr-tutor") || { v: 1 };
+    window.localStorage.setItem("evr-tutor", JSON.stringify({ ...current, ...patch, v: 1 }));
+    window.dispatchEvent(new Event("evr-sync"));
+  } catch {
+    /* quota or private mode: the admin's own state still updated */
+  }
+}

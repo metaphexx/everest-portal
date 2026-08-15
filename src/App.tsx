@@ -7,6 +7,20 @@ import { Routes, Route } from "react-router-dom";
 
 import StudentLayout from "@/app/(student)/layout";
 import TutorLayout from "@/app/tutor/layout";
+import AdminLayout from "@/app/admin/layout";
+
+// Office (admin) pages
+import AdminDashboard from "@/app/admin/page";
+import AdminApprovals from "@/app/admin/approvals/page";
+import AdminPrinting from "@/app/admin/printing/page";
+import AdminClasses from "@/app/admin/classes/page";
+import AdminTutors from "@/app/admin/tutors/page";
+import AdminStudents from "@/app/admin/students/page";
+import AdminCatalogue from "@/app/admin/catalogue/page";
+import AdminFiles from "@/app/admin/files/page";
+import AdminSafeguarding from "@/app/admin/safeguarding/page";
+import AdminSettings from "@/app/admin/settings/page";
+import AdminSearch from "@/app/admin/search/page";
 
 // Student pages
 import StudentDashboard from "@/app/(student)/page";
@@ -95,6 +109,21 @@ export default function App() {
 
 
         <Route path="/tutor/elliot" element={<TutorElliot />} />
+      </Route>
+
+      {/* Office portal */}
+      <Route element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/approvals" element={<AdminApprovals />} />
+        <Route path="/admin/printing" element={<AdminPrinting />} />
+        <Route path="/admin/classes" element={<AdminClasses />} />
+        <Route path="/admin/tutors" element={<AdminTutors />} />
+        <Route path="/admin/students" element={<AdminStudents />} />
+        <Route path="/admin/catalogue" element={<AdminCatalogue />} />
+        <Route path="/admin/files" element={<AdminFiles />} />
+        <Route path="/admin/safeguarding" element={<AdminSafeguarding />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
+        <Route path="/admin/search" element={<AdminSearch />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
