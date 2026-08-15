@@ -13,7 +13,7 @@ export const TUTOR = {
   name: "Priya Rao",
   short: "Priya",
   initials: "PR",
-  role: "Chemistry and Science tutor",
+  role: "Everest Tutor",
   email: "p.rao@everesttutoring.com.au",
   phone: "0412 774 903",
   // The duties this tutor is actually assigned by the office. Priya Rao does
