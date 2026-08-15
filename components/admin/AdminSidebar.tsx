@@ -1,15 +1,20 @@
 // The office nav.
 //
-// Ordered by what the job actually is, not by what the database contains:
-// the two queues that hold up a class come first, then the records the office
-// maintains, then oversight. Badges show work waiting, never totals - a badge
-// that never clears is wallpaper.
+// Flat, and ordered by the job. The live portal buries fourteen master screens
+// in three collapsing groups, so a tutor record is three clicks and a guess
+// away; here every destination is one click and the master screens share a
+// single page with a tab strip.
+//
+// The print-room role gets a strict subset: the queue, the history, and the
+// classes that need booklets. Nothing about tutors, students, files or
+// safeguarding is rendered or routed for them.
 
 import React from "react";
 import Link from "@/components/ui/Link";
 import { usePathname } from "@/lib/router";
 import { Icon, ICON } from "@/components/portal/nav-icons";
 import { useAdmin } from "@/lib/admin-store";
+import { ROLE_META, useBase, useRole } from "@/lib/admin-role";
 import { SAFEGUARDING } from "@/lib/admin-data";
 import { DrawerAccount } from "@/components/portal/DrawerAccount";
 
@@ -20,12 +25,12 @@ interface NavItem {
   badge?: number;
 }
 
-function isActive(pathname: string, href: string): boolean {
-  if (href === "/admin") return pathname === "/admin";
+function isActive(pathname: string, href: string, base: string): boolean {
+  if (href === base) return pathname === base;
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+function NavLink({ item, active, accent }: { item: NavItem; active: boolean; accent: string }) {
   return (
     <Link
       href={item.href}
@@ -38,7 +43,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
         borderRadius: 12,
         textDecoration: "none",
         background: active ? "rgba(14,156,142,.14)" : "transparent",
-        color: active ? "var(--accent-teal)" : "var(--fg3)",
+        color: active ? accent : "var(--fg3)",
         fontWeight: active ? 600 : 500,
         fontSize: 13.5,
         transition: "background .18s ease,color .18s ease",
@@ -56,36 +61,39 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
 }
 
 function GroupLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 1.1, color: "var(--fg4)", padding: "16px 12px 6px" }}>{children}</div>
-  );
+  return <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 1.1, color: "var(--fg4)", padding: "16px 12px 6px" }}>{children}</div>;
 }
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const { pendingCount, toPrintCount } = useAdmin();
+  const role = useRole();
+  const base = useBase();
+  const meta = ROLE_META[role];
+  const { pendingCount } = useAdmin();
   const openFlags = SAFEGUARDING.filter((f) => f.status === "open").length;
+  const isPrint = role === "print";
 
-  // Flat, and ordered by the job. The live portal buries fourteen master
-  // screens in three collapsing groups, so a tutor record is three clicks and a
-  // guess away; here every destination is one click, and the master screens
-  // share a single page with a tab strip.
-  const MAIN: NavItem[] = [{ href: "/admin", label: "Dashboard", icon: ICON.grid }];
+  const MAIN: NavItem[] = [{ href: base, label: "Dashboard", icon: ICON.grid }];
   const QUEUES: NavItem[] = [
-    { href: "/admin/approvals", label: "Booklet Requests", icon: ICON.clipboard, badge: pendingCount },
-    { href: "/admin/printing", label: "Print Queue", icon: ICON.doc, badge: toPrintCount },
-    { href: "/admin/history", label: "Print History", icon: ICON.play },
+    { href: base + "/approvals", label: isPrint ? "To Print" : "Booklet Requests", icon: ICON.clipboard, badge: pendingCount },
+    { href: base + "/history", label: "Print History", icon: ICON.play },
   ];
-  const RECORDS: NavItem[] = [
-    { href: "/admin/classes", label: "Classes", icon: ICON.courses },
-    { href: "/admin/masters", label: "Master Records", icon: ICON.text },
-    { href: "/admin/catalogue", label: "Catalogue", icon: ICON.library },
-  ];
-  const OVERSIGHT: NavItem[] = [
-    { href: "/admin/files", label: "Shared Files", icon: ICON.drive },
-    { href: "/admin/safeguarding", label: "Safeguarding", icon: ICON.mail, badge: openFlags },
-    { href: "/admin/settings", label: "Settings", icon: ICON.settings },
-  ];
+  const RECORDS: NavItem[] = isPrint
+    ? [{ href: base + "/classes", label: "Classes", icon: ICON.courses }]
+    : [
+        { href: base + "/schedule", label: "Schedule", icon: ICON.calendar },
+        { href: base + "/classes", label: "Classes", icon: ICON.courses },
+        { href: base + "/masters", label: "Master Records", icon: ICON.text },
+        { href: base + "/catalogue", label: "Catalogue", icon: ICON.library },
+      ];
+  const OVERSIGHT: NavItem[] = isPrint
+    ? [{ href: base + "/settings", label: "Settings", icon: ICON.settings }]
+    : [
+        { href: base + "/messages", label: "Messages", icon: ICON.chat },
+        { href: base + "/files", label: "Shared Files", icon: ICON.drive },
+        { href: base + "/safeguarding", label: "Safeguarding", icon: ICON.mail, badge: openFlags },
+        { href: base + "/settings", label: "Settings", icon: ICON.settings },
+      ];
 
   return (
     <aside
@@ -106,33 +114,31 @@ export function AdminSidebar() {
         boxShadow: "inset 0 1px 0 rgba(255,255,255,.9),inset -1px 0 0 rgba(255,255,255,.45),0 14px 44px -20px rgba(0,32,63,.3)",
       }}
     >
-      {/* There is no admin lockup asset, so the wordmark carries a typeset
-          label rather than a faked script logo. */}
+      {/* No admin lockup asset exists, so the wordmark carries a typeset label
+          rather than a faked script logo. */}
       <div style={{ padding: "6px 10px 20px" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/everest-logo.png" alt="Everest Tutoring" style={{ width: 158, height: "auto", display: "block" }} />
-        <div style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 800, letterSpacing: 2.4, color: "var(--accent-teal)", marginTop: 6 }}>
-          OFFICE PORTAL
-        </div>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 800, letterSpacing: 2.4, color: meta.accent, marginTop: 6 }}>{meta.portal}</div>
       </div>
 
-      <DrawerAccount searchPath="/admin/search" />
+      <DrawerAccount searchPath={base + "/search"} />
 
       <nav style={{ display: "flex", flexDirection: "column", gap: 2, overflowY: "auto", minHeight: 0 }} className="thin-scroll">
         {MAIN.map((n) => (
-          <NavLink key={n.href} item={n} active={isActive(pathname, n.href)} />
+          <NavLink key={n.href} item={n} active={isActive(pathname, n.href, base)} accent={meta.accent} />
         ))}
-        <GroupLabel>WAITING ON YOU</GroupLabel>
+        <GroupLabel>{isPrint ? "PRINTING" : "WAITING ON YOU"}</GroupLabel>
         {QUEUES.map((n) => (
-          <NavLink key={n.href} item={n} active={isActive(pathname, n.href)} />
+          <NavLink key={n.href} item={n} active={isActive(pathname, n.href, base)} accent={meta.accent} />
         ))}
-        <GroupLabel>RECORDS</GroupLabel>
+        <GroupLabel>{isPrint ? "REFERENCE" : "RECORDS"}</GroupLabel>
         {RECORDS.map((n) => (
-          <NavLink key={n.href} item={n} active={isActive(pathname, n.href)} />
+          <NavLink key={n.href} item={n} active={isActive(pathname, n.href, base)} accent={meta.accent} />
         ))}
-        <GroupLabel>OVERSIGHT</GroupLabel>
+        <GroupLabel>{isPrint ? "ACCOUNT" : "OVERSIGHT"}</GroupLabel>
         {OVERSIGHT.map((n) => (
-          <NavLink key={n.href} item={n} active={isActive(pathname, n.href)} />
+          <NavLink key={n.href} item={n} active={isActive(pathname, n.href, base)} accent={meta.accent} />
         ))}
       </nav>
     </aside>

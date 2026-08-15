@@ -5,6 +5,7 @@ import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { useAdmin } from "@/lib/admin-store";
 import { ADMIN } from "@/lib/admin-data";
+import { ROLE_META, useBase, useRole } from "@/lib/admin-role";
 import { Icon } from "@/components/ui/Icon";
 import { AccountMenu } from "@/components/portal/AccountMenu";
 import { ADMIN_NOTIFS } from "@/lib/notifications";
@@ -43,6 +44,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [navOpen, setNavOpen] = useState(false);
   const pathname = usePathname();
   const { notWired } = useAdmin();
+  const role = useRole();
+  const base = useBase();
+  const who = ROLE_META[role];
 
   useEffect(() => {
     setNavOpen(false);
@@ -54,13 +58,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       <div className="ev-mobilebar">
         <AccountMenu
-          name={ADMIN.name}
-          initials={ADMIN.initials}
-          role={ADMIN.role}
-          accent="var(--accent-teal)"
+          name={who.person}
+          initials={who.initials}
+          role={who.label}
+          accent={who.accent}
           seed={ADMIN_NOTIFS}
           unreadMsgs={0}
-          messagesHref="/admin/safeguarding"
+          messagesHref={base + "/approvals"}
           onSignOut={() => notWired("Sign out")}
         />
         <button className="ev-hamburger" aria-label="Open menu" onClick={() => setNavOpen(true)}>
@@ -71,7 +75,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <span className="ev-mobilebar-logo" style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/everest-logo.png" alt="Everest Tutoring" style={{ width: 132, height: "auto", display: "block" }} />
-          <span style={{ fontFamily: "var(--font-display)", fontSize: 9, fontWeight: 800, letterSpacing: 2.2, color: "var(--accent-teal)" }}>OFFICE PORTAL</span>
+          <span style={{ fontFamily: "var(--font-display)", fontSize: 9, fontWeight: 800, letterSpacing: 2.2, color: who.accent }}>{who.portal}</span>
         </span>
       </div>
 

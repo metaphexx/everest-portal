@@ -12,7 +12,6 @@ import AdminLayout from "@/app/admin/layout";
 // Office (admin) pages
 import AdminDashboard from "@/app/admin/page";
 import AdminApprovals from "@/app/admin/approvals/page";
-import AdminPrinting from "@/app/admin/printing/page";
 import AdminClasses from "@/app/admin/classes/page";
 import AdminMasters from "@/app/admin/masters/page";
 import AdminHistory from "@/app/admin/history/page";
@@ -21,6 +20,9 @@ import AdminFiles from "@/app/admin/files/page";
 import AdminSafeguarding from "@/app/admin/safeguarding/page";
 import AdminSettings from "@/app/admin/settings/page";
 import AdminSearch from "@/app/admin/search/page";
+import AdminSchedule from "@/app/admin/schedule/page";
+import AdminMessages from "@/app/admin/messages/page";
+import StaffLayout from "@/app/staff/layout";
 
 // Student pages
 import StudentDashboard from "@/app/(student)/page";
@@ -115,8 +117,9 @@ export default function App() {
       <Route element={<AdminLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/approvals" element={<AdminApprovals />} />
-        <Route path="/admin/printing" element={<AdminPrinting />} />
         <Route path="/admin/classes" element={<AdminClasses />} />
+        <Route path="/admin/schedule" element={<AdminSchedule />} />
+        <Route path="/admin/messages" element={<AdminMessages />} />
         <Route path="/admin/masters" element={<AdminMasters />} />
         <Route path="/admin/history" element={<AdminHistory />} />
         <Route path="/admin/catalogue" element={<AdminCatalogue />} />
@@ -124,6 +127,17 @@ export default function App() {
         <Route path="/admin/safeguarding" element={<AdminSafeguarding />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
         <Route path="/admin/search" element={<AdminSearch />} />
+      </Route>
+
+      {/* Print room: the same components, a deliberately smaller route table.
+          Anything not listed here does not exist for this role. */}
+      <Route element={<StaffLayout />}>
+        <Route path="/staff" element={<AdminDashboard />} />
+        <Route path="/staff/approvals" element={<AdminApprovals />} />
+        <Route path="/staff/history" element={<AdminHistory />} />
+        <Route path="/staff/classes" element={<AdminClasses />} />
+        <Route path="/staff/settings" element={<AdminSettings />} />
+        <Route path="/staff/search" element={<AdminSearch />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

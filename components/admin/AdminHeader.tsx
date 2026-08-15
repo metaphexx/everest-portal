@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "@/lib/router";
 import { Icon } from "@/components/ui/Icon";
 import { useAdmin } from "@/lib/admin-store";
 import { ADMIN } from "@/lib/admin-data";
+import { ROLE_META, useBase, useRole } from "@/lib/admin-role";
 import { adminSearch } from "@/lib/admin-search";
 import { useDebouncedValue } from "@/lib/use-debounce";
 import { useDismissable } from "@/lib/use-dismissable";
@@ -17,9 +18,9 @@ const IC = {
 };
 
 function pageMeta(pathname: string, pending: number, toPrint: number): { t: string; s: string } {
-  if (pathname === "/admin")
+  if (pathname === "/admin" || pathname === "/staff")
     return {
-      t: "Everest Office",
+      t: "Dashboard",
       s:
         pending === 0 && toPrint === 0
           ? "Nothing is waiting on the office right now."
@@ -27,23 +28,28 @@ function pageMeta(pathname: string, pending: number, toPrint: number): { t: stri
               .filter(Boolean)
               .join(" and ") + ".",
     };
-  if (pathname.startsWith("/admin/approvals")) return { t: "Approvals", s: "Print requests from tutors, waiting on your decision." };
-  if (pathname.startsWith("/admin/printing")) return { t: "Print Queue", s: "Approved jobs, with the exact print spec for each." };
-  if (pathname.startsWith("/admin/classes")) return { t: "Classes", s: "Every class Everest runs, across all centres and online." };
-  if (pathname.startsWith("/admin/masters")) return { t: "Master Records", s: "Centres, printers, systems, people, courses and Drive folders." };
-  if (pathname.startsWith("/admin/history")) return { t: "Print History", s: "Everything that has actually been printed, by centre." };
-  if (pathname.startsWith("/admin/catalogue")) return { t: "Catalogue", s: "The booklets tutors can request and assign." };
-  if (pathname.startsWith("/admin/files")) return { t: "Shared Files", s: "Every file shared on the platform, and who sent it to whom." };
-  if (pathname.startsWith("/admin/safeguarding")) return { t: "Safeguarding", s: "Flagged messages. Each one needs a person, not a filter." };
-  if (pathname.startsWith("/admin/settings")) return { t: "Settings", s: "Your office account and what you are told about." };
-  if (pathname.startsWith("/admin/search")) return { t: "Search", s: "Results from across the office portal." };
-  return { t: "Everest Office", s: "" };
+  if (pathname.includes("/approvals")) return { t: "Booklet Requests", s: "Print requests from tutors, by centre, with the day they are for." };
+  
+  if (pathname.includes("/classes")) return { t: "Classes", s: "Every class Everest runs, across all centres and online." };
+  if (pathname.includes("/masters")) return { t: "Master Records", s: "Centres, printers, systems, people, courses and Drive folders." };
+  if (pathname.includes("/history")) return { t: "Print History", s: "Everything that has actually been printed, by centre." };
+  if (pathname.includes("/catalogue")) return { t: "Catalogue", s: "The booklets tutors can request and assign." };
+  if (pathname.includes("/files")) return { t: "Shared Files", s: "Every file shared on the platform, and who sent it to whom." };
+  if (pathname.includes("/safeguarding")) return { t: "Safeguarding", s: "Flagged messages. Each one needs a person, not a filter." };
+  if (pathname.includes("/settings")) return { t: "Settings", s: "Your office account and what you are told about." };
+  if (pathname.includes("/schedule")) return { t: "Schedule", s: "Every class on the calendar, and where new ones are added." };
+  if (pathname.includes("/messages")) return { t: "Messages", s: "Threads with tutors, students and parents." };
+  if (pathname.includes("/search")) return { t: "Search", s: "Results from across the office portal." };
+  return { t: "Dashboard", s: "" };
 }
 
 export function AdminHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { requests, pendingCount, toPrintCount, notWired } = useAdmin();
+  const role = useRole();
+  const base = useBase();
+  const who = ROLE_META[role];
   const [q, setQ] = useState("");
 
   const meta = pageMeta(pathname, pendingCount, toPrintCount);
@@ -70,7 +76,7 @@ export function AdminHeader() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && q.trim()) router.push("/admin/search?q=" + encodeURIComponent(q.trim()));
+                if (e.key === "Enter" && q.trim()) router.push(base + "/search?q=" + encodeURIComponent(q.trim()));
                 if (e.key === "Escape") setQ("");
               }}
               placeholder="Search the portal"
@@ -122,16 +128,16 @@ export function AdminHeader() {
 
         <button
           onClick={() => notWired("Account menu")}
-          aria-label={"Account for " + ADMIN.name}
+          aria-label={"Account for " + who.person}
           className="glass-control"
           style={{ display: "flex", alignItems: "center", gap: 10, borderRadius: 12, padding: "5px 12px 5px 5px", height: 44, boxSizing: "border-box", cursor: "pointer", border: "none", fontFamily: "inherit", textAlign: "left" }}
         >
-          <span style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,var(--accent-teal),var(--accent-navy-blue))", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: 11, flex: "none" }}>
-            {ADMIN.initials}
+          <span style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg," + who.accent + ",var(--accent-navy-blue))", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: 11, flex: "none" }}>
+            {who.initials}
           </span>
           <span className="ev-hide-narrow">
-            <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{ADMIN.name}</span>
-            <span style={{ display: "block", fontSize: 10.5, color: "var(--fg4)" }}>{ADMIN.role}</span>
+            <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{who.person}</span>
+            <span style={{ display: "block", fontSize: 10.5, color: "var(--fg4)" }}>{who.label}</span>
           </span>
         </button>
 

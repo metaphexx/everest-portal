@@ -8,8 +8,10 @@ import { BookletRequest, CATALOGUE } from "./tutor-data";
 
 const DESTINATIONS: Indexable[] = [
   { name: "Dashboard", meta: "The day at a glance", kind: "Page", color: "#0E9C8E", page: "/admin", keywords: "home overview today", boost: 30 },
-  { name: "Approvals", meta: "Print requests waiting on a decision", kind: "Page", color: "#B27908", page: "/admin/approvals", keywords: "approve reject pending requests booklets queue", boost: 30 },
-  { name: "Print Queue", meta: "Approved jobs waiting to be printed", kind: "Page", color: "#009DFF", page: "/admin/printing", keywords: "printing printer copies completed failed", boost: 30 },
+  { name: "Booklet Requests", meta: "Print requests waiting on a decision", kind: "Page", color: "#B27908", page: "/admin/approvals", keywords: "approve reject pending requests booklets queue", boost: 30 },
+  { name: "Print History", meta: "Everything that has actually been printed", kind: "Page", color: "#009DFF", page: "/admin/history", keywords: "printed printer copies reprint receipt", boost: 30 },
+  { name: "Schedule", meta: "The class calendar, and where new classes are added", kind: "Page", color: "#7A5AF8", page: "/admin/schedule", keywords: "calendar add class online in person timetable", boost: 30 },
+  { name: "Messages", meta: "Threads with tutors, students and parents", kind: "Page", color: "#009DFF", page: "/admin/messages", keywords: "inbox reply chat contact", boost: 30 },
   { name: "Classes", meta: "Every class Everest runs", kind: "Page", color: "#7A5AF8", page: "/admin/classes", keywords: "timetable centre capacity enrolment online in person", boost: 30 },
   { name: "Tutors", meta: "Staff, duties and contact details", kind: "Page", color: "#0E7AC2", page: "/admin/masters?tab=tutors", keywords: "staff roster teachers duties leave", boost: 30 },
   { name: "Students", meta: "Enrolments, attendance and parent contacts", kind: "Page", color: "#22A05B", page: "/admin/masters?tab=students", keywords: "roster parents attendance trial withdrawn", boost: 30 },
@@ -64,7 +66,7 @@ export function buildAdminIndex(requests: BookletRequest[] = []): Indexable[] {
       meta: "Request · " + r.classText + " · " + r.approval,
       kind: "Request",
       color: "#B27908",
-      page: r.approval === "pending" ? "/admin/approvals" : "/admin/printing",
+      page: r.approval === "pending" ? "/admin/approvals" : r.printing === "completed" ? "/admin/history" : "/admin/approvals",
       keywords: "print approval " + r.items.map((i) => i.name).join(" ") + " " + r.printer,
     });
   }

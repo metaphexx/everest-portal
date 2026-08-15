@@ -12,6 +12,7 @@ import {
   ApprovalStatus,
   BookletRequest,
   MaterialAssignment,
+  PrintFormat,
   PrintingStatus,
   Submission,
   TUTOR,
@@ -19,6 +20,7 @@ import {
   seedRequests,
 } from "./tutor-data";
 import { SHARED_FILES, SharedFileRow } from "./admin-data";
+import { AdminSession } from "./admin-schedule";
 
 interface AdminState {
   toast: string;
@@ -37,6 +39,11 @@ interface AdminApi extends AdminState {
   toPrintCount: number;
   setApproval: (id: string, approval: ApprovalStatus, note?: string) => void;
   setPrinting: (id: string, printing: PrintingStatus) => void;
+  /** Corrects the printer or the print format a tutor chose, before approving. */
+  updateRequest: (id: string, patch: { printer?: string; format?: PrintFormat }) => void;
+  /** Classes scheduled from the office this session, folded into the calendar. */
+  scheduled: AdminSession[];
+  addScheduledClass: (s: Omit<AdminSession, "id">) => void;
   /** Every file shared on the platform: the seeded ledger plus live assignments. */
   sharedFiles: SharedFileRow[];
 }
@@ -118,6 +125,24 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     [state.requests, writeRequests, showToast]
   );
 
+  const updateRequest = useCallback(
+    (id: string, patch: { printer?: string; format?: PrintFormat }) => {
+      writeRequests(state.requests.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+    },
+    [state.requests, writeRequests]
+  );
+
+  // Classes scheduled from the office. Session-scoped on purpose: the demo
+  // resets cleanly, and nothing here belongs in the tutor's own blob.
+  const [scheduled, setScheduled] = useState<AdminSession[]>([]);
+  const addScheduledClass = useCallback(
+    (s: Omit<AdminSession, "id">) => {
+      setScheduled((list) => [...list, { ...s, id: "new-" + list.length + ":" + s.k }]);
+      showToast(s.className + " scheduled for " + new Date(s.k + "T12:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" }));
+    },
+    [showToast]
+  );
+
   // Print jobs only. A digital pack costs nothing to deliver, so it never
   // needed approval and must not sit in the office's queue.
   const printJobs = useMemo(() => state.requests.filter((r) => (r.delivery ?? "print") === "print"), [state.requests]);
@@ -152,6 +177,9 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     toPrintCount,
     setApproval,
     setPrinting,
+    updateRequest,
+    scheduled,
+    addScheduledClass,
     sharedFiles,
   };
 
