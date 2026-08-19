@@ -1,0 +1,73 @@
+{
+  "projectId": "c73734fc-b6db-443f-981c-2c7408333be4",
+  "shape": "package",
+  "pkg": "everest-portal",
+  "globalName": "EverestPortal",
+  "srcDir": "components",
+  "tsconfig": "./tsconfig.json",
+  "cssEntry": "app/globals.css",
+  "componentSrcMap": {
+    "MasterTable": "components/admin/MasterTable.tsx",
+    "MonthCalendar": "components/admin/MonthCalendar.tsx",
+    "RequestDetail": "components/admin/RequestDetail.tsx",
+    "ScheduleClassModal": "components/admin/ScheduleClassModal.tsx",
+    "AssessmentTable": "components/portal/AssessmentTable.tsx",
+    "Background": "components/portal/Background.tsx",
+    "PdfPreviewModal": "components/portal/PdfPreviewModal.tsx",
+    "BookletStatsPanel": "components/tutor/BookletStatsPanel.tsx",
+    "OfficeVisibilityNotice": "components/tutor/OfficeVisibilityNotice.tsx",
+    "ElliotMark": "components/ui/ElliotMark.tsx",
+    "Icon": "components/ui/Icon.tsx",
+    "ImageSlot": "components/ui/ImageSlot.tsx",
+    "LineChart": "components/ui/LineChart.tsx",
+    "Loader": "components/ui/Loader.tsx",
+    "Modal": "components/ui/Modal.tsx",
+    "DayList": "components/admin/MonthCalendar.tsx",
+    "AverageChip": "components/portal/AssessmentTable.tsx",
+    "UpcomingAssessments": "components/portal/AssessmentTable.tsx"
+  },
+  "extraFonts": [
+    ".design-sync/fonts/fonts.css"
+  ],
+  "dtsPropsFor": {
+    "MasterTable": "/** Rows to render. Any object shape; columns pull fields off it. */\n  rows: Row[];\n  /** Column definitions, left to right. */\n  columns: {\n    key: string;\n    label: string;\n    render: (row: Row) => React.ReactNode;\n    /** Plain text for search and the phone card view. */\n    text?: (row: Row) => string;\n    width?: number;\n    /** Hidden in the phone card view. */\n    minor?: boolean;\n  }[];\n  /** Stable id per row. */\n  idOf: (row: Row) => string;\n  /** Status pill, never scrolled out of view. */\n  statusOf?: (row: Row) => { label: string; color: string; bg: string };\n  /** Search placeholder, phrased for this data. */\n  searchHint: string;\n  /** Primary create action. Omit for read-only tables. */\n  addLabel?: string;\n  onAdd?: () => void;\n  onEdit?: (row: Row) => void;\n  onDelete?: (row: Row) => void;\n  onExport?: () => void;\n  /** Shown when the data set is empty, as opposed to filtered empty. */\n  emptyTitle: string;\n  emptyBody: string;\n  pageSize?: number;",
+    "MonthCalendar": "sessions: AdminSession[];\n  selected: string | null;\n  onSelect: (k: string | null) => void;\n  year?: number;\n  month?: number;\n  /** yyyy-mm-dd highlighted as today. */\n  today?: string;",
+    "DayList": "dayKey: string | null;\n  sessions: AdminSession[];\n  onOpenRequest?: (s: AdminSession) => void;\n  emptyHint?: string;",
+    "RequestDetail": "request: BookletRequest | null;\n  onClose: () => void;\n  onApprove?: (id: string, note: string) => void;\n  onReject?: (id: string, reason: string) => void;\n  /** Saves a corrected printer or print format back onto the request. */\n  onUpdate?: (id: string, patch: { printer?: string; format?: PrintFormat }) => void;\n  readOnly?: boolean;",
+    "ScheduleClassModal": "onClose: () => void;\n  onCreate: (s: Omit<AdminSession, \"id\">) => void;\n  /** yyyy-mm-dd the form opens on. */\n  defaultDay: string | null;",
+    "AssessmentTable": "outline: Outline;\n  onUpdate: (assessmentId: string, patch: Partial<Pick<Assessment, \"weight\" | \"score\" | \"done\">>) => void;\n  compact?: boolean;",
+    "AverageChip": "assessments: Assessment[];",
+    "UpcomingAssessments": "outline: Outline;\n  limit?: number;",
+    "Background": "/** Purely decorative page washes. Takes no props. */\n  children?: never;",
+    "PdfPreviewModal": "open: boolean;\n  onClose: () => void;\n  fileName: string;\n  meta?: string;\n  /** \"doc\" is a view+annotate preview, \"video\" watch-only, \"link\" an in-portal URL preview. */\n  kind?: \"doc\" | \"video\" | \"link\";\n  /** Shown in the mock browser bar when kind is \"link\". */\n  url?: string;\n  /** False gives a plain read-only viewer with no annotation toolbar. */\n  annotate?: boolean;\n  /** True length of the document, shown even though only previewLimit pages render. */\n  pages?: number;\n  previewLimit?: number;\n  onSaveAnnotations?: (dataUrl: string) => void;\n  saveLabel?: string;",
+    "BookletStatsPanel": "requests: BookletRequest[];\n  courseId?: TutorCourseId;\n  title?: string;\n  subtitle?: string;\n  height?: number;",
+    "OfficeVisibilityNotice": "compact?: boolean;\n  style?: React.CSSProperties;",
+    "ElliotMark": "/** Width in px. Height is 0.593x this. */\n  size?: number;\n  /** \"gradient\" for light surfaces, \"solid\" (currentColor) on coloured grounds. */\n  tone?: \"gradient\" | \"solid\";\n  className?: string;\n  style?: React.CSSProperties;\n  /** Sets role=\"img\" and the accessible name. Omit for decorative use. */\n  title?: string;",
+    "Icon": "/** SVG path data. */\n  path: string;\n  size?: number;\n  className?: string;\n  style?: React.CSSProperties;\n  /** Stroke the path instead of filling it. */\n  stroke?: boolean;",
+    "ImageSlot": "slotId: string;\n  placeholder?: string;\n  /** Default artwork shown until a photo is dropped. */\n  fallbackSrc?: string;\n  className?: string;\n  style?: React.CSSProperties;",
+    "LineChart": "series: LineSeries[];\n  labels: string[];\n  height?: number;\n  yLabel?: string;",
+    "Loader": "/** Width in px. Height comes out at 0.63x this. */\n  size?: number;\n  /** Loop speed multiplier. 1 is the slow original; default 1.7. */\n  speed?: number;\n  /** Announced to screen readers. Say what is loading where you can. */\n  label?: string;\n  className?: string;\n  style?: React.CSSProperties;",
+    "Modal": "onClose: () => void;\n  /** Accessible name for the dialog - provide this OR labelledBy, not both. */\n  label?: string;\n  labelledBy?: string;\n  children: React.ReactNode;\n  panelStyle?: React.CSSProperties;\n  panelClassName?: string;\n  backdropStyle?: React.CSSProperties;"
+  },
+  "overrides": {
+    "MasterTable": {
+      "cardMode": "column"
+    },
+    "LineChart": {
+      "cardMode": "column"
+    },
+    "Loader": {
+      "cardMode": "column"
+    },
+    "AssessmentTable": {
+      "cardMode": "column"
+    },
+    "BookletStatsPanel": {
+      "cardMode": "column"
+    },
+    "MonthCalendar": {
+      "cardMode": "column"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}

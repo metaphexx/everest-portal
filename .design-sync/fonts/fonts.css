@@ -1,0 +1,25 @@
+/* Inter + Montserrat, latin subset, self-hosted.
+
+   The app loads these from Google Fonts in index.html, so the stylesheet itself
+   shipped no @font-face and every design built with this DS would have fallen
+   back to system fonts. Both families are SIL OFL, so shipping the woff2
+   alongside the bundle is permitted and removes the runtime network dependency.
+
+   Google serves both as VARIABLE fonts - the per-weight URLs return byte
+   identical files - so one file per family covers the whole weight range. */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./Inter.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./Montserrat.woff2') format('woff2');
+}
