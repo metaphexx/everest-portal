@@ -57,11 +57,11 @@ export default function AdminSettings() {
           </span>
         </div>
 
-        <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--fg2)", marginBottom: 5 }}>Email address</label>
-        <input value={email} onChange={(e) => setEmail(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box", marginBottom: 12 }} />
+        <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--fg2)", marginBottom: 5 }} htmlFor="of-email">Email address</label>
+        <input id="of-email" value={email} onChange={(e) => setEmail(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box", marginBottom: 12 }} />
 
-        <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--fg2)", marginBottom: 5 }}>Mobile number</label>
-        <input value={phone} onChange={(e) => setPhone(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
+        <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--fg2)", marginBottom: 5 }} htmlFor="of-phone">Mobile number</label>
+        <input id="of-phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
         <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 6, lineHeight: 1.5 }}>Used by centres to reach the office about a class running now.</div>
 
         <button onClick={() => showToast("Contact details saved")} className="btn-primary press ev-tap-h" style={{ height: 42, padding: "0 20px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, marginTop: 16 }}>
@@ -71,12 +71,12 @@ export default function AdminSettings() {
 
       <div className="glass-card" style={{ gridColumn: "span 6", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .06s backwards" }}>
         <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 14px" }}>Login</h2>
-        <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--fg2)", marginBottom: 5 }}>Current password</label>
-        <input type="password" defaultValue="password" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box", marginBottom: 12 }} />
-        <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--fg2)", marginBottom: 5 }}>New password</label>
-        <input type="password" placeholder="At least 8 characters" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box", marginBottom: 12 }} />
-        <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--fg2)", marginBottom: 5 }}>Confirm new password</label>
-        <input type="password" placeholder="Repeat the new password" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
+        <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--fg2)", marginBottom: 5 }} htmlFor="of-pw-cur">Current password</label>
+        <input id="of-pw-cur" type="password" defaultValue="password" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box", marginBottom: 12 }} />
+        <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--fg2)", marginBottom: 5 }} htmlFor="of-pw-new">New password</label>
+        <input id="of-pw-new" type="password" placeholder="At least 8 characters" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box", marginBottom: 12 }} />
+        <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--fg2)", marginBottom: 5 }} htmlFor="of-pw-rep">Confirm new password</label>
+        <input id="of-pw-rep" type="password" placeholder="Repeat the new password" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
         <button onClick={() => showToast("Password updated")} className="btn-primary press ev-tap-h" style={{ height: 42, padding: "0 20px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, marginTop: 16 }}>
           Update password
         </button>

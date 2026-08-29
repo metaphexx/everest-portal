@@ -118,14 +118,12 @@ export function AttachmentView({ atts, mine, onPreview }: { atts: ChatAttachment
           ))}
         </div>
       )}
-      {files.map((a) => (
-        <a
+      {files.map((a) => {
+        const Tag: "a" | "span" = a.dataUrl ? "a" : "span";
+        return (
+        <Tag
           key={a.id}
-          href={a.dataUrl}
-          download={a.dataUrl ? a.name : undefined}
-          onClick={(e) => {
-            if (!a.dataUrl) e.preventDefault();
-          }}
+          {...(a.dataUrl ? { href: a.dataUrl, download: a.name } : {})}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -147,8 +145,9 @@ export function AttachmentView({ atts, mine, onPreview }: { atts: ChatAttachment
             <span style={{ display: "block", fontSize: 10, opacity: 0.75 }}>{fmtSize(a.size)}</span>
           </span>
           {a.dataUrl && <Icon path={IC.down} size={13} style={{ flex: "none", opacity: 0.7 }} />}
-        </a>
-      ))}
+        </Tag>
+        );
+      })}
     </div>
   );
 }

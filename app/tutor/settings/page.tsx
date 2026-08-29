@@ -149,9 +149,9 @@ export default function TutorSettingsPage() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--fg2)", marginBottom: 5 }}>{label}</div>
+    <label style={{ display: "block" }}>
+      <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: "var(--fg2)", marginBottom: 5 }}>{label}</span>
       {children}
-    </div>
+    </label>
   );
 }

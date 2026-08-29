@@ -169,7 +169,6 @@ export default function TutorMessagesPage() {
                 onClick={() => setActiveId(t.id)}
                 className="list-hover"
                 aria-pressed={on}
-                aria-label={"Open conversation with " + name + (unread ? ", " + unread + " unread" : "")}
                 style={{ display: "flex", width: "100%", textAlign: "left", alignItems: "center", gap: 10, padding: "10px 8px", borderRadius: 12, cursor: "pointer", background: on ? "rgba(0,157,255,.1)" : "transparent", border: "none", fontFamily: "inherit" }}
               >
                 <Avatar t={t} size={34} />

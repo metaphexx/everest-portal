@@ -96,7 +96,7 @@ export default function ChatPage() {
             <button onClick={() => notWired("Voice input")} title="Voice input" className="list-hover" style={{ width: 34, height: 34, borderRadius: 10, border: "none", background: "transparent", color: "var(--fg3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon path="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z" size={16} />
             </button>
-            <button onClick={send} className="btn-primary" style={{ width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <button onClick={send} aria-label="Send" className="btn-primary ev-tap" style={{ width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon path="M2 21 23 12 2 3v7l15 2-15 2v7Z" size={15} />
             </button>
           </div>
