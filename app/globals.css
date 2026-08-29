@@ -1144,3 +1144,17 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
   .ev-only-desktop { display: none !important; }
 }
 
+
+/* Teaching view stage. The board is sized off the stage HEIGHT so "Fit" puts the
+   whole page on screen at once - a class should never have to watch the tutor
+   scroll. On a phone there is no height to give, so it goes back to width. */
+.ev-teach-board {
+  height: var(--tz, 100%);
+  width: auto;
+}
+@media (max-width: 720px) {
+  .ev-teach-board {
+    height: auto;
+    width: 100%;
+  }
+}

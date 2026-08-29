@@ -118,7 +118,9 @@ export function PdfPreviewModal({ open, onClose, fileName, meta, kind = "doc", u
       ctx.strokeStyle = "rgba(245,166,35,.4)";
       ctx.lineWidth = 18;
     } else {
-      ctx.strokeStyle = "var(--brand-500)";
+      // A canvas context cannot resolve a CSS custom property - it silently
+      // falls back to black - so the pen colour is the token's literal value.
+      ctx.strokeStyle = "#009DFF";
       ctx.lineWidth = 2.5;
     }
     ctx.lineTo(x, y);

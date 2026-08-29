@@ -59,6 +59,7 @@ import TutorMessages from "@/app/tutor/messages/page";
 import TutorSearch from "@/app/tutor/search/page";
 import TutorSettings from "@/app/tutor/settings/page";
 import TutorElliot from "@/app/tutor/elliot/page";
+import TutorTeach from "@/app/tutor/teach/[id]/page";
 
 function NotFound() {
   return (
@@ -141,6 +142,11 @@ export default function App() {
         <Route path="/staff/settings" element={<AdminSettings />} />
         <Route path="/staff/search" element={<AdminSearch />} />
       </Route>
+
+      {/* Teaching view: deliberately OUTSIDE the tutor layout. The whole tab is
+          shared to a class, so it carries no sidebar, no unread counts and no
+          roster. */}
+      <Route path="/tutor/teach/:id" element={<TutorTeach />} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

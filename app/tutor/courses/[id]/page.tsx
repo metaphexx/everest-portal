@@ -290,14 +290,15 @@ export default function TutorCoursePage() {
                       {km.label}
                     </span>
                     <span style={{ fontSize: 10.5, fontWeight: 700, color: sm.color, background: sm.bg, padding: "3px 9px", borderRadius: 980, flex: "none" }}>{sm.label}</span>
+                    {/* Teaching, not just handing out: opens the booklet in its
+                        own tab with ink on top, ready to share to the class. */}
                     <button
-                      onClick={() => removeAssignment(a.id)}
-                      aria-label="Remove assignment"
-                      title="Remove"
-                      className="press ev-tap ev-row-end"
-                      style={{ width: 24, height: 24, borderRadius: 8, border: "none", background: "rgba(224,65,65,.08)", color: "var(--danger-500)", fontSize: 12, cursor: "pointer", flex: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
+                      onClick={() => window.open("/tutor/teach/" + a.id, "_blank", "noopener")}
+                      title="Open to teach with"
+                      className="press ev-tap-h ev-row-end"
+                      style={{ height: 26, padding: "0 11px", borderRadius: 8, border: "none", background: "rgba(0,157,255,.1)", color: "var(--brand-600)", fontFamily: "inherit", fontSize: 11, fontWeight: 700, cursor: "pointer", flex: "none", display: "inline-flex", alignItems: "center", gap: 5 }}
                     >
-                      ✕
+                      <Icon path={ICON.doc} size={11} /> Open
                     </button>
                     {a.kind === "worksheet" && a.status === "submitted" && (
                       <button
@@ -308,6 +309,15 @@ export default function TutorCoursePage() {
                         Mark as graded
                       </button>
                     )}
+                    <button
+                      onClick={() => removeAssignment(a.id)}
+                      aria-label="Remove assignment"
+                      title="Remove"
+                      className="press ev-tap ev-row-end"
+                      style={{ width: 24, height: 24, borderRadius: 8, border: "none", background: "rgba(224,65,65,.08)", color: "var(--danger-500)", fontSize: 12, cursor: "pointer", flex: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
+                    >
+                      ✕
+                    </button>
                   </div>
                 );
               })}
