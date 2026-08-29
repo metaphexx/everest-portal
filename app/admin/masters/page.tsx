@@ -16,6 +16,8 @@ import { Column, MasterTable, PILL } from "@/components/admin/MasterTable";
 import {
   BOOKLET_DRIVE,
   CENTRES_M,
+  CLASSROOM_MAP,
+  CURRICULUM,
   CENTRE_PRINTERS,
   CLASS_SELECTIONS,
   COURSES,
@@ -23,9 +25,13 @@ import {
   COURSE_TUTORS,
   DRIVE_DATA,
   PRINTERS_M,
+  ROOMS,
+  SUBJECTS,
   SUBJECT_DRIVE,
   SYSTEMS,
   TERMS,
+  TOPICS,
+  YEAR_GROUPS,
 } from "@/lib/admin-masters";
 import { STAFF, allStudents } from "@/lib/admin-data";
 
@@ -53,7 +59,13 @@ const TABS = [
   { id: "tutors", label: "Tutors", group: "People" },
   { id: "students", label: "Students", group: "People" },
   { id: "class-selection", label: "Class selection", group: "People" },
+  { id: "rooms", label: "Rooms", group: "Places" },
+  { id: "classroom-map", label: "Classroom map", group: "Places" },
   { id: "terms", label: "Terms", group: "Teaching" },
+  { id: "year-groups", label: "Year groups", group: "Teaching" },
+  { id: "subjects", label: "Subjects", group: "Teaching" },
+  { id: "topics", label: "Topics", group: "Teaching" },
+  { id: "curriculum", label: "Curriculum", group: "Teaching" },
   { id: "courses", label: "Courses", group: "Teaching" },
   { id: "categories", label: "Course categories", group: "Teaching" },
   { id: "course-tutors", label: "Course tutors", group: "Teaching" },
@@ -228,6 +240,160 @@ export default function AdminMasters() {
             onExport={exp}
             emptyTitle="No class selections"
             emptyBody="A class selection is which subjects a tutor covers at a centre, and on which dates."
+          />
+        );
+      }
+      case "rooms": {
+        const cols: Column<(typeof ROOMS)[number]>[] = [
+          { key: "n", label: "Room", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
+          { key: "c", label: "Centre", render: (r) => r.centre, text: (r) => r.centre },
+          { key: "cap", label: "Seats", render: (r) => r.capacity + " students", text: (r) => String(r.capacity) },
+          { key: "no", label: "Notes", render: (r) => (r.notes ? r.notes : <span style={{ color: "var(--fg4)" }}>None</span>), text: (r) => r.notes, width: 260, minor: true },
+        ];
+        return (
+          <MasterTable
+            rows={ROOMS}
+            columns={cols}
+            idOf={(r) => r.id}
+            statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
+            searchHint="Search rooms by name or centre"
+            addLabel="Add a room"
+            onAdd={() => add("room")}
+            onEdit={() => edit("room")}
+            onDelete={() => del("room")}
+            emptyTitle="No rooms set up"
+            emptyBody="A room needs a centre and a seat count before a class can be timetabled into it."
+          />
+        );
+      }
+      case "classroom-map": {
+        const cols: Column<(typeof CLASSROOM_MAP)[number]>[] = [
+          { key: "y", label: "Year", render: (r) => <strong style={{ fontWeight: 700 }}>{r.year}</strong>, text: (r) => r.year },
+          { key: "s", label: "Subject", render: (r) => r.subject, text: (r) => r.subject, width: 220 },
+          // The live Classroom Map prints the record id here. A mapping is only
+          // useful if you can read what it maps, so this names the rooms.
+          { key: "r", label: "Rooms it can use", render: (r) => <List items={r.rooms} empty="No room mapped" />, text: (r) => r.rooms.join(" "), width: 280 },
+        ];
+        return (
+          <MasterTable
+            rows={CLASSROOM_MAP}
+            columns={cols}
+            idOf={(r) => r.id}
+            statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
+            searchHint="Search by year, subject or room"
+            addLabel="Add a mapping"
+            onAdd={() => add("classroom mapping")}
+            onEdit={() => edit("classroom mapping")}
+            onDelete={() => del("classroom mapping")}
+            emptyTitle="Nothing mapped to a room yet"
+            emptyBody="Mapping a subject to its rooms is what stops two classes being put in the same room."
+          />
+        );
+      }
+      case "year-groups": {
+        const cols: Column<(typeof YEAR_GROUPS)[number]>[] = [
+          { key: "n", label: "Cohort", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
+          { key: "y", label: "Year level", render: (r) => r.year, text: (r) => r.year },
+          { key: "s", label: "Subjects", render: (r) => SUBJECTS.filter((x) => x.year === r.year).length + " subjects", text: (r) => r.year, minor: true },
+        ];
+        return (
+          <MasterTable
+            rows={YEAR_GROUPS}
+            columns={cols}
+            idOf={(r) => r.id}
+            statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
+            searchHint="Search year groups"
+            addLabel="Add a year group"
+            onAdd={() => add("year group")}
+            onEdit={() => edit("year group")}
+            onDelete={() => del("year group")}
+            emptyTitle="No year groups"
+            emptyBody="A year group is what a subject and a class both hang off, so set these up first."
+          />
+        );
+      }
+      case "subjects": {
+        const cols: Column<(typeof SUBJECTS)[number]>[] = [
+          { key: "n", label: "Subject", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
+          // The live Subject Master leaves this column empty on every row. A
+          // subject that does not know its year cannot be put on a timetable.
+          { key: "y", label: "Year level", render: (r) => r.year, text: (r) => r.year },
+          { key: "a", label: "Area", render: (r) => r.area, text: (r) => r.area },
+          { key: "t", label: "Topics", render: (r) => (r.topics === 0 ? <span style={{ color: "var(--warn-700)" }}>None yet</span> : r.topics + " topics"), text: (r) => String(r.topics), minor: true },
+        ];
+        return (
+          <MasterTable
+            rows={SUBJECTS}
+            columns={cols}
+            idOf={(r) => r.id}
+            statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
+            searchHint="Search subjects by name, year or area"
+            addLabel="Add a subject"
+            onAdd={() => add("subject")}
+            onEdit={() => edit("subject")}
+            onDelete={() => del("subject")}
+            emptyTitle="No subjects defined"
+            emptyBody="A subject is the unit a class, a booklet and a curriculum outline all point at."
+          />
+        );
+      }
+      case "topics": {
+        const cols: Column<(typeof TOPICS)[number]>[] = [
+          { key: "n", label: "Topic", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
+          { key: "s", label: "Subject", render: (r) => (<><span>{r.subject}</span><span style={{ display: "block", fontSize: 11, color: "var(--fg4)" }}>{r.year}</span></>), text: (r) => r.subject + " " + r.year, width: 200 },
+          { key: "d", label: "What it covers", render: (r) => r.description, text: (r) => r.description, width: 320, minor: true },
+        ];
+        return (
+          <MasterTable
+            rows={TOPICS}
+            columns={cols}
+            idOf={(r) => r.id}
+            statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
+            searchHint="Search topics by name or subject"
+            addLabel="Add a topic"
+            onAdd={() => add("topic")}
+            onEdit={() => edit("topic")}
+            onDelete={() => del("topic")}
+            emptyTitle="No topics yet"
+            emptyBody="Topics sit under a subject and are what a booklet request and a weekly outline both name."
+          />
+        );
+      }
+      case "curriculum": {
+        const cols: Column<(typeof CURRICULUM)[number]>[] = [
+          { key: "s", label: "Subject", render: (r) => (<><strong style={{ fontWeight: 700 }}>{r.subject}</strong><span style={{ display: "block", fontSize: 11, color: "var(--fg4)" }}>{r.term}</span></>), text: (r) => r.subject + " " + r.term, width: 190 },
+          {
+            key: "w",
+            label: "Week by week",
+            // The live Curriculum master shows "Wk 1: Grammar ()(+2 more)". The
+            // whole value of this row is the sequence, so the sequence shows.
+            render: (r) => (
+              <span style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                {r.weeks.map((w, i) => (
+                  <span key={i} style={{ fontSize: 10.5, fontWeight: 600, background: "rgba(0,32,63,.05)", borderRadius: 6, padding: "2px 7px", whiteSpace: "nowrap" }}>
+                    <span style={{ color: "var(--fg4)" }}>W{i + 1}</span> {w}
+                  </span>
+                ))}
+              </span>
+            ),
+            text: (r) => r.weeks.join(" "),
+            width: 460,
+          },
+          { key: "l", label: "Weeks", render: (r) => r.weeks.length, text: (r) => String(r.weeks.length), minor: true },
+        ];
+        return (
+          <MasterTable
+            rows={CURRICULUM}
+            columns={cols}
+            idOf={(r) => r.id}
+            statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
+            searchHint="Search the curriculum by subject or week"
+            addLabel="Add an outline"
+            onAdd={() => add("curriculum outline")}
+            onEdit={() => edit("curriculum outline")}
+            onDelete={() => del("curriculum outline")}
+            emptyTitle="No curriculum outlines"
+            emptyBody="An outline is the week by week plan a tutor teaches to, and what a parent is shown."
           />
         );
       }

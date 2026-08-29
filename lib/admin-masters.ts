@@ -205,3 +205,133 @@ export const CLASS_SELECTIONS: ClassSelectionRow[] = [
   { id: "cs4", tutor: "David Chen", centre: "Piara Waters", subjects: ["Year 7 Mathematics", "Year 7 English"], dates: ["25 Jul", "1 Aug", "8 Aug"], active: true },
   { id: "cs5", tutor: "Amira Hassan", centre: "Piara Waters", subjects: ["Year 9 Mathematics"], dates: ["20 Jul", "27 Jul"], active: false },
 ];
+
+// ---------------------------------------------------------------------------
+// Curriculum spine: year group -> subject -> topic.
+//
+// The live system keeps these three as separate masters with nothing joining
+// them, which is why its Subject Master shows an empty Year Level on every row
+// and its Classroom Map prints raw record ids where a year should be. Here a
+// subject names its year group and a topic names its subject, so every row can
+// say what it belongs to.
+// ---------------------------------------------------------------------------
+
+export interface YearGroup {
+  id: string;
+  name: string;
+  year: string;
+  active: boolean;
+}
+
+export const YEAR_GROUPS: YearGroup[] = [
+  { id: "yg7", name: "Year 7 cohort", year: "Year 7", active: true },
+  { id: "yg8", name: "Year 8 cohort", year: "Year 8", active: true },
+  { id: "yg9", name: "Year 9 cohort", year: "Year 9", active: true },
+  { id: "yg10", name: "Year 10 cohort", year: "Year 10", active: true },
+  { id: "yg11", name: "Year 11 cohort", year: "Year 11", active: true },
+  { id: "yg12", name: "Year 12 cohort", year: "Year 12", active: false },
+];
+
+export interface SubjectRow {
+  id: string;
+  name: string;
+  year: string;
+  area: "Mathematics" | "English" | "Science" | "Humanities";
+  topics: number;
+  active: boolean;
+}
+
+export const SUBJECTS: SubjectRow[] = [
+  { id: "sb1", name: "Year 7 Mathematics", year: "Year 7", area: "Mathematics", topics: 8, active: true },
+  { id: "sb2", name: "Year 7 English", year: "Year 7", area: "English", topics: 6, active: true },
+  { id: "sb3", name: "Year 7 Science", year: "Year 7", area: "Science", topics: 7, active: true },
+  { id: "sb4", name: "Year 8 Mathematics", year: "Year 8", area: "Mathematics", topics: 9, active: true },
+  { id: "sb5", name: "Year 8 English", year: "Year 8", area: "English", topics: 6, active: true },
+  { id: "sb6", name: "Year 8 Science", year: "Year 8", area: "Science", topics: 8, active: true },
+  { id: "sb7", name: "Year 9 Mathematics", year: "Year 9", area: "Mathematics", topics: 9, active: true },
+  { id: "sb8", name: "Year 9 English", year: "Year 9", area: "English", topics: 7, active: true },
+  { id: "sb9", name: "Year 9 Science", year: "Year 9", area: "Science", topics: 8, active: true },
+  { id: "sb10", name: "Year 10 Mathematics", year: "Year 10", area: "Mathematics", topics: 10, active: true },
+  { id: "sb11", name: "Year 10 English", year: "Year 10", area: "English", topics: 7, active: true },
+  { id: "sb12", name: "Year 10 Science", year: "Year 10", area: "Science", topics: 9, active: true },
+  { id: "sb13", name: "Year 11 Chemistry", year: "Year 11", area: "Science", topics: 8, active: true },
+  { id: "sb14", name: "Year 11 Humanities", year: "Year 11", area: "Humanities", topics: 5, active: false },
+];
+
+export interface TopicRow {
+  id: string;
+  name: string;
+  subject: string;
+  year: string;
+  description: string;
+  active: boolean;
+}
+
+export const TOPICS: TopicRow[] = [
+  { id: "tp1", name: "Algebraic techniques", subject: "Year 8 Mathematics", year: "Year 8", description: "Expanding, factorising and substituting into expressions.", active: true },
+  { id: "tp2", name: "Linear relationships", subject: "Year 8 Mathematics", year: "Year 8", description: "Plotting, gradient and the equation of a straight line.", active: true },
+  { id: "tp3", name: "Measurement and area", subject: "Year 8 Mathematics", year: "Year 8", description: "Perimeter, area and volume of composite shapes.", active: true },
+  { id: "tp4", name: "Persuasive writing", subject: "Year 8 English", year: "Year 8", description: "TEACL paragraphs, rhetorical devices and audience.", active: true },
+  { id: "tp5", name: "Text response", subject: "Year 8 English", year: "Year 8", description: "Reading closely and quoting with purpose.", active: true },
+  { id: "tp6", name: "Chemical reactions", subject: "Year 8 Science", year: "Year 8", description: "Reactants, products and word equations.", active: true },
+  { id: "tp7", name: "Body systems", subject: "Year 8 Science", year: "Year 8", description: "Circulatory, respiratory and digestive systems.", active: true },
+  { id: "tp8", name: "Quadratics", subject: "Year 10 Mathematics", year: "Year 10", description: "Factorising, the quadratic formula and parabolas.", active: true },
+  { id: "tp9", name: "Trigonometry", subject: "Year 10 Mathematics", year: "Year 10", description: "Right-angled triangles, sine and cosine rules.", active: true },
+  { id: "tp10", name: "Organic pathways", subject: "Year 11 Chemistry", year: "Year 11", description: "Functional groups and reaction pathways.", active: true },
+  { id: "tp11", name: "Equilibrium", subject: "Year 11 Chemistry", year: "Year 11", description: "Le Chatelier's principle and equilibrium constants.", active: true },
+  { id: "tp12", name: "Statistics and probability", subject: "Year 9 Mathematics", year: "Year 9", description: "Standard deviation, spread and two-way tables.", active: false },
+];
+
+export interface Room {
+  id: string;
+  name: string;
+  centre: string;
+  capacity: number;
+  notes: string;
+  active: boolean;
+}
+
+export const ROOMS: Room[] = [
+  { id: "rm1", name: "Room 1", centre: "Harrisdale SHS", capacity: 12, notes: "Projector and whiteboard", active: true },
+  { id: "rm2", name: "Room 2", centre: "Harrisdale SHS", capacity: 12, notes: "Projector and whiteboard", active: true },
+  { id: "rm3", name: "Room 3", centre: "Harrisdale SHS", capacity: 16, notes: "Largest room, used for mocks", active: true },
+  { id: "rm4", name: "Room 4", centre: "Piara Waters", capacity: 12, notes: "", active: true },
+  { id: "rm5", name: "Room 5", centre: "Piara Waters", capacity: 10, notes: "No projector", active: true },
+  { id: "rm6", name: "Room 6", centre: "Willetton", capacity: 12, notes: "Shares a wall with reception", active: true },
+  { id: "rm7", name: "Room 7", centre: "Willetton", capacity: 8, notes: "Small group and one to one", active: false },
+];
+
+export interface ClassroomMapRow {
+  id: string;
+  year: string;
+  subject: string;
+  rooms: string[];
+  active: boolean;
+}
+
+export const CLASSROOM_MAP: ClassroomMapRow[] = [
+  { id: "cm1", year: "Year 8", subject: "Year 8 Mathematics", rooms: ["Room 1", "Room 2", "Room 3"], active: true },
+  { id: "cm2", year: "Year 8", subject: "Year 8 Science", rooms: ["Room 1", "Room 3"], active: true },
+  { id: "cm3", year: "Year 8", subject: "Year 8 English", rooms: ["Room 2", "Room 4"], active: true },
+  { id: "cm4", year: "Year 9", subject: "Year 9 Mathematics", rooms: ["Room 4", "Room 5"], active: true },
+  { id: "cm5", year: "Year 10", subject: "Year 10 Mathematics", rooms: ["Room 3", "Room 6"], active: true },
+  { id: "cm6", year: "Year 11", subject: "Year 11 Chemistry", rooms: [], active: false },
+];
+
+export interface CurriculumRow {
+  id: string;
+  year: string;
+  subject: string;
+  term: string;
+  /** Week by week, in order. The live system truncates this to "(+2 more)". */
+  weeks: string[];
+  active: boolean;
+}
+
+export const CURRICULUM: CurriculumRow[] = [
+  { id: "cu1", year: "Year 8", subject: "Year 8 English", term: "Term 3 2026", weeks: ["Grammar and sentence control", "Persuasive devices", "Building a TEACL paragraph", "Evidence and embedding quotes", "Counter-argument", "Full persuasive essay", "Editing and proofreading", "Assessment week"], active: true },
+  { id: "cu2", year: "Year 8", subject: "Year 8 Mathematics", term: "Term 3 2026", weeks: ["Algebraic expansion", "Factorising", "Linear graphs", "Gradient and intercept", "Simultaneous equations", "Measurement", "Revision", "Assessment week"], active: true },
+  { id: "cu3", year: "Year 8", subject: "Year 8 Science", term: "Term 3 2026", weeks: ["Particle model", "Chemical change", "Word equations", "Body systems", "Cells and tissues", "Practical report", "Revision", "Assessment week"], active: true },
+  { id: "cu4", year: "Year 10", subject: "Year 10 Mathematics", term: "Term 3 2026", weeks: ["Quadratic factorising", "Quadratic formula", "Parabolas", "Trigonometry basics", "Sine and cosine rules", "Revision", "Assessment week"], active: true },
+  { id: "cu5", year: "Year 11", subject: "Year 11 Chemistry", term: "Term 3 2026", weeks: ["Functional groups", "Reaction pathways", "Equilibrium", "Le Chatelier"], active: false },
+];

@@ -22,6 +22,8 @@ import AdminSettings from "@/app/admin/settings/page";
 import AdminSearch from "@/app/admin/search/page";
 import AdminSchedule from "@/app/admin/schedule/page";
 import AdminMessages from "@/app/admin/messages/page";
+import AdminPricing from "@/app/admin/pricing/page";
+import AdminWaitlist from "@/app/admin/waitlist/page";
 import StaffLayout from "@/app/staff/layout";
 
 // Student pages
@@ -123,6 +125,8 @@ export default function App() {
         <Route path="/admin/classes" element={<AdminClasses />} />
         <Route path="/admin/schedule" element={<AdminSchedule />} />
         <Route path="/admin/messages" element={<AdminMessages />} />
+        <Route path="/admin/waitlist" element={<AdminWaitlist />} />
+        <Route path="/admin/pricing" element={<AdminPricing />} />
         <Route path="/admin/masters" element={<AdminMasters />} />
         <Route path="/admin/history" element={<AdminHistory />} />
         <Route path="/admin/catalogue" element={<AdminCatalogue />} />
