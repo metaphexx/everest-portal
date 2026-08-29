@@ -12,6 +12,8 @@ import { Icon } from "@/components/ui/Icon";
 import { AdminClass, CENTRES, allClasses, allStudents } from "@/lib/admin-data";
 import { DELIVERY_META } from "@/lib/tutor-data";
 import { centreStyle } from "@/lib/admin-schedule";
+import { BlockEnrolment } from "@/components/admin/BlockEnrolment";
+import { isBlock, slotsFor } from "@/lib/block";
 
 const IC = {
   close: "M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z",
@@ -147,6 +149,23 @@ export default function AdminClasses() {
                 {c.centre}
               </div>
 
+              {/* A block is one class with consecutive slots, each with its own
+                  subject, tutor and roster. */}
+              {isBlock(c.id) && (
+                <div style={{ marginTop: 10, borderRadius: 12, background: "rgba(0,157,255,.07)", padding: "9px 11px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.5, color: "var(--brand-600)", marginBottom: 5 }}>
+                    RUNS AS A BLOCK - {slotsFor(c.id).length} SUBJECTS, ONE ROOM
+                  </div>
+                  {slotsFor(c.id).map((s) => (
+                    <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "var(--fg3)", padding: "2px 0" }}>
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: s.color, flex: "none" }} />
+                      <span style={{ flex: 1, minWidth: 0 }}>{s.subject}</span>
+                      <span style={{ color: "var(--fg4)" }}>{s.start} · {s.students.length} on roll</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div style={{ marginTop: 12 }}>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 5 }}>
                   <span style={{ fontSize: 12.5, fontWeight: 800, color: tone }}>
@@ -173,6 +192,10 @@ export default function AdminClasses() {
           </div>
         );
       })}
+
+      {shown.filter((c) => isBlock(c.id)).map((c) => (
+        <BlockEnrolment key={c.id} courseId={c.id} />
+      ))}
 
       {roll && (
         <Roll

@@ -39,6 +39,7 @@ import StudentClassroom from "@/app/(student)/classroom/[id]/page";
 import StudentSupport from "@/app/(student)/support/page";
 import StudentSettings from "@/app/(student)/settings/page";
 import StudentSearch from "@/app/(student)/search/page";
+import StudentBlock from "@/app/(student)/block/page";
 
 // Tutor pages
 import TutorDashboard from "@/app/tutor/page";
@@ -87,6 +88,7 @@ export default function App() {
         <Route path="/support" element={<StudentSupport />} />
         <Route path="/settings" element={<StudentSettings />} />
         <Route path="/search" element={<StudentSearch />} />
+        <Route path="/block" element={<StudentBlock />} />
       </Route>
 
       {/* Tutor portal */}

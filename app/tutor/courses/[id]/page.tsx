@@ -25,6 +25,9 @@ import { ICON } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
 import { outlineAverage } from "@/lib/features";
 import { AttendancePanel } from "@/components/tutor/AttendancePanel";
+import { HandoverPanel } from "@/components/tutor/HandoverPanel";
+import { MeetReconcile } from "@/components/tutor/MeetReconcile";
+import { blockRoster, seedMeetRows, slotsFor } from "@/lib/block";
 import { BookletPicker } from "@/components/tutor/BookletPicker";
 import { BookletStatsPanel } from "@/components/tutor/BookletStatsPanel";
 
@@ -54,7 +57,7 @@ function dueLabel(iso?: string): string | null {
 export default function TutorCoursePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { now, vm, vy, prevMonth, nextMonth, classes, submissions, requests, setRequestClass, showToast, effectiveAssignments, setAssignmentStatus, removeAssignment } = useTutor();
+  const { now, vm, vy, prevMonth, nextMonth, classes, submissions, requests, setRequestClass, showToast, effectiveAssignments, setAssignmentStatus, removeAssignment, attendance } = useTutor();
   const id = params.id as TutorCourseId;
   const cd = TUTOR_COURSES[id];
   const tKey = todayKey(now);
@@ -168,6 +171,13 @@ export default function TutorCoursePage() {
             <p style={{ margin: "0 0 14px", fontSize: 12, color: "var(--fg3)" }}>
               Students join the room only during the sessions they are enrolled in. Marking attendance for {dLabel}.
             </p>
+            {/* The handover. A block is one continuous call, so nothing about the
+                room changes at a boundary - only who is supposed to be in it,
+                which is invisible to a tutor who is mid-sentence. */}
+            <div style={{ marginBottom: 14 }}>
+              <HandoverPanel courseId="block8" hour={17} inRoom={blockRoster("block8").map((s) => s.name).slice(0, 7)} />
+            </div>
+
             <div className="ev-grid-3-wide" style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 14, alignItems: "start" }}>
               {BLOCK8_SESSIONS.map((seg) => (
                 <div key={seg.id} style={{ border: "1px solid rgba(0,32,63,.08)", borderRadius: 14, padding: "14px 15px", background: "rgba(255,255,255,.55)" }}>
@@ -185,6 +195,7 @@ export default function TutorCoursePage() {
                   </div>
                   <div style={{ borderTop: "1px solid rgba(0,32,63,.06)", paddingTop: 8, marginTop: 8 }}>
                     <AttendancePanel sessionId={seg.id} dateKey={selDate} accent={seg.color} />
+                    <MeetReconcile slot={seg} rows={seedMeetRows()} marks={attendance[seg.id + ":" + selDate] ?? {}} />
                   </div>
                 </div>
               ))}

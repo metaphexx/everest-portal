@@ -64,6 +64,10 @@ export function ScheduleClassModal({
   const [link, setLink] = useState("");
   const [notes, setNotes] = useState("");
   const [materials, setMaterials] = useState<string[]>([]);
+  // A course with more than one subject can run as a block: one room, one link,
+  // consecutive slots each with its own subject, tutor and roster.
+  const [asBlock, setAsBlock] = useState(false);
+  const [slotRows, setSlotRows] = useState<{ subject: string; start: string; end: string; tutor: string }[]>([]);
 
   const courseDef = useMemo(() => COURSES.find((c) => c.name === course), [course]);
   const eligibleTutors = STAFF.filter((s) => s.duties === "both" || s.duties === (delivery === "online" ? "online" : "in_person"));
@@ -255,6 +259,63 @@ export function ScheduleClassModal({
               <input type="number" min={1} max={40} value={students} onChange={(e) => setStudents(Number(e.target.value))} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
             </span>
           </Row>
+        )}
+
+        {/* ---- block ---- */}
+        {(courseDef?.subjects.length ?? 0) > 1 && (
+          <div style={{ marginTop: 16, border: "1px solid rgba(0,32,63,.1)", borderRadius: 14, padding: "13px 14px", background: "rgba(255,255,255,.6)" }}>
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={asBlock}
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  setAsBlock(on);
+                  if (on && courseDef) {
+                    // Seed one slot per subject, back to back from the start time.
+                    const [h, m] = start.split(":").map(Number);
+                    setSlotRows(
+                      courseDef.subjects.map((sub, i) => ({
+                        subject: sub,
+                        start: String(h + i).padStart(2, "0") + ":" + String(m).padStart(2, "0"),
+                        end: String(h + i + 1).padStart(2, "0") + ":" + String(m).padStart(2, "0"),
+                        tutor,
+                      }))
+                    );
+                  }
+                }}
+                style={{ marginTop: 2, flex: "none" }}
+              />
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: 13, fontWeight: 700 }}>This runs as a block</span>
+                <span style={{ display: "block", fontSize: 11.5, color: "var(--fg3)", marginTop: 3, lineHeight: 1.5 }}>
+                  {courseDef?.subjects.join(", ")} back to back in one room. One link, one recording - students join once and
+                  stay for their own subjects. Each slot keeps its own roster, so a student can take one, two or all of them.
+                </span>
+              </span>
+            </label>
+
+            {asBlock && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(0,32,63,.07)" }}>
+                {slotRows.map((r, i) => (
+                  <div key={i} style={{ display: "grid", gridTemplateColumns: "1.4fr .8fr .8fr 1.2fr", gap: 8, marginBottom: 8 }}>
+                    <input value={r.subject} onChange={(e) => setSlotRows((rs) => rs.map((x, j) => (j === i ? { ...x, subject: e.target.value } : x)))} className="field" style={{ height: 38 }} aria-label={"Slot " + (i + 1) + " subject"} />
+                    <input type="time" value={r.start} onChange={(e) => setSlotRows((rs) => rs.map((x, j) => (j === i ? { ...x, start: e.target.value } : x)))} className="field" style={{ height: 38 }} aria-label={"Slot " + (i + 1) + " start"} />
+                    <input type="time" value={r.end} onChange={(e) => setSlotRows((rs) => rs.map((x, j) => (j === i ? { ...x, end: e.target.value } : x)))} className="field" style={{ height: 38 }} aria-label={"Slot " + (i + 1) + " end"} />
+                    <select value={r.tutor} onChange={(e) => setSlotRows((rs) => rs.map((x, j) => (j === i ? { ...x, tutor: e.target.value } : x)))} className="field" style={{ height: 38 }} aria-label={"Slot " + (i + 1) + " tutor"}>
+                      {STAFF.map((t) => (
+                        <option key={t.id} value={t.name}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+                <div style={{ fontSize: 11, color: "var(--fg4)", lineHeight: 1.55, marginTop: 6 }}>
+                  The tutor can differ per slot - the link belongs to the class, not to a person, so a handover does not
+                  end the call. Enrol students into individual subjects from Classes once the block is saved.
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* ---- material ---- */}

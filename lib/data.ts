@@ -107,7 +107,7 @@ export const COURSE_DEFS: Record<CourseId, CourseDef> = {
     name: "Chemistry",
     tagline: "Reaction mechanisms, organic pathways and lab technique.",
     tutor: "Priya Rao",
-    tutorInit: "DR",
+    tutorInit: "PR",
     tutorRole: "Chemistry tutor",
     sched: "Thursdays 7:00pm",
     lessons: "16 sessions this term",
@@ -194,6 +194,9 @@ export const ENROLLED_COURSES: EnrolledCourse[] = [
   // catalogue since they have no dedicated demo page. Remove to drop below 4.
   { id: "physics", name: "Physics ATAR", tagline: "Motion, fields and the physics exam toolkit.", tutor: "Emeka Okafor", shortSched: "Mon 5pm", icon: ICON.grid, ...getCourseVisual("physics-atar"), href: "/courses" },
   { id: "methods", name: "Mathematics Methods", tagline: "Calculus, statistics and methods exam drills.", tutor: "Anjali Devi", shortSched: "Wed 6pm", icon: ICON.grade, ...getCourseVisual("methods-atar"), href: "/courses" },
+  // A multi-subject block: one room, three subjects back to back, and Maya is
+  // enrolled in two of the three. See app/(student)/block/page.tsx.
+  { id: "block11", name: "Year 11 Wednesday Block", tagline: "Chemistry, Verbal Reasoning and Mathematics back to back.", tutor: "Priya Rao", shortSched: "Wed 4pm", icon: ICON.courses, ...getCourseVisual("block-wed"), href: "/block" },
 ];
 
 export const TITLE_TO_CID: Record<string, CourseId> = {
