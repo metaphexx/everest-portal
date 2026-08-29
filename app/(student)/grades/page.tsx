@@ -62,7 +62,7 @@ export default function GradesPage() {
           </div>
           <div style={{ display: "inline-flex", background: "rgba(0,32,63,.06)", borderRadius: 10, padding: 3, gap: 2 }}>
             {(["all", "graded", "pending"] as Filter[]).map((f) => (
-              <button key={f} onClick={() => setGf(f)} style={{ height: 30, padding: "0 14px", borderRadius: 8, border: "none", fontFamily: "inherit", fontSize: 12, fontWeight: 600, cursor: "pointer", textTransform: "capitalize", background: gf === f ? "#FFFFFF" : "transparent", color: gf === f ? "var(--fg1)" : "var(--fg3)", boxShadow: gf === f ? "0 2px 6px rgba(0,32,63,.12)" : "none" }}>{f}</button>
+              <button key={f} onClick={() => setGf(f)} className="ev-tap-h" style={{ height: 30, padding: "0 14px", borderRadius: 8, border: "none", fontFamily: "inherit", fontSize: 12, fontWeight: 600, cursor: "pointer", textTransform: "capitalize", background: gf === f ? "#FFFFFF" : "transparent", color: gf === f ? "var(--fg1)" : "var(--fg3)", boxShadow: gf === f ? "0 2px 6px rgba(0,32,63,.12)" : "none" }}>{f}</button>
             ))}
           </div>
           <div className="ev-push-end" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>

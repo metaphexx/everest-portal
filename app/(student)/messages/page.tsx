@@ -132,7 +132,7 @@ function MessagesInner() {
             onClick={() => setPicker(true)}
             title="New message"
             aria-label="New message"
-            className="btn-primary"
+            className="btn-primary ev-tap"
             style={{ width: 34, height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}
           >
             <Icon path={IC.plus} size={16} />
@@ -150,7 +150,9 @@ function MessagesInner() {
                 border: "none",
                 cursor: "pointer",
                 borderRadius: 980,
-                padding: "4px 11px",
+                // "All" is a three-letter label, so height alone left a 35px
+                // wide target. The padding is what gives it a thumb's width.
+                padding: "4px 16px",
                 fontSize: 10.5,
                 fontWeight: 700,
                 fontFamily: "inherit",

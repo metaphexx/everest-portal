@@ -852,6 +852,18 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn-ghost {
     min-height: 40px !important;
   }
+  /* An <a> styled as a button stays INLINE, and min-height does nothing to an
+     inline box - so every link-button above was still 15-25px tall on a phone
+     while the rule above appeared to cover it. Anchors only: turning real
+     <button>s into inline-flex would break the full-width ones. */
+  a.btn-primary,
+  a.btn-soft,
+  a.btn-ghost,
+  a.ev-navlink {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: 40px !important;
+  }
 
   /* Genuinely small controls (checkboxes, inline chips, icon buttons) must stay
      visually small or the layout changes. Instead of resizing them we project
@@ -874,6 +886,16 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
   /* Calendar day cells: grid tracks, so a min-height is safe here. */
   .ev-tap-cell {
     min-height: 44px !important;
+  }
+
+  /* Search fields are drawn as a 44px pill with a BARE <input> inside it. The
+     pill is what a thumb aims at, but only the input takes the tap - the real
+     target was 18-20px tall on every search bar in both portals. On a phone
+     the input stretches to fill the pill it sits in. `.field` inputs already
+     carry their own height, so they are left alone. */
+  input:not([type="checkbox"]):not([type="radio"]):not(.field),
+  textarea:not(.field) {
+    min-height: 40px;
   }
 }
 
@@ -1144,6 +1166,17 @@ input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
   .ev-only-desktop { display: none !important; }
 }
 
+
+/* Teaching view colour swatches. A 26px circle with an invisible 44px hit area
+   works until the circles sit 8px apart, at which point the invisible areas
+   OVERLAP and a tap near the edge picks the neighbouring colour. On a phone
+   they grow into a real target instead. */
+@media (max-width: 720px) {
+  .ev-teach-swatch {
+    width: 36px !important;
+    height: 36px !important;
+  }
+}
 
 /* Teaching view stage. The board is sized off the stage HEIGHT so "Fit" puts the
    whole page on screen at once - a class should never have to watch the tutor

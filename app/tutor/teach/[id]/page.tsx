@@ -201,15 +201,18 @@ export default function TeachView() {
 
         {/* Colour is meaningless for an eraser, so it goes away rather than
             sitting there inert. */}
-        {tool !== "erase" &&
-          swatches.map((c) => (
+        {/* One flex item, so the swatches wrap as a SET. Left loose they wrap
+            one at a time and orphan a single colour on its own row. */}
+        {tool !== "erase" && (
+          <span style={{ display: "inline-flex", gap: 8, flex: "none" }}>
+            {swatches.map((c) => (
             <button
               key={c.id}
               onClick={() => (tool === "highlight" ? setHiColour(c.hex) : setPenColour(c.hex))}
               aria-label={c.label}
               aria-pressed={activeSwatch === c.hex}
               title={c.label}
-              className="press"
+              className="press ev-teach-swatch"
               style={{
                 width: 26,
                 height: 26,
@@ -222,7 +225,9 @@ export default function TeachView() {
                 boxShadow: activeSwatch === c.hex ? "0 0 0 2px " + c.hex : "inset 0 0 0 1px rgba(0,32,63,.12)",
               }}
             />
-          ))}
+            ))}
+          </span>
+        )}
 
         <span style={{ width: 1, height: 26, background: "rgba(0,32,63,.1)", margin: "0 3px", flex: "none" }} />
 
@@ -242,12 +247,16 @@ export default function TeachView() {
 
         <span style={{ flex: 1 }} />
 
+        {/* Undo and Clear wrap as a pair - split across rows they read as two
+            unrelated controls, and Clear alone on a row invites a mis-tap. */}
+        <span style={{ display: "inline-flex", gap: 8, flex: "none" }}>
         <button onClick={undo} disabled={strokes.length === 0} className="btn-ghost press ev-tap-h" style={{ height: 38, padding: "0 13px", borderRadius: 11, fontSize: 12.5, fontWeight: 600, color: "var(--fg2)", background: "rgba(255,255,255,.85)", opacity: strokes.length === 0 ? 0.45 : 1, display: "inline-flex", alignItems: "center", gap: 7, flex: "none" }}>
           <Icon path={IC.undo} size={14} /> <span className="ev-only-desktop">Undo</span>
         </button>
         <button onClick={clear} disabled={strokes.length === 0} className="btn-ghost press ev-tap-h" style={{ height: 38, padding: "0 13px", borderRadius: 11, fontSize: 12.5, fontWeight: 600, color: "var(--danger-500)", background: "rgba(224,65,65,.08)", opacity: strokes.length === 0 ? 0.45 : 1, display: "inline-flex", alignItems: "center", gap: 7, flex: "none" }}>
           <Icon path={IC.clear} size={14} /> <span className="ev-only-desktop">Clear {board?.kind === "board" ? "board" : "page"}</span>
         </button>
+        </span>
       </div>
 
       {/* stage */}
@@ -285,6 +294,7 @@ export default function TeachView() {
                 className="press ev-tap-h"
                 style={{
                   height: 32,
+                  minWidth: 40,
                   padding: "0 12px",
                   borderRadius: 10,
                   border: "none",

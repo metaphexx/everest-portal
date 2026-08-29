@@ -42,7 +42,7 @@ export default function StudentClassroomPage() {
     return (
       <div className="glass-card" style={{ padding: "40px 22px", textAlign: "center", color: "var(--fg3)" }}>
         You are not part of this classroom.{" "}
-        <Link href="/courses" style={{ color: "var(--brand-600)", fontWeight: 600 }}>Back to My Courses</Link>
+        <Link href="/courses" className="ev-tap-link" style={{ color: "var(--brand-600)", fontWeight: 600 }}>Back to My Courses</Link>
       </div>
     );
   }

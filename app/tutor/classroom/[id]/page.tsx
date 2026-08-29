@@ -71,7 +71,7 @@ export default function ClassroomPage() {
             <div style={{ width: 38, height: 38, borderRadius: 12, background: "rgba(255,255,255,.16)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon path={course.icon} size={19} style={{ color: "#fff" }} />
             </div>
-            <Link href={"/tutor/courses/" + room.courseId} style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: "rgba(255,255,255,.18)", border: "1px solid rgba(255,255,255,.45)", padding: "7px 14px", borderRadius: 980, textDecoration: "none", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}>
+            <Link href={"/tutor/courses/" + room.courseId} className="ev-tap-link" style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: "rgba(255,255,255,.18)", border: "1px solid rgba(255,255,255,.45)", padding: "7px 14px", borderRadius: 980, textDecoration: "none", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}>
               Course page
             </Link>
           </div>
@@ -92,7 +92,7 @@ export default function ClassroomPage() {
           <button
             key={opt.k}
             onClick={() => setTab(opt.k)}
-            className="press"
+            className="press ev-tap-h"
             style={{ height: 32, padding: "0 15px", borderRadius: 980, border: "none", fontFamily: "inherit", fontSize: 12, fontWeight: 700, cursor: "pointer", background: tab === opt.k ? "#fff" : "transparent", color: tab === opt.k ? "var(--fg1)" : "var(--fg3)", boxShadow: tab === opt.k ? "0 2px 8px -2px rgba(0,32,63,.25)" : "none" }}
           >
             {opt.label}

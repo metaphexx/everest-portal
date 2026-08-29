@@ -109,7 +109,7 @@ export default function ChatPage() {
 
 function Starter({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="list-hover" style={{ height: 34, padding: "0 15px", borderRadius: 980, border: "1px solid rgba(0,157,255,.3)", background: "rgba(0,157,255,.08)", color: "var(--brand-600)", fontFamily: "inherit", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+    <button onClick={onClick} className="list-hover ev-tap-h" style={{ height: 34, padding: "0 15px", borderRadius: 980, border: "1px solid rgba(0,157,255,.3)", background: "rgba(0,157,255,.08)", color: "var(--brand-600)", fontFamily: "inherit", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
       {children}
     </button>
   );

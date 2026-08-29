@@ -213,7 +213,7 @@ export default function TutorCoursePage() {
           <div className="glass-card" style={{ gridColumn: "span 12", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .1s backwards" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
               <h2 className="portal-section-title" style={{ fontSize: 15, margin: 0 }}>Attendance</h2>
-              <Link href={"/tutor/classroom/" + cd.id} style={{ fontSize: 11, fontWeight: 700, color: cd.color, background: cd.bg, padding: "4px 10px", borderRadius: 980, textDecoration: "none" }}>
+              <Link href={"/tutor/classroom/" + cd.id} className="ev-tap-link" style={{ fontSize: 11, fontWeight: 700, color: cd.color, background: cd.bg, padding: "4px 10px", borderRadius: 980, textDecoration: "none" }}>
                 Open classroom
               </Link>
               <span className="ev-spacer-flex" style={{ flex: 1 }} />
