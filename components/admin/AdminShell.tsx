@@ -74,7 +74,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             typeset label rather than a faked script logo. */}
         <span className="ev-mobilebar-logo" style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/everest-logo.png" alt="Everest Tutoring" width={400} height={126} fetchPriority="high" decoding="async" style={{ width: 132, height: "auto", display: "block" }} />
+          <img src="/everest-logo.png" alt="Everest Tutoring" width={400} height={126} {...({ fetchpriority: "high" } as object)} decoding="async" style={{ width: 132, height: "auto", display: "block" }} />
           <span style={{ fontFamily: "var(--font-display)", fontSize: 9, fontWeight: 800, letterSpacing: 2.2, color: who.accent }}>{who.portal}</span>
         </span>
       </div>

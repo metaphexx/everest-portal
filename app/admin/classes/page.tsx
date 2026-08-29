@@ -89,6 +89,9 @@ export default function AdminClasses() {
   const [q, setQ] = useState("");
   const [roll, setRoll] = useState<AdminClass | null>(null);
   const [editing, setEditing] = useState<AdminClass | null>(null);
+  // The block whose enrolment grid is open. It opens from the block's own
+  // card (like the roll does) rather than rendering after every other card.
+  const [enrolling, setEnrolling] = useState<string | null>(null);
 
   const shown = classes.filter((c) => {
     if (centre !== "All" && c.centre !== centre) return false;
@@ -177,7 +180,7 @@ export default function AdminClasses() {
                   </span>
                   <span style={{ fontSize: 11, color: "var(--fg4)" }}>enrolled</span>
                   <span className="ev-spacer-flex" style={{ flex: 1 }} />
-                  <span style={{ fontSize: 11, color: "var(--fg4)" }}>{c.capacity - c.students > 0 ? c.capacity - c.students + " seats left" : "Full"}</span>
+                  <span style={{ fontSize: 11, color: "var(--fg4)" }}>{c.capacity - c.students > 0 ? c.capacity - c.students + (c.capacity - c.students === 1 ? " seat left" : " seats left") : "Full"}</span>
                 </div>
                 <div style={{ height: 6, borderRadius: 3, background: "rgba(0,32,63,.08)", overflow: "hidden" }}>
                   <div style={{ width: pct + "%", height: "100%", borderRadius: 3, background: tone, transition: "width .3s ease" }} />
@@ -188,6 +191,11 @@ export default function AdminClasses() {
                 <button onClick={() => setRoll(c)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
                   View the roll
                 </button>
+                {isBlock(c.id) && (
+                  <button onClick={() => setEnrolling(c.id)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
+                    Who takes what
+                  </button>
+                )}
                 <button onClick={() => setEditing(c)} className="btn-ghost press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
                   Edit
                 </button>
@@ -197,9 +205,11 @@ export default function AdminClasses() {
         );
       })}
 
-      {shown.filter((c) => isBlock(c.id)).map((c) => (
-        <BlockEnrolment key={c.id} courseId={c.id} />
-      ))}
+      {enrolling && (
+        <Modal onClose={() => setEnrolling(null)} labelledBy={"block-enrol-" + enrolling} panelStyle={{ width: "min(720px, calc(100vw - 32px))", maxHeight: "min(88vh, 820px)", overflowY: "auto" }}>
+          <BlockEnrolment courseId={enrolling} onClose={() => setEnrolling(null)} />
+        </Modal>
+      )}
 
       {editing && <EditClassModal cls={editing} onClose={() => setEditing(null)} onSave={patchClass} />}
 

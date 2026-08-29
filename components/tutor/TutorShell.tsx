@@ -71,7 +71,7 @@ export function TutorShell({ children }: { children: React.ReactNode }) {
         {/* Full portal lockup (mark + "Tutor Portal" script), centred. The bare
             mark was small and anonymous on a phone - this is the brand moment. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="ev-mobilebar-logo" src="/tutor-portal-logo.png" alt="Everest Tutoring - Tutor Portal" width={400} height={200} fetchPriority="high" decoding="async" />
+        <img className="ev-mobilebar-logo" src="/tutor-portal-logo.png" alt="Everest Tutoring - Tutor Portal" width={400} height={200} {...({ fetchpriority: "high" } as object)} decoding="async" />
       </div>
 
       <div className="ev-sidewrap" data-open={navOpen}>

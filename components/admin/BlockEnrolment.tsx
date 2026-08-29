@@ -14,9 +14,16 @@ import { blockRoster, slotsFor } from "@/lib/block";
 const IC = {
   tick: "M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z",
   plus: "M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z",
+  close: "M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z",
 };
 
-export function BlockEnrolment({ courseId }: { courseId: string }) {
+/**
+ * With onClose set, the grid renders as modal CONTENT (no glass-card shell,
+ * a close button, save dismisses) - the classes page opens it from the block's
+ * own card, so enrolment lives with the class instead of at the foot of the
+ * page after every other card.
+ */
+export function BlockEnrolment({ courseId, onClose }: { courseId: string; onClose?: () => void }) {
   const { showToast } = useAdmin();
   const slots = slotsFor(courseId);
   const roster = useMemo(() => blockRoster(courseId), [courseId]);
@@ -41,13 +48,25 @@ export function BlockEnrolment({ courseId }: { courseId: string }) {
   const countIn = (slotId: string) => roster.filter((st) => grid[st.name]?.has(slotId)).length;
   const noSubjects = roster.filter((st) => (grid[st.name]?.size ?? 0) === 0);
 
+  const save = () => {
+    showToast("Enrolment saved");
+    onClose?.();
+  };
+
   return (
-    <div className="glass-card" style={{ gridColumn: "span 12", padding: "20px 22px", boxSizing: "border-box" }}>
+    <div className={onClose ? "ev-modal-pad" : "glass-card"} style={{ ...(onClose ? {} : { gridColumn: "span 12" }), padding: "20px 22px", boxSizing: "border-box" }}>
       <div className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-        <h2 className="portal-section-title ev-wrap-main" style={{ fontSize: 15, margin: 0, flex: "1 0 auto" }}>Who takes what</h2>
-        <button onClick={() => showToast("Enrolment saved")} className="btn-primary press ev-tap-h ev-wrap-cta" style={{ height: 38, padding: "0 16px", borderRadius: 11, fontSize: 12, fontWeight: 700, flex: "none" }}>
-          Save enrolment
-        </button>
+        <h2 id={"block-enrol-" + courseId} className="portal-section-title ev-wrap-main" style={{ fontSize: 15, margin: 0, flex: "1 0 auto" }}>Who takes what</h2>
+        <span className="ev-wrap-cta" style={{ display: "inline-flex", alignItems: "center", gap: 8, flex: "none" }}>
+          <button onClick={save} className="btn-primary press ev-tap-h" style={{ height: 38, padding: "0 16px", borderRadius: 11, fontSize: 12, fontWeight: 700, flex: "none" }}>
+            Save enrolment
+          </button>
+          {onClose && (
+            <button onClick={onClose} aria-label="Close" className="btn-ghost press" style={{ width: 34, height: 34, borderRadius: 10, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, color: "var(--fg3)", flex: "none" }}>
+              <Icon path={IC.close} size={14} />
+            </button>
+          )}
+        </span>
       </div>
       <p style={{ margin: "0 0 14px", fontSize: 11.5, color: "var(--fg3)", lineHeight: 1.55 }}>
         Tick a subject to enrol. A student can take one, two or all three - the block is just the room they share.

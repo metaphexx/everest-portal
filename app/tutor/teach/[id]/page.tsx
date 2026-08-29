@@ -130,6 +130,15 @@ export default function TeachView() {
     if (next) setBoardId(next.id);
   };
 
+  // Keep the active chip in view. Twenty-four pages make the strip a long
+  // sideways scroll, and without this a tutor who jumps (arrow keys, the phone
+  // select) is looking at a strip that still shows page one.
+  const stripRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const active = stripRef.current?.querySelector('[aria-pressed="true"]');
+    active?.scrollIntoView({ inline: "center", block: "nearest", behavior: "auto" });
+  }, [boardId]);
+
   // Shortcuts, because a tutor mid-sentence should not have to hunt for a
   // button. Arrows turn the page, and the tool keys match their initials.
   const stepRef = useRef(step);
@@ -279,11 +288,30 @@ export default function TeachView() {
 
       {/* page / board strip */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 16px", background: "rgba(255,255,255,.86)", backdropFilter: "blur(10px)", borderTop: "1px solid rgba(0,32,63,.07)", flexWrap: "wrap" }}>
+        {/* On a phone the strip is a long sideways scroll, so the select is the
+            fast way to a page. Desktop has the whole strip in view already. */}
+        <span className="ev-only-mobile" style={{ flex: "none" }}>
+          <select
+            value={boardId}
+            onChange={(e) => setBoardId(e.target.value)}
+            aria-label="Jump to a page or board"
+            className="field"
+            style={{ height: 36, borderRadius: 11, fontSize: 12, fontWeight: 600, boxSizing: "border-box" }}
+          >
+            {boards.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.kind === "page" ? "Page " + b.id.slice(1) : b.label}
+                {(doc.strokes[b.id]?.length ?? 0) > 0 ? " · working" : ""}
+              </option>
+            ))}
+          </select>
+        </span>
+
         <button onClick={() => step(-1)} disabled={idx <= 0} aria-label="Previous" className="btn-ghost press ev-tap-h" style={{ width: 36, height: 36, borderRadius: 11, background: "rgba(255,255,255,.9)", color: "var(--fg2)", opacity: idx <= 0 ? 0.4 : 1, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, flex: "none" }}>
           <Icon path={IC.prev} size={15} />
         </button>
 
-        <div className="thin-scroll" style={{ flex: 1, minWidth: 0, display: "flex", gap: 6, overflowX: "auto", padding: "2px 0" }}>
+        <div ref={stripRef} className="thin-scroll" style={{ flex: 1, minWidth: 0, display: "flex", gap: 6, overflowX: "auto", padding: "2px 0" }}>
           {boards.map((b) => {
             const on = b.id === boardId;
             const inked = (doc.strokes[b.id]?.length ?? 0) > 0;

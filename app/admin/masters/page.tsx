@@ -562,10 +562,25 @@ export default function AdminMasters() {
   return (
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 16 }}>
       {/* One tab strip instead of three collapsing sidebar trees. Grouped, so
-          fourteen tabs still read as four ideas. */}
+          fourteen tabs still read as four ideas. On a phone the four rows of
+          pills stack taller than the screen, so below 720px the strip becomes
+          one select, grouped the same way. */}
       <div className="glass-card" style={{ gridColumn: "span 12", padding: "14px 16px 10px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
+        <span className="ev-only-mobile" style={{ marginBottom: 4 }}>
+          <select value={tab} onChange={(e) => go(e.target.value)} aria-label="Master record" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }}>
+            {groups.map((g) => (
+              <optgroup key={g} label={g}>
+                {TABS.filter((t) => t.group === g).map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </span>
         {groups.map((g) => (
-          <div key={g} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+          <div key={g} className="ev-only-desktop" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
             <span style={{ flex: "none", width: 66, fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: "var(--fg4)" }}>{g.toUpperCase()}</span>
             <span className="ev-scroll-x" style={{ display: "flex", gap: 7, flex: 1, minWidth: 0 }}>
               {TABS.filter((t) => t.group === g).map((t) => {

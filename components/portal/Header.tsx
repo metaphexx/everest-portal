@@ -37,6 +37,7 @@ function pageMeta(pathname: string, greeting: string, dueCount: number): { t: st
   }
   if (pathname === "/grades") return { t: "My Grades", s: "Your submissions, grades and tutor feedback." };
   if (pathname === "/timetable") return { t: "Timetable", s: "Your classes for the term, month by month." };
+  if (pathname === "/block") return { t: "Year 11 Wednesday Block", s: "Your subjects, when to join and when to leave." };
   if (pathname === "/library") return { t: "Library", s: "Materials from your past sessions, organised by date." };
   if (pathname === "/outline") return { t: "Assessment Tracker", s: "Upload your school outline and Elliot maps out your assessments." };
   if (pathname.startsWith("/classroom/")) return { t: "Classroom", s: "Class announcements, discussion and shared files, all in one place." };

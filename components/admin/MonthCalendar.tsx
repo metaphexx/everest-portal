@@ -92,7 +92,11 @@ export function MonthCalendar({
           return (
             <button
               key={k}
-              onClick={() => onSelect(isSel ? null : k)}
+              // Clicking a day always selects it. This used to toggle, which
+              // read as broken on pages that preselect today: clicking the
+              // highlighted day blanked the panel beside it. Deselection is an
+              // explicit control (the Clear button) where a page needs one.
+              onClick={() => onSelect(k)}
               aria-label={d + " " + label + (list.length ? ", " + list.length + " classes" : ", no classes")}
               aria-pressed={isSel}
               className="press"

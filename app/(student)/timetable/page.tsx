@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { usePortal } from "@/lib/store";
-import { ACCENT, EVENTS, TITLE_TO_CID } from "@/lib/data";
+import { ACCENT, EVENTS, STUDENT, TITLE_TO_CID } from "@/lib/data";
 import { DOWS_MON, monthGrid, monthLabel, todayKey } from "@/lib/calendar";
+import { planFor } from "@/lib/block";
+import { useRouter } from "@/lib/router";
 
 interface UpItem {
   dateLabel: string;
@@ -19,6 +21,13 @@ interface UpItem {
 const ONLINE_TITLE = "Chemistry";
 const ONLINE_T24 = "19:00";
 
+// The Wednesday block was on the student's Courses page but never on their
+// timetable, so the /block page was unreachable from the place a student
+// actually looks for "what is on this week". Its rows navigate there rather
+// than opening the class modal - join/leave times are that page's whole job.
+const BLOCK_TITLE = "Year 11 Wednesday Block";
+const BLOCK_KEYS = ["2026-06-03", "2026-06-10", "2026-06-17", "2026-06-24", "2026-07-01", "2026-07-08", "2026-07-15", "2026-07-22", "2026-07-29"];
+
 export default function TimetablePage() {
   const { now, vm, vy, prevMonth, nextMonth, openModal, assignedToMe, joinClass, showToast } = usePortal();
   // A seven-column month grid cannot breathe on a phone: cells fall to ~48px,
@@ -29,20 +38,37 @@ export default function TimetablePage() {
   const [view, setView] = useState<"month" | "list">(() =>
     typeof window !== "undefined" && window.innerWidth <= 720 ? "list" : "month"
   );
+  const router = useRouter();
   const tKey = todayKey(now);
 
+  // The student's block sessions, merged over the seeded events. EVENTS stays
+  // untouched because the library and course pages read it too and neither has
+  // a place for the block.
+  const plan = planFor("block11", STUDENT.name);
+  const events = useMemo(() => {
+    if (!plan) return EVENTS;
+    const item = { time: plan.joinAt, t24: plan.slots[0].t24, title: BLOCK_TITLE, tutor: plan.slots.map((s) => s.tutor).join(", "), color: "#009DFF", bg: "rgba(0,157,255,.12)" };
+    const merged: typeof EVENTS = { ...EVENTS };
+    for (const k of BLOCK_KEYS) merged[k] = [...(merged[k] ?? []), item];
+    return merged;
+  }, [plan]);
+
   const upcoming: UpItem[] = [];
-  Object.keys(EVENTS)
+  Object.keys(events)
     .sort()
     .forEach((k) => {
       if (k >= tKey && upcoming.length < 6)
-        (EVENTS[k] || []).forEach((e) => {
+        (events[k] || []).forEach((e) => {
           const d = new Date(k + "T12:00:00");
           upcoming.push({ dateLabel: d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" }), time: e.time, title: e.title, tutor: e.tutor, color: e.color, bg: e.bg, k });
         });
     });
 
   const open = (u: { title: string; tutor: string; time: string; color: string; bg: string; k: string }) => {
+    if (u.title === BLOCK_TITLE) {
+      router.push("/block");
+      return;
+    }
     const d = new Date(u.k + "T12:00:00");
     openModal({ title: u.title, tutor: u.tutor, time: u.time, color: u.color, bg: u.bg, cid: TITLE_TO_CID[u.title], k: u.k, dateLabel: d.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" }) });
   };
@@ -118,7 +144,7 @@ export default function TimetablePage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(7,minmax(0,1fr))", borderTop: "1px solid rgba(0,32,63,.08)", borderLeft: "1px solid rgba(0,32,63,.08)" }}>
               {cells.map((c, i) => {
                 const isToday = c.k === tKey;
-                const hit = (EVENTS[c.k] || [])[0];
+                const hit = (events[c.k] || [])[0];
                 const booklet = hit && hit.title === ONLINE_TITLE ? bookletFor(c.k) : null;
                 return (
                   <div
