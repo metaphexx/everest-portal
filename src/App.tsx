@@ -73,9 +73,12 @@ function NotFound() {
   );
 }
 
-/** Holds the page area's height while a route chunk arrives. */
+import { PageSkeleton } from "@/components/ui/PageSkeleton";
+
+/** Only the layout-less routes (the teaching tab) ever reach this boundary -
+    every portal layout carries its own, wrapped around just the outlet. */
 function PageFallback() {
-  return <div style={{ minHeight: "60vh" }} aria-busy="true" />;
+  return <div style={{ padding: "24px 18px" }}><PageSkeleton /></div>;
 }
 
 export default function App() {

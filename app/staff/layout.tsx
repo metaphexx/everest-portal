@@ -5,7 +5,9 @@
 // the master data - not hidden behind a permission check in the UI, but absent
 // from the route table for this layout entirely.
 
+import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
+import { PageSkeleton } from "@/components/ui/PageSkeleton";
 import { AdminProvider } from "@/lib/admin-store";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { RoleProvider } from "@/lib/admin-role";
@@ -15,7 +17,9 @@ export default function StaffLayout() {
     <RoleProvider role="print">
       <AdminProvider>
         <AdminShell>
-          <Outlet />
+          <Suspense fallback={<PageSkeleton />}>
+              <Outlet />
+            </Suspense>
         </AdminShell>
       </AdminProvider>
     </RoleProvider>

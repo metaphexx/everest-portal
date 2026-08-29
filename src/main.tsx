@@ -6,7 +6,7 @@ import "@/app/globals.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true }}>
       <App />
     </BrowserRouter>
   </React.StrictMode>

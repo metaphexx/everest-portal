@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
+import { PageSkeleton } from "@/components/ui/PageSkeleton";
 import { TutorProvider } from "@/lib/tutor-store";
 import { MessagingProvider } from "@/lib/messaging";
 import { ClassroomProvider } from "@/lib/classroom";
@@ -10,7 +12,9 @@ export default function TutorLayout() {
       <MessagingProvider>
         <ClassroomProvider>
           <TutorShell>
-            <Outlet />
+            <Suspense fallback={<PageSkeleton />}>
+              <Outlet />
+            </Suspense>
           </TutorShell>
         </ClassroomProvider>
       </MessagingProvider>
