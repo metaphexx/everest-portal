@@ -49,7 +49,7 @@ export default function AdminCatalogue() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10 }}>
           <span>
             <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--fg4)", marginBottom: 5 }}>SUBJECT</label>
-            <select value={subject} onChange={(e) => setSubject(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }}>
+            <select value={subject} onChange={(e) => setSubject(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} aria-label="Subject">
               {["All", ...CAT_SUBJECTS].map((s) => (
                 <option key={s} value={s}>
                   {s === "All" ? "All subjects" : s}
@@ -59,7 +59,7 @@ export default function AdminCatalogue() {
           </span>
           <span>
             <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--fg4)", marginBottom: 5 }}>YEAR</label>
-            <select value={year} onChange={(e) => setYear(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }}>
+            <select value={year} onChange={(e) => setYear(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} aria-label="Year">
               {["All", ...YEAR_GROUPS].map((y) => (
                 <option key={y} value={y}>
                   {y === "All" ? "All years" : y}

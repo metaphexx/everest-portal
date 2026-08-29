@@ -46,7 +46,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
         </button>
         {/* Full portal lockup (mark + "Student Portal" script), centred. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="ev-mobilebar-logo" src="/student-portal-logo.png" alt="Everest Tutoring - Student Portal" />
+        <img className="ev-mobilebar-logo" src="/student-portal-logo.png" alt="Everest Tutoring - Student Portal" width={400} height={200} fetchPriority="high" decoding="async" />
       </div>
 
       <div className="ev-sidewrap" data-open={navOpen}>

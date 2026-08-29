@@ -167,3 +167,19 @@ Domain colour rules baked into the app (keep them):
 
 A reviewer (or an AI assistant asked to review) should be able to open both and find
 no differences. That is the bar.
+
+## Known, accepted accessibility exception: primary button contrast
+
+Lighthouse reports `color-contrast` failing on the primary button across most
+routes. The numbers are real:
+
+| Colour | White text on it | WCAG AA at 12.5px |
+|---|---|---|
+| `--brand-500` `#009DFF` (in use) | 2.89:1 | fails (needs 4.5:1) |
+| `--brand-600` `#007ECC` | 4.37:1 | still short |
+| `--brand-700` `#0067A8` | ~5.9:1 | passes |
+
+**This is a deliberate business decision, taken 29 August 2026: the brand blue
+stays.** Do not "fix" this by darkening `.btn-primary`, and do not treat the
+Lighthouse accessibility score as a regression because of it. If it is ever
+revisited, it is a one-token change on `.btn-primary` and nothing else.

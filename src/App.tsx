@@ -3,6 +3,7 @@
 //   - the tutor portal lives under /tutor
 // Each layout mounts its providers + shell and renders <Outlet /> for the page.
 
+import { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 
 import StudentLayout from "@/app/(student)/layout";
@@ -10,58 +11,58 @@ import TutorLayout from "@/app/tutor/layout";
 import AdminLayout from "@/app/admin/layout";
 
 // Office (admin) pages
-import AdminDashboard from "@/app/admin/page";
-import AdminApprovals from "@/app/admin/approvals/page";
-import AdminClasses from "@/app/admin/classes/page";
-import AdminMasters from "@/app/admin/masters/page";
-import AdminHistory from "@/app/admin/history/page";
-import AdminCatalogue from "@/app/admin/catalogue/page";
-import AdminFiles from "@/app/admin/files/page";
-import AdminSafeguarding from "@/app/admin/safeguarding/page";
-import AdminSettings from "@/app/admin/settings/page";
-import AdminSearch from "@/app/admin/search/page";
-import AdminSchedule from "@/app/admin/schedule/page";
-import AdminMessages from "@/app/admin/messages/page";
-import AdminPricing from "@/app/admin/pricing/page";
-import AdminWaitlist from "@/app/admin/waitlist/page";
+const AdminDashboard = lazy(() => import("@/app/admin/page"));
+const AdminApprovals = lazy(() => import("@/app/admin/approvals/page"));
+const AdminClasses = lazy(() => import("@/app/admin/classes/page"));
+const AdminMasters = lazy(() => import("@/app/admin/masters/page"));
+const AdminHistory = lazy(() => import("@/app/admin/history/page"));
+const AdminCatalogue = lazy(() => import("@/app/admin/catalogue/page"));
+const AdminFiles = lazy(() => import("@/app/admin/files/page"));
+const AdminSafeguarding = lazy(() => import("@/app/admin/safeguarding/page"));
+const AdminSettings = lazy(() => import("@/app/admin/settings/page"));
+const AdminSearch = lazy(() => import("@/app/admin/search/page"));
+const AdminSchedule = lazy(() => import("@/app/admin/schedule/page"));
+const AdminMessages = lazy(() => import("@/app/admin/messages/page"));
+const AdminPricing = lazy(() => import("@/app/admin/pricing/page"));
+const AdminWaitlist = lazy(() => import("@/app/admin/waitlist/page"));
 import StaffLayout from "@/app/staff/layout";
 
 // Student pages
-import StudentDashboard from "@/app/(student)/page";
-import StudentCourses from "@/app/(student)/courses/page";
-import StudentCourseDetail from "@/app/(student)/courses/[id]/page";
-import StudentTimetable from "@/app/(student)/timetable/page";
-import StudentOutline from "@/app/(student)/outline/page";
-import StudentLibrary from "@/app/(student)/library/page";
-import StudentDrive from "@/app/(student)/drive/page";
-import StudentGrades from "@/app/(student)/grades/page";
-import StudentMessages from "@/app/(student)/messages/page";
-import StudentChat from "@/app/(student)/chat/page";
-import StudentClassroom from "@/app/(student)/classroom/[id]/page";
-import StudentSupport from "@/app/(student)/support/page";
-import StudentSettings from "@/app/(student)/settings/page";
-import StudentSearch from "@/app/(student)/search/page";
-import StudentBlock from "@/app/(student)/block/page";
+const StudentDashboard = lazy(() => import("@/app/(student)/page"));
+const StudentCourses = lazy(() => import("@/app/(student)/courses/page"));
+const StudentCourseDetail = lazy(() => import("@/app/(student)/courses/[id]/page"));
+const StudentTimetable = lazy(() => import("@/app/(student)/timetable/page"));
+const StudentOutline = lazy(() => import("@/app/(student)/outline/page"));
+const StudentLibrary = lazy(() => import("@/app/(student)/library/page"));
+const StudentDrive = lazy(() => import("@/app/(student)/drive/page"));
+const StudentGrades = lazy(() => import("@/app/(student)/grades/page"));
+const StudentMessages = lazy(() => import("@/app/(student)/messages/page"));
+const StudentChat = lazy(() => import("@/app/(student)/chat/page"));
+const StudentClassroom = lazy(() => import("@/app/(student)/classroom/[id]/page"));
+const StudentSupport = lazy(() => import("@/app/(student)/support/page"));
+const StudentSettings = lazy(() => import("@/app/(student)/settings/page"));
+const StudentSearch = lazy(() => import("@/app/(student)/search/page"));
+const StudentBlock = lazy(() => import("@/app/(student)/block/page"));
 
 // Tutor pages
-import TutorDashboard from "@/app/tutor/page";
-import TutorCourses from "@/app/tutor/courses/page";
-import TutorCourseDetail from "@/app/tutor/courses/[id]/page";
-import TutorSchedule from "@/app/tutor/schedule/page";
-import TutorGrade from "@/app/tutor/grade/page";
-import TutorOutlines from "@/app/tutor/outlines/page";
-import TutorMaterials from "@/app/tutor/materials/page";
-import TutorCart from "@/app/tutor/cart/page";
-import TutorRequests from "@/app/tutor/requests/page";
-import TutorHistory from "@/app/tutor/history/page";
-import TutorBooklets from "@/app/tutor/booklets/page";
-import TutorDrive from "@/app/tutor/drive/page";
-import TutorClassroom from "@/app/tutor/classroom/[id]/page";
-import TutorMessages from "@/app/tutor/messages/page";
-import TutorSearch from "@/app/tutor/search/page";
-import TutorSettings from "@/app/tutor/settings/page";
-import TutorElliot from "@/app/tutor/elliot/page";
-import TutorTeach from "@/app/tutor/teach/[id]/page";
+const TutorDashboard = lazy(() => import("@/app/tutor/page"));
+const TutorCourses = lazy(() => import("@/app/tutor/courses/page"));
+const TutorCourseDetail = lazy(() => import("@/app/tutor/courses/[id]/page"));
+const TutorSchedule = lazy(() => import("@/app/tutor/schedule/page"));
+const TutorGrade = lazy(() => import("@/app/tutor/grade/page"));
+const TutorOutlines = lazy(() => import("@/app/tutor/outlines/page"));
+const TutorMaterials = lazy(() => import("@/app/tutor/materials/page"));
+const TutorCart = lazy(() => import("@/app/tutor/cart/page"));
+const TutorRequests = lazy(() => import("@/app/tutor/requests/page"));
+const TutorHistory = lazy(() => import("@/app/tutor/history/page"));
+const TutorBooklets = lazy(() => import("@/app/tutor/booklets/page"));
+const TutorDrive = lazy(() => import("@/app/tutor/drive/page"));
+const TutorClassroom = lazy(() => import("@/app/tutor/classroom/[id]/page"));
+const TutorMessages = lazy(() => import("@/app/tutor/messages/page"));
+const TutorSearch = lazy(() => import("@/app/tutor/search/page"));
+const TutorSettings = lazy(() => import("@/app/tutor/settings/page"));
+const TutorElliot = lazy(() => import("@/app/tutor/elliot/page"));
+const TutorTeach = lazy(() => import("@/app/tutor/teach/[id]/page"));
 
 function NotFound() {
   return (
@@ -72,8 +73,14 @@ function NotFound() {
   );
 }
 
+/** Holds the page area's height while a route chunk arrives. */
+function PageFallback() {
+  return <div style={{ minHeight: "60vh" }} aria-busy="true" />;
+}
+
 export default function App() {
   return (
+    <Suspense fallback={<PageFallback />}>
     <Routes>
       {/* Student portal */}
       <Route element={<StudentLayout />}>
@@ -154,5 +161,6 @@ export default function App() {
 
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
   );
 }

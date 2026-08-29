@@ -159,7 +159,7 @@ export default function TutorCoursePage() {
               <span className="ev-spacer-flex" style={{ flex: 1 }} />
               <label style={{ fontSize: 11.5, color: "var(--fg3)", fontWeight: 600 }}>
                 Session date{" "}
-                <select value={selDate} onChange={(e) => setAttDate(e.target.value)} className="field" style={{ height: 30, width: "auto", padding: "0 8px", fontSize: 12, display: "inline-block" }}>
+                <select value={selDate} onChange={(e) => setAttDate(e.target.value)} className="field" style={{ height: 30, width: "auto", padding: "0 8px", fontSize: 12, display: "inline-block" }} aria-label="SelDate">
                   {blockDates.map((k) => (
                     <option key={k} value={k}>
                       {new Date(k + "T12:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" })}{k > tKey ? " (upcoming)" : ""}
@@ -219,7 +219,7 @@ export default function TutorCoursePage() {
               <span className="ev-spacer-flex" style={{ flex: 1 }} />
               <label style={{ fontSize: 11.5, color: "var(--fg3)", fontWeight: 600 }}>
                 Session date{" "}
-                <select value={selDate} onChange={(e) => setAttDate(e.target.value)} className="field" style={{ height: 30, width: "auto", padding: "0 8px", fontSize: 12, display: "inline-block" }}>
+                <select value={selDate} onChange={(e) => setAttDate(e.target.value)} className="field" style={{ height: 30, width: "auto", padding: "0 8px", fontSize: 12, display: "inline-block" }} aria-label="SelDate">
                   {courseDates.map((k) => (
                     <option key={k} value={k}>
                       {new Date(k + "T12:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" })}{k > tKey ? " (upcoming)" : ""}

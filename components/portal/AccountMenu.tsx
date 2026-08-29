@@ -56,7 +56,7 @@ export function AccountMenu({
         aria-expanded={open}
         style={{ position: "relative", width: 40, height: 40, borderRadius: "50%", border: "none", background: accent, color: "#fff", fontFamily: "inherit", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
       >
-        {initials}
+        <span aria-hidden="true">{initials}</span>
         {hasUnread && (
           <span aria-hidden style={{ position: "absolute", top: -1, right: -1, width: 10, height: 10, borderRadius: "50%", background: "var(--danger-500)", border: "2px solid var(--bg-page)" }} />
         )}

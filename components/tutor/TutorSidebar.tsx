@@ -120,7 +120,7 @@ export function TutorSidebar() {
     >
       <div style={{ padding: "6px 10px 20px" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/tutor-portal-logo.png" alt="Everest Tutoring - Tutor Portal" style={{ width: 168, height: "auto", display: "block" }} />
+        <img src="/tutor-portal-logo.png" alt="Everest Tutoring - Tutor Portal" width={400} height={200} decoding="async" style={{ width: 168, height: "auto", display: "block" }} />
       </div>
       {/* Phone only: portal search, first thing under the logo. */}
       <DrawerAccount searchPath="/tutor/search" />

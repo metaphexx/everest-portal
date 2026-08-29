@@ -54,7 +54,7 @@ export default function SupportPage() {
               phone, where the tracker sits below the form instead. */}
           <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--fg3)" }}>It lands with a person, and you can track it any time.</p>
           <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--fg2)", marginBottom: 5 }}>Issue type</div>
-          <select value={type} onChange={(e) => setType(e.target.value)} className="field" style={{ padding: "0 10px", marginBottom: 12 }}>
+          <select value={type} onChange={(e) => setType(e.target.value)} className="field" style={{ padding: "0 10px", marginBottom: 12 }} aria-label="Type">
             <option value="">Choose a category</option>
             <option value="Billing">Billing</option>
             <option value="Class access">Can&apos;t access a class</option>

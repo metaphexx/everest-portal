@@ -207,7 +207,7 @@ export default function CartPage() {
       <div className="glass-card" style={{ gridColumn: "span 7", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .18s backwards" }}>
         <h2 className="portal-section-title" style={{ fontSize: 15, marginBottom: 14 }}>Printer selection</h2>
         <Field label="SELECT PRINTER" required>
-          <select value={printer} onChange={(e) => setPrinter(e.target.value)} style={selStyle}>
+          <select value={printer} onChange={(e) => setPrinter(e.target.value)} style={selStyle} aria-label="Printer">
             <option value="">Select Printer</option>
             {PRINTERS.map((p) => (
               <option key={p}>{p}</option>
@@ -227,17 +227,17 @@ export default function CartPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 16, animation: "evfadein .25s ease" }}>
             <div className="ev-grid-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
               <Field label="PAPER SIZE">
-                <select value={format.paper} onChange={(e) => setFormat({ ...format, paper: e.target.value })} style={selStyle}>
+                <select value={format.paper} onChange={(e) => setFormat({ ...format, paper: e.target.value })} style={selStyle} aria-label="Paper size">
                   {["A4", "A3", "A5"].map((v) => <option key={v}>{v}</option>)}
                 </select>
               </Field>
               <Field label="SIDE">
-                <select value={format.sides} onChange={(e) => setFormat({ ...format, sides: e.target.value })} style={selStyle}>
+                <select value={format.sides} onChange={(e) => setFormat({ ...format, sides: e.target.value })} style={selStyle} aria-label="Sides">
                   {["Double sided", "Single sided"].map((v) => <option key={v}>{v}</option>)}
                 </select>
               </Field>
               <Field label="BLACK AND WHITE / COLOUR">
-                <select value={format.colour} onChange={(e) => setFormat({ ...format, colour: e.target.value })} style={selStyle}>
+                <select value={format.colour} onChange={(e) => setFormat({ ...format, colour: e.target.value })} style={selStyle} aria-label="Colour">
                   {["Black and white", "Colour"].map((v) => <option key={v}>{v}</option>)}
                 </select>
               </Field>
@@ -245,12 +245,12 @@ export default function CartPage() {
             <div className="ev-grid-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, alignItems: "end" }}>
               <RadioRow label="PAGE ORIENTATION" options={["Portrait", "Landscape"]} value={format.orientation} onChange={(v) => setFormat({ ...format, orientation: v })} />
               <Field label="SCALE">
-                <select value={format.scale ?? "100%"} onChange={(e) => setFormat({ ...format, scale: e.target.value })} style={selStyle}>
+                <select value={format.scale ?? "100%"} onChange={(e) => setFormat({ ...format, scale: e.target.value })} aria-label="Scale" style={selStyle}>
                   {["100%", "Fit to page", "90%", "75%"].map((v) => <option key={v}>{v}</option>)}
                 </select>
               </Field>
               <Field label="PAGE PER SHEET">
-                <select value={format.perSheet ?? "1 per page"} onChange={(e) => setFormat({ ...format, perSheet: e.target.value })} style={selStyle}>
+                <select value={format.perSheet ?? "1 per page"} onChange={(e) => setFormat({ ...format, perSheet: e.target.value })} aria-label="Pages per sheet" style={selStyle}>
                   {["1 per page", "2 per page", "4 per page"].map((v) => <option key={v}>{v}</option>)}
                 </select>
               </Field>
@@ -267,6 +267,7 @@ export default function CartPage() {
                   value={staplerOn ? format.staple : ""}
                   disabled={!staplerOn}
                   onChange={(e) => setFormat({ ...format, staple: e.target.value })}
+                  aria-label="Stapling"
                   style={selStyle}
                 >
                   {!staplerOn && <option value="">No staple</option>}

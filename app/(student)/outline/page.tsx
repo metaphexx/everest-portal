@@ -72,7 +72,7 @@ export default function OutlinePage() {
           </p>
 
           <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--fg2)", marginBottom: 5 }}>Subject</div>
-          <select value={subject} onChange={(e) => setSubject(e.target.value)} className="field" style={{ padding: "0 10px", marginBottom: 12 }}>
+          <select value={subject} onChange={(e) => setSubject(e.target.value)} className="field" style={{ padding: "0 10px", marginBottom: 12 }} aria-label="Subject">
             <option value="">Choose a subject</option>
             {OUTLINE_SUBJECTS.map((s) => (
               <option key={s} value={s}>{s}</option>
@@ -80,7 +80,7 @@ export default function OutlinePage() {
           </select>
 
           <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--fg2)", marginBottom: 5 }}>Term (optional)</div>
-          <select value={term} onChange={(e) => setTerm(e.target.value)} className="field" style={{ padding: "0 10px", marginBottom: 12 }}>
+          <select value={term} onChange={(e) => setTerm(e.target.value)} className="field" style={{ padding: "0 10px", marginBottom: 12 }} aria-label="Term">
             {TERMS.map((t) => (
               <option key={t} value={t}>{t}</option>
             ))}

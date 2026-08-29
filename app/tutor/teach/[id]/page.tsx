@@ -184,6 +184,7 @@ export default function TeachView() {
         </span>
         <button
           onClick={() => router.push("/tutor/courses/" + assignment.courseId)}
+          aria-label="Done teaching"
           className="btn-ghost press ev-tap-h"
           style={{ height: 36, padding: "0 14px", borderRadius: 11, fontSize: 12.5, fontWeight: 600, color: "var(--fg2)", background: "rgba(255,255,255,.9)", flex: "none", display: "inline-flex", alignItems: "center", gap: 7 }}
         >
@@ -250,10 +251,10 @@ export default function TeachView() {
         {/* Undo and Clear wrap as a pair - split across rows they read as two
             unrelated controls, and Clear alone on a row invites a mis-tap. */}
         <span style={{ display: "inline-flex", gap: 8, flex: "none" }}>
-        <button onClick={undo} disabled={strokes.length === 0} className="btn-ghost press ev-tap-h" style={{ height: 38, padding: "0 13px", borderRadius: 11, fontSize: 12.5, fontWeight: 600, color: "var(--fg2)", background: "rgba(255,255,255,.85)", opacity: strokes.length === 0 ? 0.45 : 1, display: "inline-flex", alignItems: "center", gap: 7, flex: "none" }}>
+        <button onClick={undo} disabled={strokes.length === 0} aria-label="Undo" className="btn-ghost press ev-tap-h" style={{ height: 38, padding: "0 13px", borderRadius: 11, fontSize: 12.5, fontWeight: 600, color: "var(--fg2)", background: "rgba(255,255,255,.85)", opacity: strokes.length === 0 ? 0.45 : 1, display: "inline-flex", alignItems: "center", gap: 7, flex: "none" }}>
           <Icon path={IC.undo} size={14} /> <span className="ev-only-desktop">Undo</span>
         </button>
-        <button onClick={clear} disabled={strokes.length === 0} className="btn-ghost press ev-tap-h" style={{ height: 38, padding: "0 13px", borderRadius: 11, fontSize: 12.5, fontWeight: 600, color: "var(--danger-500)", background: "rgba(224,65,65,.08)", opacity: strokes.length === 0 ? 0.45 : 1, display: "inline-flex", alignItems: "center", gap: 7, flex: "none" }}>
+        <button onClick={clear} disabled={strokes.length === 0} aria-label={"Clear this " + (board?.kind === "board" ? "board" : "page")} className="btn-ghost press ev-tap-h" style={{ height: 38, padding: "0 13px", borderRadius: 11, fontSize: 12.5, fontWeight: 600, color: "var(--danger-500)", background: "rgba(224,65,65,.08)", opacity: strokes.length === 0 ? 0.45 : 1, display: "inline-flex", alignItems: "center", gap: 7, flex: "none" }}>
           <Icon path={IC.clear} size={14} /> <span className="ev-only-desktop">Clear {board?.kind === "board" ? "board" : "page"}</span>
         </button>
         </span>

@@ -120,7 +120,7 @@ export function AdminSidebar() {
           rather than a faked script logo. */}
       <div style={{ padding: "6px 10px 20px" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/everest-logo.png" alt="Everest Tutoring" style={{ width: 158, height: "auto", display: "block" }} />
+        <img src="/everest-logo.png" alt="Everest Tutoring" width={400} height={126} decoding="async" style={{ width: 158, height: "auto", display: "block" }} />
         <div style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 800, letterSpacing: 2.4, color: meta.accent, marginTop: 6 }}>{meta.portal}</div>
       </div>
 

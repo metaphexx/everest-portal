@@ -143,7 +143,7 @@ export default function AdminHistory() {
       <div className="glass-card ev-wrap-row" style={{ gridColumn: "span 12", padding: "14px 18px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 12, animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
         <span className="ev-wrap-main" style={{ flex: "1 0 auto", minWidth: 0 }}>
           <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--fg4)", marginBottom: 5 }}>CENTRE</label>
-          <select value={centre} onChange={(e) => setCentre(e.target.value)} className="field" style={{ width: "100%", maxWidth: 320, height: 44, boxSizing: "border-box" }}>
+          <select value={centre} onChange={(e) => setCentre(e.target.value)} className="field" style={{ width: "100%", maxWidth: 320, height: 44, boxSizing: "border-box" }} aria-label="Centre">
             {["All", ...CENTRES_M.map((c) => c.name)].map((c) => (
               <option key={c} value={c}>
                 {c === "All" ? "All centres" : c}

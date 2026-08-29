@@ -181,7 +181,7 @@ export function ScheduleClassModal({
         <Row>
           <span>
             <Label>Repeats</Label>
-            <select value={repeat} onChange={(e) => setRepeat(e.target.value as typeof repeat)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }}>
+            <select value={repeat} onChange={(e) => setRepeat(e.target.value as typeof repeat)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} aria-label="Repeat">
               <option value="once">Just this once</option>
               <option value="weekly">Every week</option>
             </select>
@@ -197,7 +197,7 @@ export function ScheduleClassModal({
         <Row>
           <span>
             <Label required>Course</Label>
-            <select value={course} onChange={(e) => setCourse(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }}>
+            <select value={course} onChange={(e) => setCourse(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} aria-label="Course">
               {COURSES.map((c) => (
                 <option key={c.id} value={c.name}>
                   {c.name}
@@ -208,7 +208,7 @@ export function ScheduleClassModal({
           </span>
           <span>
             <Label required>{delivery === "in_person" ? "Tutor (this is who can request booklets)" : "Tutor"}</Label>
-            <select value={tutor} onChange={(e) => setTutor(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }}>
+            <select value={tutor} onChange={(e) => setTutor(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} aria-label="Tutor">
               {eligibleTutors.map((t) => (
                 <option key={t.id} value={t.name}>
                   {t.name}
@@ -224,7 +224,7 @@ export function ScheduleClassModal({
           <Row>
             <span>
               <Label required>Centre</Label>
-              <select value={centre} onChange={(e) => setCentre(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }}>
+              <select value={centre} onChange={(e) => setCentre(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} aria-label="Centre">
                 {CENTRES_M.filter((c) => c.active).map((c) => (
                   <option key={c.id} value={c.name}>
                     {c.name}
