@@ -19,7 +19,7 @@ import {
   TUTOR_COURSES,
   seedRequests,
 } from "./tutor-data";
-import { SHARED_FILES, SharedFileRow } from "./admin-data";
+import { AdminClass, SHARED_FILES, SharedFileRow } from "./admin-data";
 import { AdminSession } from "./admin-schedule";
 
 interface AdminState {
@@ -46,6 +46,9 @@ interface AdminApi extends AdminState {
   addScheduledClass: (s: Omit<AdminSession, "id">) => void;
   /** Every file shared on the platform: the seeded ledger plus live assignments. */
   sharedFiles: SharedFileRow[];
+  /** Office edits to a class (tutor, time, seats), applied over the seed data. */
+  classPatches: Record<string, Partial<AdminClass>>;
+  patchClass: (id: string, patch: Partial<AdminClass>) => void;
 }
 
 const Ctx = createContext<AdminApi | null>(null);
@@ -135,6 +138,29 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   // Classes scheduled from the office. Session-scoped on purpose: the demo
   // resets cleanly, and nothing here belongs in the tutor's own blob.
   const [scheduled, setScheduled] = useState<AdminSession[]>([]);
+
+  // Edits to classes. Persisted: an office that fixes a tutor's name expects
+  // the fix to still be there tomorrow.
+  const [classPatches, setClassPatches] = useState<Record<string, Partial<AdminClass>>>(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-classes") : null;
+      return raw ? (JSON.parse(raw) as Record<string, Partial<AdminClass>>) : {};
+    } catch {
+      return {};
+    }
+  });
+  const patchClass = useCallback((id: string, patch: Partial<AdminClass>) => {
+    setClassPatches((m) => {
+      const next = { ...m, [id]: { ...m[id], ...patch } };
+      try {
+        window.localStorage.setItem("evr-admin-classes", JSON.stringify(next));
+      } catch {
+        /* storage full - the edit still applies for this session */
+      }
+      return next;
+    });
+    showToast("Class updated");
+  }, [showToast]);
   const addScheduledClass = useCallback(
     (s: Omit<AdminSession, "id">) => {
       setScheduled((list) => [...list, { ...s, id: "new-" + list.length + ":" + s.k }]);
@@ -180,6 +206,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     updateRequest,
     scheduled,
     addScheduledClass,
+    classPatches,
+    patchClass,
     sharedFiles,
   };
 

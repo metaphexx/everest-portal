@@ -83,8 +83,6 @@ export function AdminSidebar() {
     : [
         { href: base + "/schedule", label: "Schedule", icon: ICON.calendar },
         { href: base + "/classes", label: "Classes", icon: ICON.courses },
-        { href: base + "/waitlist", label: "Waitlist", icon: ICON.support },
-        { href: base + "/pricing", label: "Pricing", icon: ICON.cap },
         { href: base + "/masters", label: "Master Records", icon: ICON.text },
         { href: base + "/catalogue", label: "Catalogue", icon: ICON.library },
       ];

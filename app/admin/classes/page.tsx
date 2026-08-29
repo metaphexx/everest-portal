@@ -8,6 +8,7 @@
 import React, { useMemo, useState } from "react";
 import { useAdmin } from "@/lib/admin-store";
 import { Modal } from "@/components/ui/Modal";
+import { EditClassModal } from "@/components/admin/EditClassModal";
 import { Icon } from "@/components/ui/Icon";
 import { AdminClass, CENTRES, allClasses, allStudents } from "@/lib/admin-data";
 import { DELIVERY_META } from "@/lib/tutor-data";
@@ -79,12 +80,15 @@ function Roll({ cls, onClose, onEdit }: { cls: AdminClass; onClose: () => void; 
 }
 
 export default function AdminClasses() {
-  const { notWired } = useAdmin();
-  const classes = useMemo(() => allClasses(), []);
+  const { notWired, classPatches, patchClass } = useAdmin();
+  // Office edits sit over the seed records, so a changed tutor or time shows
+  // here, on the roll, and in the seats-left count without touching the seed.
+  const classes = useMemo(() => allClasses().map((c) => ({ ...c, ...classPatches[c.id] })), [classPatches]);
   const [centre, setCentre] = useState("All");
   const [delivery, setDelivery] = useState<"all" | "online" | "in_person">("all");
   const [q, setQ] = useState("");
   const [roll, setRoll] = useState<AdminClass | null>(null);
+  const [editing, setEditing] = useState<AdminClass | null>(null);
 
   const shown = classes.filter((c) => {
     if (centre !== "All" && c.centre !== centre) return false;
@@ -184,7 +188,7 @@ export default function AdminClasses() {
                 <button onClick={() => setRoll(c)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
                   View the roll
                 </button>
-                <button onClick={() => notWired("Edit class")} className="btn-ghost press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
+                <button onClick={() => setEditing(c)} className="btn-ghost press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
                   Edit
                 </button>
               </div>
@@ -197,13 +201,15 @@ export default function AdminClasses() {
         <BlockEnrolment key={c.id} courseId={c.id} />
       ))}
 
+      {editing && <EditClassModal cls={editing} onClose={() => setEditing(null)} onSave={patchClass} />}
+
       {roll && (
         <Roll
           cls={roll}
           onClose={() => setRoll(null)}
           onEdit={() => {
+            setEditing(roll);
             setRoll(null);
-            notWired("Edit class");
           }}
         />
       )}

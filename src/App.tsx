@@ -23,8 +23,6 @@ const AdminSettings = lazy(() => import("@/app/admin/settings/page"));
 const AdminSearch = lazy(() => import("@/app/admin/search/page"));
 const AdminSchedule = lazy(() => import("@/app/admin/schedule/page"));
 const AdminMessages = lazy(() => import("@/app/admin/messages/page"));
-const AdminPricing = lazy(() => import("@/app/admin/pricing/page"));
-const AdminWaitlist = lazy(() => import("@/app/admin/waitlist/page"));
 import StaffLayout from "@/app/staff/layout";
 
 // Student pages
@@ -135,8 +133,6 @@ export default function App() {
         <Route path="/admin/classes" element={<AdminClasses />} />
         <Route path="/admin/schedule" element={<AdminSchedule />} />
         <Route path="/admin/messages" element={<AdminMessages />} />
-        <Route path="/admin/waitlist" element={<AdminWaitlist />} />
-        <Route path="/admin/pricing" element={<AdminPricing />} />
         <Route path="/admin/masters" element={<AdminMasters />} />
         <Route path="/admin/history" element={<AdminHistory />} />
         <Route path="/admin/catalogue" element={<AdminCatalogue />} />

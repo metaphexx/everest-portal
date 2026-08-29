@@ -31,8 +31,6 @@ function pageMeta(pathname: string, pending: number, toPrint: number): { t: stri
   if (pathname.includes("/approvals")) return { t: "Booklet Requests", s: "Print requests from tutors, by centre, with the day they are for." };
   
   if (pathname.includes("/classes")) return { t: "Classes", s: "Every class Everest runs, across all centres and online." };
-  if (pathname.includes("/waitlist")) return { t: "Waitlist", s: "Families waiting on a seat, longest wait first." };
-  if (pathname.includes("/pricing")) return { t: "Pricing", s: "What a week costs by subject count, and the sibling discount." };
   if (pathname.includes("/masters")) return { t: "Master Records", s: "Centres, rooms, people, subjects, topics, curriculum and Drive folders." };
   if (pathname.includes("/history")) return { t: "Print History", s: "Everything that has actually been printed, by centre." };
   if (pathname.includes("/catalogue")) return { t: "Catalogue", s: "The booklets tutors can request and assign." };

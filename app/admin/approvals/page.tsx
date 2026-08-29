@@ -134,7 +134,18 @@ export default function AdminApprovals() {
 
       {/* ---- calendar, so a day can drive the queue ---- */}
       <div className="glass-card" style={{ gridColumn: "span 7", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .06s backwards" }}>
-        <MonthCalendar sessions={sessions} selected={day} onSelect={setDay} />
+        <MonthCalendar
+          sessions={sessions}
+          selected={day}
+          onSelect={(k) => {
+            setDay(k);
+            // Picking a day means "show me that day's requests" - and most days'
+            // requests already have a decision on them, so a queue still locked
+            // to Pending would sit empty under a day badged "Booklets approved".
+            // Widen to every status; the chips still narrow it after.
+            if (k) setFilter("all");
+          }}
+        />
       </div>
       <div className="glass-card" style={{ gridColumn: "span 5", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .08s backwards" }}>
         <DayList
@@ -189,7 +200,7 @@ export default function AdminApprovals() {
             {filter === "pending" && centre === "All" && !day ? "Nothing waiting on you" : "No requests match"}
           </div>
           <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 6 }}>
-            {filter === "pending" && centre === "All" && !day ? "Every request a tutor has sent has a decision on it." : "Try another centre, status or day."}
+            {filter === "pending" && centre === "All" && !day ? "Every request a tutor has sent has a decision on it." : day ? "No booklet requests were made for this day\u2019s classes." : "Try another centre or status."}
           </div>
         </div>
       )}
