@@ -54,7 +54,7 @@ export default function AdminDashboard() {
 
   const classes = useMemo(() => allClasses(), []);
   const students = useMemo(() => allStudents(), []);
-  const sessions = useMemo(() => allSessions(scheduled), [scheduled]);
+  const sessions = useMemo(() => allSessions(scheduled, requests), [scheduled, requests]);
   const openFlags = SAFEGUARDING.filter((f) => f.status === "open");
 
   const printJobs = requests.filter((r) => (r.delivery ?? "print") === "print");

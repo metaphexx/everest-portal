@@ -7,11 +7,13 @@
 // only the office has a reason to know about them.
 
 import {
+  BookletRequest,
   BookletStatus,
   BOOKLET_META,
   DeliveryMode,
   TUTOR_COURSES,
   TutorClass,
+  bookletStatusFromRequest,
   buildTutorClasses,
 } from "./tutor-data";
 import { STAFF } from "./admin-data";
@@ -96,8 +98,16 @@ function weeklyDates(weekday: number): string[] {
   return out;
 }
 
-/** Priya's four courses, from the real records, plus every other tutor's slots. */
-export function allSessions(extra: AdminSession[] = []): AdminSession[] {
+/**
+ * Priya's four courses, from the real records, plus every other tutor's slots.
+ *
+ * Pass the live requests and each in-person session's booklet status is DERIVED
+ * from the request against it - no request, no status. That is what stops the
+ * calendar badging a day "Booklets requested" while the queue below it has
+ * nothing to show. Without them the sessions carry their seeded status, which
+ * is only used to work out which classes print at all.
+ */
+export function allSessions(extra: AdminSession[] = [], requests?: BookletRequest[]): AdminSession[] {
   const out: AdminSession[] = [];
 
   for (const c of buildTutorClasses() as TutorClass[]) {
@@ -139,7 +149,22 @@ export function allSessions(extra: AdminSession[] = []): AdminSession[] {
     });
   }
 
-  return [...out, ...extra].sort((a, b) => (a.k === b.k ? a.className.localeCompare(b.className) : a.k < b.k ? -1 : 1));
+  const all = [...out, ...extra];
+
+  if (requests) {
+    // The request is the evidence. An in-person class shows the state of its
+    // request, or "not requested" when there is not one - never a status the
+    // queue cannot account for.
+    const byClass = new Map<string, BookletRequest>();
+    for (const r of requests) if (r.classId) byClass.set(r.classId, r);
+    for (const s of all) {
+      if (s.booklet === null) continue; // online: nothing is printed
+      const r = byClass.get(s.id);
+      s.booklet = r ? bookletStatusFromRequest(r) : "not_requested";
+    }
+  }
+
+  return all.sort((a, b) => (a.k === b.k ? a.className.localeCompare(b.className) : a.k < b.k ? -1 : 1));
 }
 
 /** What the office needs to see about a session's booklets, in one line. */

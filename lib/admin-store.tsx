@@ -5,6 +5,12 @@
 // approving here turns "Pending" into "Approved" in the tutor's My Requests
 // with no reload. That round trip is the whole point of the screen - an
 // approvals queue that only updates its own copy proves nothing.
+//
+// On top of the tutor's own requests the office holds the ledger for every
+// OTHER tutor and centre (lib/office-requests.ts), which the tutor portal has no
+// view of. Those rows persist under evr-admin-requests rather than in the tutor
+// blob, so a decision on one survives a reload without ever appearing in Priya's
+// My Requests.
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { patchTutorState, readPortalState, readTutorState } from "./live-sync";
@@ -21,6 +27,31 @@ import {
 } from "./tutor-data";
 import { AdminClass, SHARED_FILES, SharedFileRow } from "./admin-data";
 import { AdminSession } from "./admin-schedule";
+import { isOfficeRequest, officeRequests } from "./office-requests";
+
+const OFFICE_KEY = "evr-admin-requests";
+
+/** The office ledger as last edited, or freshly generated on a clean demo. */
+function readOfficeRequests(): BookletRequest[] {
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(OFFICE_KEY) : null;
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) return parsed as BookletRequest[];
+    }
+  } catch {
+    /* fall through to a fresh ledger */
+  }
+  return officeRequests();
+}
+
+function writeOfficeRequests(rows: BookletRequest[]) {
+  try {
+    if (typeof window !== "undefined") window.localStorage.setItem(OFFICE_KEY, JSON.stringify(rows));
+  } catch {
+    /* a full quota should not break the queue */
+  }
+}
 
 interface AdminState {
   toast: string;
@@ -77,7 +108,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       setState((s) => ({
         ...s,
         hydrated: true,
-        requests: t && Array.isArray(t.requests) ? t.requests : seedRequests(),
+        requests: [...(t && Array.isArray(t.requests) ? t.requests : seedRequests()), ...readOfficeRequests()],
         assignments: t && Array.isArray(t.assignments) ? t.assignments : [],
         submissions: t && Array.isArray(t.submissions) ? t.submissions : [],
       }));
@@ -100,10 +131,15 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const notWired = useCallback((label: string) => showToast(label + " is not wired up in this prototype yet"), [showToast]);
 
-  /** Writes the decision to both this portal and the tutor's, in that order. */
+  /**
+   * Writes the decision to both this portal and the tutor's, in that order.
+   * The office ledger is split back out first: those rows are other tutors'
+   * work and must not land in Priya's My Requests.
+   */
   const writeRequests = useCallback((next: BookletRequest[]) => {
     setState((s) => ({ ...s, requests: next }));
-    patchTutorState({ requests: next });
+    writeOfficeRequests(next.filter(isOfficeRequest));
+    patchTutorState({ requests: next.filter((r) => !isOfficeRequest(r)) });
   }, []);
 
   const setApproval = useCallback(

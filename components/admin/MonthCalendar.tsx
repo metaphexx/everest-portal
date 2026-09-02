@@ -12,6 +12,7 @@
 import React, { useMemo, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { AdminSession, centreStyle, monthKey, needsRequest } from "@/lib/admin-schedule";
+import { BOOKLET_META } from "@/lib/tutor-data";
 
 const IC = {
   prev: "M15.4 7.4 14 6l-6 6 6 6 1.4-1.4-4.6-4.6 4.6-4.6Z",
@@ -193,12 +194,19 @@ export function DayList({
                 {s.time} · {s.tutor} · {s.centre} · {s.students} students
               </span>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 7, marginTop: 6, flexWrap: "wrap" }}>
+                {/* The status pill uses the booklet colours from
+                    DESIGN-FIDELITY section 3, so a class reads the same here as
+                    its request does in the queue. It used to paint every state
+                    green, which made "requested" - nobody has approved it yet -
+                    look finished. */}
                 {s.booklet === null ? (
                   <span style={{ fontSize: 10, fontWeight: 700, color: "var(--brand-600)", background: "rgba(0,157,255,.12)", padding: "3px 9px", borderRadius: 980 }}>Online, nothing to print</span>
                 ) : gap ? (
                   <span style={{ fontSize: 10, fontWeight: 800, color: "var(--warn-700)", background: "rgba(245,166,35,.18)", padding: "3px 9px", borderRadius: 980 }}>NO REQUEST YET</span>
                 ) : (
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "var(--success-700)", background: "rgba(34,160,91,.12)", padding: "3px 9px", borderRadius: 980 }}>Booklets {s.booklet === "print_completed" ? "printed" : s.booklet}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: BOOKLET_META[s.booklet].color, background: BOOKLET_META[s.booklet].bg, padding: "3px 9px", borderRadius: 980 }}>
+                    {s.booklet === "print_failed" ? "Print failed" : "Booklets " + BOOKLET_META[s.booklet].label.toLowerCase()}
+                  </span>
                 )}
                 {onOpenRequest && !gap && s.booklet !== null && (
                   <button onClick={() => onOpenRequest(s)} className="btn-ghost press ev-tap-h" style={{ height: 28, padding: "0 10px", borderRadius: 8, fontSize: 11, fontWeight: 600, color: "var(--fg2)" }}>

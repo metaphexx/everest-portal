@@ -439,6 +439,8 @@ export interface BookletRequest {
   time?: string; // display time, e.g. "01:34 pm" (absent on legacy rows)
   classId: string | null; // TutorClass id or null = custom request
   classText: string; // resolved label at creation time
+  /** Who raised it. Absent on the tutor portal's own rows, which are Priya's. */
+  tutor?: string;
   yearLevel: string;
   subject: string;
   items: RequestItem[];
@@ -453,6 +455,16 @@ export interface BookletRequest {
   // approval only exists where money is spent.
   delivery?: "print" | "digital"; // absent = print (legacy rows)
   recipients?: number; // digital: how many students received the pack
+}
+
+/** Who raised a request. The office lists it; the tutor portal only has its own. */
+export function requestTutor(r: BookletRequest): string {
+  return r.tutor ?? TUTOR.name;
+}
+
+/** A request not tied to a scheduled class - the office needs to see which those are. */
+export function isCustomRequest(r: BookletRequest): boolean {
+  return !r.classId;
 }
 
 export function seedRequests(): BookletRequest[] {

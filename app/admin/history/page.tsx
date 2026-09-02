@@ -10,6 +10,7 @@ import { useAdmin } from "@/lib/admin-store";
 import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
 import { Column, MasterTable } from "@/components/admin/MasterTable";
+import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
 import { BookletRequest, DEFAULT_FORMAT, centreOfPrinter, driveIdFor } from "@/lib/tutor-data";
 import { CENTRES_M } from "@/lib/admin-masters";
 import { centreStyle } from "@/lib/admin-schedule";
@@ -99,6 +100,15 @@ export default function AdminHistory() {
   const { requests, notWired, showToast } = useAdmin();
   const [centre, setCentre] = useState("All");
   const [open, setOpen] = useState<BookletRequest | null>(null);
+  // Clicking the booklet name opens the booklet itself, which is how a reprint
+  // actually starts: you look at what was printed, then send it again.
+  const [preview, setPreview] = useState<BookletRequest | null>(null);
+
+  const printAgain = (r: BookletRequest) => {
+    showToast("Sent to " + r.printer + " again");
+    setOpen(null);
+    setPreview(null);
+  };
 
   const rows = useMemo(
     () =>
@@ -115,7 +125,13 @@ export default function AdminHistory() {
       render: (r) => (
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: centreStyle(centreOfPrinter(r.printer)).colour, flex: "none" }} />
-          <strong style={{ fontWeight: 700 }}>{r.items.map((i) => i.name).join(", ")}</strong>
+          <button
+            onClick={() => setPreview(r)}
+            className="press ev-tap-h"
+            style={{ border: "none", background: "none", padding: 0, font: "inherit", fontWeight: 700, color: "var(--brand-600)", textAlign: "left", cursor: "pointer" }}
+          >
+            {r.items.map((i) => i.name).join(", ")}
+          </button>
         </span>
       ),
       text: (r) => r.items.map((i) => i.name).join(" "),
@@ -170,16 +186,17 @@ export default function AdminHistory() {
         pageSize={12}
       />
 
-      {open && (
-        <Detail
-          r={open}
-          onClose={() => setOpen(null)}
-          onPrintAgain={() => {
-            showToast("Sent to " + open.printer + " again");
-            setOpen(null);
-          }}
-        />
-      )}
+      {open && <Detail r={open} onClose={() => setOpen(null)} onPrintAgain={() => printAgain(open)} />}
+
+      <PdfPreviewModal
+        open={!!preview}
+        onClose={() => setPreview(null)}
+        fileName={preview?.items[0]?.name ?? ""}
+        meta={preview ? preview.classText + " · " + preview.items.reduce((n, i) => n + i.qty, 0) + " copies · printed " + preview.date : undefined}
+        annotate={false}
+        onAction={() => preview && printAgain(preview)}
+        actionLabel="Print again"
+      />
     </div>
   );
 }

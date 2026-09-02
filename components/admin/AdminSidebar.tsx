@@ -14,7 +14,7 @@ import Link from "@/components/ui/Link";
 import { usePathname } from "@/lib/router";
 import { Icon, ICON } from "@/components/portal/nav-icons";
 import { useAdmin } from "@/lib/admin-store";
-import { ROLE_META, useBase, useRole } from "@/lib/admin-role";
+import { DEMO_ROLE_SWITCH, ROLE_META, useBase, useRole } from "@/lib/admin-role";
 import { SAFEGUARDING } from "@/lib/admin-data";
 import { DrawerAccount } from "@/components/portal/DrawerAccount";
 
@@ -143,8 +143,9 @@ export function AdminSidebar() {
         {OVERSIGHT.map((n) => (
           <NavLink key={n.href} item={n} active={isActive(pathname, n.href, base)} accent={meta.accent} />
         ))}
-        {/* Demo affordance: a real login lands on one view or the other. */}
-        <NavLink item={{ href: meta.switchTo, label: meta.switchLabel, icon: SWAP }} active={false} accent={meta.accent} />
+        {/* Demo affordance: a real login lands on one view or the other, so
+            this is dropped from a shipping build (VITE_DEMO_ROLE_SWITCH=false). */}
+        {DEMO_ROLE_SWITCH && <NavLink item={{ href: meta.switchTo, label: meta.switchLabel, icon: SWAP }} active={false} accent={meta.accent} />}
       </nav>
     </aside>
   );

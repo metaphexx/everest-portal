@@ -11,17 +11,18 @@ import { Icon } from "@/components/ui/Icon";
 import { DayList, MonthCalendar } from "@/components/admin/MonthCalendar";
 import { ScheduleClassModal } from "@/components/admin/ScheduleClassModal";
 import { allSessions, centreStyle, needsRequest } from "@/lib/admin-schedule";
+import { BOOKLET_META } from "@/lib/tutor-data";
 
 const IC = {
   plus: "M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z",
 };
 
 export default function AdminSchedule() {
-  const { scheduled, addScheduledClass, notWired } = useAdmin();
+  const { scheduled, addScheduledClass, notWired, requests } = useAdmin();
   const [day, setDay] = useState<string | null>("2026-07-02");
   const [adding, setAdding] = useState(false);
 
-  const sessions = useMemo(() => allSessions(scheduled), [scheduled]);
+  const sessions = useMemo(() => allSessions(scheduled, requests), [scheduled, requests]);
   const upcoming = useMemo(() => sessions.filter((s) => s.k >= "2026-07-02").slice(0, 24), [sessions]);
 
   return (
@@ -77,12 +78,18 @@ export default function AdminSchedule() {
                   </span>
                 </span>
                 <span className="ev-row-end" style={{ display: "flex", alignItems: "center", gap: 8, flex: "none" }}>
+                  {/* "Covered" used to cover everything that was not a gap, so
+                      a class whose booklets nobody had approved yet looked as
+                      settled as one already printed. Each state now says what
+                      it is, in its own colour. */}
                   {s.booklet === null ? (
                     <span style={{ fontSize: 10, fontWeight: 700, color: "var(--brand-600)", background: "rgba(0,157,255,.12)", padding: "3px 9px", borderRadius: 980 }}>Online</span>
                   ) : gap ? (
                     <span style={{ fontSize: 10, fontWeight: 800, color: "var(--warn-700)", background: "rgba(245,166,35,.18)", padding: "3px 9px", borderRadius: 980 }}>NO REQUEST YET</span>
                   ) : (
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "var(--success-700)", background: "rgba(34,160,91,.12)", padding: "3px 9px", borderRadius: 980 }}>Covered</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: BOOKLET_META[s.booklet].color, background: BOOKLET_META[s.booklet].bg, padding: "3px 9px", borderRadius: 980 }}>
+                      {BOOKLET_META[s.booklet].label}
+                    </span>
                   )}
                   <button onClick={() => notWired("Edit class")} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
                     Edit

@@ -12,7 +12,7 @@
 import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
-import { APPROVAL_META, BookletRequest, DEFAULT_FORMAT, PRINTERS, PrintFormat, PrintingStatus } from "@/lib/tutor-data";
+import { BOOKLET_META, BookletRequest, DEFAULT_FORMAT, PRINTERS, PrintFormat, PrintingStatus, bookletStatusFromRequest } from "@/lib/tutor-data";
 import { centreStyle } from "@/lib/admin-schedule";
 import { centreOfPrinter } from "@/lib/tutor-data";
 
@@ -85,7 +85,7 @@ export function RequestDetail({
   const fmt: PrintFormat = { ...DEFAULT_FORMAT, ...r.format };
   const copies = r.items.reduce((n, i) => n + i.qty, 0);
   const sheets = fmt.perSheet === "2 per page" ? Math.ceil(copies / 2) : fmt.perSheet === "4 per page" ? Math.ceil(copies / 4) : copies;
-  const meta = APPROVAL_META[r.approval];
+  const meta = BOOKLET_META[bookletStatusFromRequest(r)];
   const cs = centreStyle(centreOfPrinter(r.printer));
 
   const set = (patch: Partial<PrintFormat>) => onUpdate?.(r.id, { format: { ...fmt, ...patch } });

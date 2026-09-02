@@ -17,6 +17,16 @@ import React, { createContext, useContext } from "react";
 
 export type AdminRole = "office" | "print";
 
+/**
+ * The "View as Manager / View as Admin" link in the sidebar is a DEMO
+ * affordance: it lets one person walk both views without two logins. A real
+ * sign-in lands you in one view and there is no door to the other.
+ *
+ * SHIPPING: build with VITE_DEMO_ROLE_SWITCH=false and the link is gone. It is
+ * on by default so the hosted demo keeps it.
+ */
+export const DEMO_ROLE_SWITCH = import.meta.env.VITE_DEMO_ROLE_SWITCH !== "false";
+
 const Ctx = createContext<AdminRole>("office");
 
 export function RoleProvider({ role, children }: { role: AdminRole; children: React.ReactNode }) {

@@ -16,7 +16,7 @@ import React, { useMemo, useState } from "react";
 import { useAdmin } from "@/lib/admin-store";
 import { useRole } from "@/lib/admin-role";
 import { Icon } from "@/components/ui/Icon";
-import { APPROVAL_META, BookletRequest, DEFAULT_FORMAT, PRINTING_META, centreOfPrinter } from "@/lib/tutor-data";
+import { APPROVAL_META, BOOKLET_META, BookletRequest, DEFAULT_FORMAT, bookletStatusFromRequest, centreOfPrinter, isCustomRequest, requestTutor } from "@/lib/tutor-data";
 import { allSessions, centreStyle, needsRequest } from "@/lib/admin-schedule";
 import { DayList, MonthCalendar } from "@/components/admin/MonthCalendar";
 import { RequestDetail } from "@/components/admin/RequestDetail";
@@ -30,9 +30,13 @@ const IC = {
 
 type Filter = "pending" | "approved" | "rejected" | "all";
 
+// One vocabulary for a booklet's life, and the colours DESIGN-FIDELITY pins to
+// it. These used to read "Waiting" in amber while the class beside the calendar
+// called the same state "requested" in green - two words and two colours for
+// one thing.
 const FILTERS: { id: Filter; label: string; colour: string }[] = [
-  { id: "pending", label: "Waiting", colour: "var(--warn-500)" },
-  { id: "approved", label: "Approved", colour: "var(--success-500)" },
+  { id: "pending", label: "Requested", colour: "var(--accent-purple)" },
+  { id: "approved", label: "Approved", colour: "var(--warn-700)" },
   { id: "rejected", label: "Rejected", colour: "var(--danger-500)" },
   { id: "all", label: "All", colour: "var(--fg4)" },
 ];
@@ -48,7 +52,7 @@ export default function AdminApprovals() {
   const [day, setDay] = useState<string | null>(null);
   const [open, setOpen] = useState<BookletRequest | null>(null);
 
-  const sessions = useMemo(() => allSessions(scheduled), [scheduled]);
+  const sessions = useMemo(() => allSessions(scheduled, requests), [scheduled, requests]);
   const jobs = useMemo(() => requests.filter((r) => (r.delivery ?? "print") === "print"), [requests]);
 
   const centreOf = (r: BookletRequest) => centreOfPrinter(r.printer);
@@ -76,15 +80,26 @@ export default function AdminApprovals() {
     {
       key: "c",
       label: "Class",
+      // Year level, subject and day stay on one line - it reads as the class
+      // you would say out loud. A custom request has no class behind it, so it
+      // is called out rather than left looking like a row with a missing name.
       render: (r) => (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: centreStyle(centreOf(r)).colour, flex: "none" }} />
-          <strong style={{ fontWeight: 700 }}>{r.classText}</strong>
+          {isCustomRequest(r) ? (
+            <>
+              <strong style={{ fontWeight: 700 }}>{r.yearLevel} {r.subject}</strong>
+              <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.4, color: "var(--accent-purple)", background: "rgba(122,90,248,.13)", padding: "3px 8px", borderRadius: 980, flex: "none" }}>CUSTOM REQUEST</span>
+            </>
+          ) : (
+            <strong style={{ fontWeight: 700 }}>{r.classText}</strong>
+          )}
         </span>
       ),
-      text: (r) => r.classText,
-      width: 240,
+      text: (r) => (isCustomRequest(r) ? r.yearLevel + " " + r.subject + " custom request" : r.classText),
+      width: 250,
     },
+    { key: "t", label: "Tutor", render: (r) => requestTutor(r), text: (r) => requestTutor(r), width: 130 },
     { key: "ce", label: "Centre", render: (r) => centreOf(r), text: (r) => centreOf(r) },
     { key: "b", label: "Booklets", render: (r) => r.items.map((i) => i.name).join(", "), text: (r) => r.items.map((i) => i.name).join(" "), width: 250 },
     { key: "n", label: "Copies", render: (r) => r.items.reduce((n, i) => n + i.qty, 0), text: (r) => String(r.items.reduce((n, i) => n + i.qty, 0)) },
@@ -215,7 +230,7 @@ export default function AdminApprovals() {
           rows={shown}
           columns={cols}
           idOf={(r) => r.id}
-          statusOf={(r) => APPROVAL_META[r.approval]}
+          statusOf={(r) => BOOKLET_META[bookletStatusFromRequest(r)]}
           searchHint="Search by class, booklet, centre or reference"
           onEdit={(r) => setOpen(r)}
           onExport={() => notWired("Export")}
@@ -231,7 +246,9 @@ export default function AdminApprovals() {
           const cs = centreStyle(centreOf(r));
           const fmt = { ...DEFAULT_FORMAT, ...r.format };
           const copies = r.items.reduce((n, it) => n + it.qty, 0);
-          const meta = APPROVAL_META[r.approval];
+          // Where the job has actually got to, not just the decision on it, so
+          // one chip carries the whole story and matches the class's pill.
+          const meta = BOOKLET_META[bookletStatusFromRequest(r)];
           return (
             <div
               key={r.id}
@@ -253,16 +270,16 @@ export default function AdminApprovals() {
                     {centreOf(r).toUpperCase()}
                   </span>
                   <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 0.4, color: meta.color, background: meta.bg, padding: "4px 10px", borderRadius: 980, flex: "none" }}>{meta.label}</span>
-                  {r.approval === "approved" && (
-                    <span style={{ fontSize: 10.5, fontWeight: 700, color: PRINTING_META[r.printing].color, background: PRINTING_META[r.printing].bg, padding: "4px 10px", borderRadius: 980, flex: "none" }}>
-                      {PRINTING_META[r.printing].label}
-                    </span>
+                  {isCustomRequest(r) && (
+                    <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 0.4, color: "var(--accent-purple)", background: "rgba(122,90,248,.13)", padding: "4px 10px", borderRadius: 980, flex: "none" }}>CUSTOM REQUEST</span>
                   )}
                 </div>
 
-                <div style={{ fontFamily: "var(--font-display)", fontSize: 15.5, fontWeight: 800, lineHeight: 1.3 }}>{r.classText}</div>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 15.5, fontWeight: 800, lineHeight: 1.3 }}>
+                  {isCustomRequest(r) ? r.yearLevel + " " + r.subject : r.classText}
+                </div>
                 <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 3 }}>
-                  {r.ref} · {r.date}
+                  {requestTutor(r)} · {r.ref} · {r.date}
                   {r.time ? " at " + r.time : ""}
                 </div>
 

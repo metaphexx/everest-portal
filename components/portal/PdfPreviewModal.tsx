@@ -48,9 +48,16 @@ interface PdfPreviewModalProps {
    */
   onSaveAnnotations?: () => void;
   saveLabel?: string;
+  /**
+   * A primary footer action for previews that are not about annotating - Print
+   * History opens a booklet this way and offers "Print again", which is how a
+   * reprint actually starts: from the record of the last one.
+   */
+  onAction?: () => void;
+  actionLabel?: string;
 }
 
-export function PdfPreviewModal({ open, onClose, fileName, meta, kind = "doc", url, annotate = true, pages, previewLimit = 4, onSaveAnnotations, saveLabel = "Save marked copy" }: PdfPreviewModalProps) {
+export function PdfPreviewModal({ open, onClose, fileName, meta, kind = "doc", url, annotate = true, pages, previewLimit = 4, onSaveAnnotations, saveLabel = "Save marked copy", onAction, actionLabel = "Continue" }: PdfPreviewModalProps) {
   const canAnnotate = kind === "doc" && annotate;
   const [tool, setTool] = useState<Tool>("highlight");
   const [notes, setNotes] = useState<{ id: number; x: number; y: number; text: string }[]>([]);
@@ -308,14 +315,21 @@ export function PdfPreviewModal({ open, onClose, fileName, meta, kind = "doc", u
 
         {/* footer - deliberately no download action */}
         <div style={{ borderTop: "1px solid rgba(0,32,63,.08)", padding: "14px 20px", display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
-          <button onClick={onClose} className={onSaveAnnotations ? "btn-ghost" : "btn-primary"} style={{ height: 38, padding: "0 20px", borderRadius: 11, fontSize: 13, fontWeight: 700, background: onSaveAnnotations ? "rgba(255,255,255,.8)" : undefined, color: onSaveAnnotations ? "var(--fg2)" : undefined }}>
-            {onSaveAnnotations ? "Cancel" : "Done"}
-          </button>
-          {onSaveAnnotations && (
-            <button onClick={onSaveAnnotations} className="btn-primary press" style={{ height: 38, padding: "0 20px", borderRadius: 11, fontSize: 13, fontWeight: 700 }}>
-              {saveLabel}
-            </button>
-          )}
+          {(() => {
+            const primary = onSaveAnnotations ? { fn: onSaveAnnotations, label: saveLabel } : onAction ? { fn: onAction, label: actionLabel } : null;
+            return (
+              <>
+                <button onClick={onClose} className={primary ? "btn-ghost" : "btn-primary"} style={{ height: 38, padding: "0 20px", borderRadius: 11, fontSize: 13, fontWeight: 700, background: primary ? "rgba(255,255,255,.8)" : undefined, color: primary ? "var(--fg2)" : undefined }}>
+                  {onSaveAnnotations ? "Cancel" : primary ? "Close" : "Done"}
+                </button>
+                {primary && (
+                  <button onClick={primary.fn} className="btn-primary press" style={{ height: 38, padding: "0 20px", borderRadius: 11, fontSize: 13, fontWeight: 700 }}>
+                    {primary.label}
+                  </button>
+                )}
+              </>
+            );
+          })()}
         </div>
     </Modal>
   );
