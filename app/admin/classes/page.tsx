@@ -6,10 +6,11 @@
 // list they were reading.
 
 import React, { useMemo, useState } from "react";
+import { useRouter } from "@/lib/router";
 import { useAdmin } from "@/lib/admin-store";
 import { useRole } from "@/lib/admin-role";
 import { Modal } from "@/components/ui/Modal";
-import { EditClassModal } from "@/components/admin/EditClassModal";
+import { ClassFormModal, WEEKDAYS, to24, toDisplay } from "@/components/admin/ClassFormModal";
 import { Icon } from "@/components/ui/Icon";
 import { AdminClass, CENTRES, allClasses, allStudents } from "@/lib/admin-data";
 import { DELIVERY_META } from "@/lib/tutor-data";
@@ -21,8 +22,19 @@ const IC = {
   close: "M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z",
 };
 
-function Roll({ cls, onClose, onEdit }: { cls: AdminClass; onClose: () => void; onEdit: () => void }) {
-  const roll = useMemo(() => allStudents().filter((s) => s.classNames.includes(cls.name)), [cls.name]);
+/** The seeded roll for a class, by name. */
+export function rollNames(cls: AdminClass): string[] {
+  return allStudents().filter((s) => s.classNames.includes(cls.name)).map((s) => s.name);
+}
+
+function Roll({ cls, names, onClose, onEdit }: { cls: AdminClass; names?: string[]; onClose: () => void; onEdit: () => void }) {
+  // Once the office has picked the students, THAT is the roll - not whichever
+  // records happen to name this class.
+  const roll = useMemo(() => {
+    const students = allStudents();
+    if (names) return names.map((n) => students.find((s) => s.name === n)).filter(Boolean) as typeof students;
+    return students.filter((s) => s.classNames.includes(cls.name));
+  }, [cls.name, names]);
   const cs = centreStyle(cls.delivery === "online" ? "Online" : cls.centre);
   return (
     <Modal onClose={onClose} labelledBy="roll-title" panelStyle={{ width: "min(560px, calc(100vw - 32px))", maxHeight: "min(88vh, 820px)", overflowY: "auto" }}>
@@ -82,6 +94,7 @@ function Roll({ cls, onClose, onEdit }: { cls: AdminClass; onClose: () => void; 
 
 export default function AdminClasses() {
   const { notWired, classPatches, patchClass } = useAdmin();
+  const router = useRouter();
   // The Admin (print) role reads this page for copy counts. The roll carries
   // parent phone numbers and Edit changes enrolments - neither is its job.
   const canEdit = useRole() === "office";
@@ -96,6 +109,19 @@ export default function AdminClasses() {
   // The block whose enrolment grid is open. It opens from the block's own
   // card (like the roll does) rather than rendering after every other card.
   const [enrolling, setEnrolling] = useState<string | null>(null);
+
+  /**
+   * Same split as the Schedule: an online class is edited here, an in-person
+   * one is a room and a tutor allocation, which is master data.
+   */
+  const editClass = (c: AdminClass) => {
+    setRoll(null);
+    if (c.delivery === "online") {
+      setEditing(c);
+      return;
+    }
+    router.push("/admin/masters?tab=course-tutors");
+  };
 
   const shown = classes.filter((c) => {
     if (centre !== "All" && c.centre !== centre) return false;
@@ -201,7 +227,7 @@ export default function AdminClasses() {
                       Who takes what
                     </button>
                   )}
-                  <button onClick={() => setEditing(c)} className="btn-ghost press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
+                  <button onClick={() => editClass(c)} className="btn-ghost press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
                     Edit
                   </button>
                 </div>
@@ -217,16 +243,46 @@ export default function AdminClasses() {
         </Modal>
       )}
 
-      {editing && <EditClassModal cls={editing} onClose={() => setEditing(null)} onSave={patchClass} />}
+      {editing && (
+        <ClassFormModal
+          mode="edit"
+          scope="class"
+          subtitle={editing.year + " · online · changes apply every week"}
+          initial={{
+            title: editing.name,
+            // "Thursdays 7:00pm" is one field holding two facts; the form asks
+            // for the day and the time separately so both can be changed.
+            day: WEEKDAYS.find((d) => editing.sched.startsWith(d)) ?? WEEKDAYS[3],
+            start: to24(editing.sched),
+            end: (() => {
+              const [h, m] = to24(editing.sched).split(":").map(Number);
+              const total = h * 60 + m + 60;
+              return String(Math.floor(total / 60) % 24).padStart(2, "0") + ":" + String(total % 60).padStart(2, "0");
+            })(),
+            tutors: editing.tutorName.split(",").map((t) => t.trim()).filter(Boolean),
+            students: classPatches[editing.id]?.studentNames ?? rollNames(editing),
+            link: classPatches[editing.id]?.link ?? "",
+          }}
+          onClose={() => setEditing(null)}
+          onSubmit={(v) =>
+            patchClass(editing.id, {
+              name: v.title,
+              sched: v.day + " " + toDisplay(v.start),
+              tutorName: v.tutors.join(", "),
+              studentNames: v.students,
+              students: v.students.length,
+              link: v.link || undefined,
+            })
+          }
+        />
+      )}
 
       {roll && (
         <Roll
           cls={roll}
+          names={classPatches[roll.id]?.studentNames}
           onClose={() => setRoll(null)}
-          onEdit={() => {
-            setEditing(roll);
-            setRoll(null);
-          }}
+          onEdit={() => editClass(roll)}
         />
       )}
     </div>

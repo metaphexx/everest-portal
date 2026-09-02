@@ -10,9 +10,8 @@ import { useRouter } from "@/lib/router";
 import { useAdmin } from "@/lib/admin-store";
 import { Icon } from "@/components/ui/Icon";
 import { DayList, MonthCalendar } from "@/components/admin/MonthCalendar";
-import { ScheduleClassModal } from "@/components/admin/ScheduleClassModal";
+import { ClassFormModal, ClassFormValues, to24, toDisplay } from "@/components/admin/ClassFormModal";
 import { ClassViewModal } from "@/components/admin/ClassViewModal";
-import { EditSessionModal } from "@/components/admin/EditSessionModal";
 import { AdminSession, allSessions, applySessionPatches, centreStyle, needsRequest } from "@/lib/admin-schedule";
 import { BOOKLET_META } from "@/lib/tutor-data";
 
@@ -128,7 +127,36 @@ export default function AdminSchedule() {
         })}
       </div>
 
-      {adding && <ScheduleClassModal onClose={() => setAdding(false)} onCreate={addScheduledClass} defaultDay={day} />}
+      {adding && (
+        <ClassFormModal
+          mode="create"
+          scope="session"
+          initial={{ day: day ?? "2026-07-09" }}
+          onClose={() => setAdding(false)}
+          onSubmit={(v) => {
+            const base = {
+              k: v.day,
+              className: v.title,
+              courseId: v.course,
+              tutor: v.tutors.join(", "),
+              centre: "Online",
+              delivery: "online" as const,
+              time: toDisplay(v.start),
+              students: v.students.length,
+              durationMins: v.durationMins,
+              // Nothing is printed for an online class, so the booklet question
+              // does not apply to it at all.
+              booklet: null,
+            };
+            const n = v.repeat === "weekly" ? v.weeks : 1;
+            for (let i = 0; i < n; i++) {
+              const d = new Date(v.day + "T12:00:00");
+              d.setDate(d.getDate() + i * 7);
+              addScheduledClass({ ...base, k: d.toISOString().slice(0, 10), ...(n > 1 ? { session: i + 1 } : {}) });
+            }
+          }}
+        />
+      )}
 
       {viewing && (
         <ClassViewModal
@@ -141,11 +169,37 @@ export default function AdminSchedule() {
       )}
 
       {editing && (
-        <EditSessionModal
-          session={editing}
-          patch={sessionPatches[editing.id]}
+        <ClassFormModal
+          mode="edit"
+          scope="session"
+          subtitle="Changes apply to this session only, not to every week."
+          initial={{
+            title: editing.className,
+            day: editing.k,
+            start: to24(editing.time),
+            end: (() => {
+              const [h, m] = to24(editing.time).split(":").map(Number);
+              const total = h * 60 + m + (editing.durationMins ?? 60);
+              return String(Math.floor(total / 60) % 24).padStart(2, "0") + ":" + String(total % 60).padStart(2, "0");
+            })(),
+            tutors: editing.tutor.split(",").map((t) => t.trim()).filter(Boolean),
+            students: sessionPatches[editing.id]?.studentNames ?? [],
+            link: sessionPatches[editing.id]?.link ?? "",
+            notes: sessionPatches[editing.id]?.notes ?? "",
+          }}
           onClose={() => setEditing(null)}
-          onSave={patchSession}
+          onSubmit={(v: ClassFormValues) =>
+            patchSession(editing.id, {
+              className: v.title,
+              k: v.day,
+              time: toDisplay(v.start),
+              tutor: v.tutors.join(", "),
+              durationMins: v.durationMins,
+              studentNames: v.students,
+              link: v.link || undefined,
+              notes: v.notes || undefined,
+            })
+          }
         />
       )}
     </div>

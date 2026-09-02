@@ -64,11 +64,16 @@ export interface SessionPatch {
   className?: string;
   k?: string;
   time?: string;
+  /** One or more tutors, joined for display. */
   tutor?: string;
-  students?: number;
   durationMins?: number;
+  /**
+   * The roll, by name. The session carries a COUNT, and the count is derived
+   * from this - an office that picks the students should never also have to
+   * keep a number in step with them.
+   */
+  studentNames?: string[];
   link?: string;
-  materials?: string[];
   notes?: string;
 }
 
@@ -78,8 +83,10 @@ export function applySessionPatches(sessions: AdminSession[], patches: Record<st
   return sessions.map((s) => {
     const p = patches[s.id];
     if (!p) return s;
-    const { link, materials, notes, ...fields } = p;
-    return { ...s, ...fields };
+    const { link, notes, studentNames, ...fields } = p;
+    const next: AdminSession = { ...s, ...fields };
+    if (studentNames) next.students = studentNames.length;
+    return next;
   });
 }
 

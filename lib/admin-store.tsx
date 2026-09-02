@@ -31,6 +31,14 @@ import { isOfficeRequest, officeRequests } from "./office-requests";
 
 const OFFICE_KEY = "evr-admin-requests";
 
+/**
+ * An office edit to a class. Beyond the class's own fields it carries the roll
+ * by name and the meeting link, neither of which the seeded class record has a
+ * place for - the roll was inferred from whichever student records named the
+ * class, which is not something the office can edit.
+ */
+export type ClassPatch = Partial<AdminClass> & { studentNames?: string[]; link?: string };
+
 /** The office ledger as last edited, or freshly generated on a clean demo. */
 function readOfficeRequests(): BookletRequest[] {
   try {
@@ -78,8 +86,8 @@ interface AdminApi extends AdminState {
   /** Every file shared on the platform: the seeded ledger plus live assignments. */
   sharedFiles: SharedFileRow[];
   /** Office edits to a class (tutor, time, seats), applied over the seed data. */
-  classPatches: Record<string, Partial<AdminClass>>;
-  patchClass: (id: string, patch: Partial<AdminClass>) => void;
+  classPatches: Record<string, ClassPatch>;
+  patchClass: (id: string, patch: ClassPatch) => void;
   sessionPatches: Record<string, SessionPatch>;
   patchSession: (id: string, patch: SessionPatch) => void;
 }
@@ -179,15 +187,15 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   // Edits to classes. Persisted: an office that fixes a tutor's name expects
   // the fix to still be there tomorrow.
-  const [classPatches, setClassPatches] = useState<Record<string, Partial<AdminClass>>>(() => {
+  const [classPatches, setClassPatches] = useState<Record<string, ClassPatch>>(() => {
     try {
       const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-classes") : null;
-      return raw ? (JSON.parse(raw) as Record<string, Partial<AdminClass>>) : {};
+      return raw ? (JSON.parse(raw) as Record<string, ClassPatch>) : {};
     } catch {
       return {};
     }
   });
-  const patchClass = useCallback((id: string, patch: Partial<AdminClass>) => {
+  const patchClass = useCallback((id: string, patch: ClassPatch) => {
     setClassPatches((m) => {
       const next = { ...m, [id]: { ...m[id], ...patch } };
       try {
