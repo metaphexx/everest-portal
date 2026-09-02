@@ -142,8 +142,9 @@ export default function App() {
         <Route path="/admin/search" element={<AdminSearch />} />
       </Route>
 
-      {/* Print room: the same components, a deliberately smaller route table.
-          Anything not listed here does not exist for this role. */}
+      {/* The Admin (print) view: the same components as the Manager's portal
+          above, a deliberately smaller route table. Anything not listed here
+          does not exist for this role. */}
       <Route element={<StaffLayout />}>
         <Route path="/staff" element={<AdminDashboard />} />
         <Route path="/staff/approvals" element={<AdminApprovals />} />

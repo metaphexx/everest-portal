@@ -15,6 +15,7 @@ import {
   buildTutorClasses,
 } from "./tutor-data";
 import { STAFF } from "./admin-data";
+import { hourOf } from "./block";
 
 /**
  * A centre is the single most useful thing to know about a print request, so it
@@ -47,6 +48,25 @@ export interface AdminSession {
   /** Null for online classes - there is nothing to print, so the question does not apply. */
   booklet: BookletStatus | null;
   session?: number;
+  /** Whole-session length. Only the tutor-side courses declare one; the rest run an hour. */
+  durationMins?: number;
+}
+
+/** The office demo clock - Thursday 2 July 2026 at 7:00pm, the header's date. */
+export const OFFICE_NOW = { k: "2026-07-02", hour: 19 };
+
+/** Sessions on the clock's day that have started and have not finished. */
+export function runningNow(sessions: AdminSession[], now = OFFICE_NOW): AdminSession[] {
+  return sessions.filter((s) => {
+    if (s.k !== now.k) return false;
+    const start = hourOf(s.time);
+    return start <= now.hour && now.hour < start + (s.durationMins ?? 60) / 60;
+  });
+}
+
+/** The first session on the clock's day still to start, if any. */
+export function nextToday(sessions: AdminSession[], now = OFFICE_NOW): AdminSession | null {
+  return sessions.filter((s) => s.k === now.k && hourOf(s.time) > now.hour).sort((a, b) => hourOf(a.time) - hourOf(b.time))[0] ?? null;
 }
 
 const WEEKDAY: Record<string, number> = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
@@ -94,6 +114,7 @@ export function allSessions(extra: AdminSession[] = []): AdminSession[] {
       students: cd.students.length,
       booklet: cd.delivery === "online" ? null : c.booklet,
       session: c.session,
+      durationMins: cd.durationMins,
     });
   }
 

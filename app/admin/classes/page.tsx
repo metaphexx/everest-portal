@@ -7,6 +7,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useAdmin } from "@/lib/admin-store";
+import { useRole } from "@/lib/admin-role";
 import { Modal } from "@/components/ui/Modal";
 import { EditClassModal } from "@/components/admin/EditClassModal";
 import { Icon } from "@/components/ui/Icon";
@@ -81,6 +82,9 @@ function Roll({ cls, onClose, onEdit }: { cls: AdminClass; onClose: () => void; 
 
 export default function AdminClasses() {
   const { notWired, classPatches, patchClass } = useAdmin();
+  // The Admin (print) role reads this page for copy counts. The roll carries
+  // parent phone numbers and Edit changes enrolments - neither is its job.
+  const canEdit = useRole() === "office";
   // Office edits sit over the seed records, so a changed tutor or time shows
   // here, on the roll, and in the seats-left count without touching the seed.
   const classes = useMemo(() => allClasses().map((c) => ({ ...c, ...classPatches[c.id] })), [classPatches]);
@@ -187,19 +191,21 @@ export default function AdminClasses() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-                <button onClick={() => setRoll(c)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
-                  View the roll
-                </button>
-                {isBlock(c.id) && (
-                  <button onClick={() => setEnrolling(c.id)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
-                    Who takes what
+              {canEdit && (
+                <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+                  <button onClick={() => setRoll(c)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
+                    View the roll
                   </button>
-                )}
-                <button onClick={() => setEditing(c)} className="btn-ghost press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
-                  Edit
-                </button>
-              </div>
+                  {isBlock(c.id) && (
+                    <button onClick={() => setEnrolling(c.id)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
+                      Who takes what
+                    </button>
+                  )}
+                  <button onClick={() => setEditing(c)} className="btn-ghost press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
+                    Edit
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         );

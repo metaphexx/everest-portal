@@ -7,6 +7,7 @@
 import React, { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "@/lib/router";
 import { useAdmin } from "@/lib/admin-store";
+import { useBase, useRole } from "@/lib/admin-role";
 import { adminSearch } from "@/lib/admin-search";
 import { Icon } from "@/components/ui/Icon";
 
@@ -21,7 +22,9 @@ export default function AdminSearchPage() {
   const initial = params.get("q") ?? "";
   const [q, setQ] = useState(initial);
 
-  const results = useMemo(() => (q.trim() ? adminSearch(q.trim(), requests, 40) : []), [q, requests]);
+  const role = useRole();
+  const base = useBase();
+  const results = useMemo(() => (q.trim() ? adminSearch(q.trim(), requests, 40, { role, base }) : []), [q, requests, role, base]);
 
   const groups = useMemo(() => {
     const m = new Map<string, typeof results>();
@@ -46,7 +49,7 @@ export default function AdminSearchPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && q.trim()) router.push("/admin/search?q=" + encodeURIComponent(q.trim()));
+              if (e.key === "Enter" && q.trim()) router.push(base + "/search?q=" + encodeURIComponent(q.trim()));
             }}
             placeholder="Search classes, tutors, students, requests"
             aria-label="Search the portal"
@@ -88,7 +91,7 @@ export default function AdminSearchPage() {
       {q.trim() && results.length === 0 && (
         <div className="glass-card" style={{ gridColumn: "span 12", padding: "34px 22px", textAlign: "center" }}>
           <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Nothing matches &quot;{q.trim()}&quot;</div>
-          <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 6 }}>Try a student, a tutor, a class, a centre or a request reference.</div>
+          <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 6 }}>{role === "print" ? "Try a class, a centre or a request reference." : "Try a student, a tutor, a class, a centre or a request reference."}</div>
         </div>
       )}
     </div>

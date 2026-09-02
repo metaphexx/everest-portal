@@ -12,7 +12,7 @@
 import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
-import { APPROVAL_META, BookletRequest, DEFAULT_FORMAT, PRINTERS, PrintFormat } from "@/lib/tutor-data";
+import { APPROVAL_META, BookletRequest, DEFAULT_FORMAT, PRINTERS, PrintFormat, PrintingStatus } from "@/lib/tutor-data";
 import { centreStyle } from "@/lib/admin-schedule";
 import { centreOfPrinter } from "@/lib/tutor-data";
 
@@ -60,6 +60,7 @@ export function RequestDetail({
   onClose,
   onApprove,
   onReject,
+  onPrint,
   onUpdate,
   readOnly,
 }: {
@@ -67,6 +68,8 @@ export function RequestDetail({
   onClose: () => void;
   onApprove?: (id: string, note: string) => void;
   onReject?: (id: string, reason: string) => void;
+  /** The printing step after approval: mark the job printed, failed, or back in the queue. */
+  onPrint?: (id: string, printing: PrintingStatus) => void;
   /** Saves a corrected printer or print format back onto the request. */
   onUpdate?: (id: string, patch: { printer?: string; format?: PrintFormat }) => void;
   readOnly?: boolean;
@@ -234,8 +237,33 @@ export function RequestDetail({
         {(readOnly || r.approval !== "pending") && (
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap", alignItems: "center" }}>
             <span style={{ fontSize: 11.5, color: "var(--fg4)", flex: 1, minWidth: 0 }}>
-              {r.approval === "approved" ? "Approved and in the print queue." : r.approval === "rejected" ? "Rejected. The tutor has been told." : ""}
+              {r.approval === "approved"
+                ? r.printing === "completed"
+                  ? "Printed. It is in Print History."
+                  : r.printing === "failed"
+                    ? "Failed at the printer. The tutor has been told."
+                    : "Approved and in the print queue."
+                : r.approval === "rejected"
+                  ? "Rejected. The tutor has been told."
+                  : ""}
             </span>
+            {/* The printing step, once approved. Marking a job printed is what
+                moves it into Print History. */}
+            {!readOnly && onPrint && r.approval === "approved" && r.printing === "not_started" && (
+              <>
+                <button onClick={() => onPrint(r.id, "completed")} className="btn-primary press ev-tap-h" style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 700 }}>
+                  Mark as printed
+                </button>
+                <button onClick={() => onPrint(r.id, "failed")} className="btn-ghost press ev-tap-h" style={{ height: 42, padding: "0 16px", borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: "var(--danger-500)" }}>
+                  Print failed
+                </button>
+              </>
+            )}
+            {!readOnly && onPrint && r.approval === "approved" && r.printing === "failed" && (
+              <button onClick={() => onPrint(r.id, "not_started")} className="btn-soft press ev-tap-h" style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 700 }}>
+                Back to the print queue
+              </button>
+            )}
             <button onClick={onClose} className="btn-ghost press ev-tap-h" style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: "var(--fg2)" }}>
               Close
             </button>

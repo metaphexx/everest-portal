@@ -1,14 +1,15 @@
-// Office settings.
+// Office settings, for whichever role is signed in.
 //
 // Same shape as the tutor's settings page on purpose. The one difference is
-// the last card: what the office is told about. Safeguarding alerts are locked
-// on, exactly as they are for tutors - the office is the escalation point, so
-// there is nobody left to tell if it is switched off.
+// the last card: what this person is told about. For the Manager, safeguarding
+// alerts are locked on, exactly as they are for tutors - the office is the
+// escalation point, so there is nobody left to tell if it is switched off. The
+// Admin (print) role is not on that chain and only hears about printing.
 
 import React, { useState } from "react";
 import { useAdmin } from "@/lib/admin-store";
 import { Icon } from "@/components/ui/Icon";
-import { ADMIN } from "@/lib/admin-data";
+import { ROLE_META, useRole } from "@/lib/admin-role";
 
 const IC = {
   camera: "M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4ZM9 2 7.2 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3.2L15 2H9Zm3 16a6 6 0 1 1 0-12 6 6 0 0 1 0 12Z",
@@ -25,14 +26,23 @@ interface Pref {
 
 export default function AdminSettings() {
   const { showToast, notWired } = useAdmin();
-  const [email, setEmail] = useState(ADMIN.email);
-  const [phone, setPhone] = useState(ADMIN.phone);
-  const [prefs, setPrefs] = useState<Pref[]>([
-    { id: "requests", label: "New print requests", sub: "A tutor sends a request for approval", on: true },
-    { id: "failed", label: "Print failures", sub: "A job comes back failed from a printer", on: true },
-    { id: "trials", label: "Trials ending", sub: "A trial student is due a decision this week", on: true },
-    { id: "safeguard", label: "Safeguarding alerts", sub: "Always on. You are the escalation point.", on: true, locked: true },
-  ]);
+  const role = useRole();
+  const who = ROLE_META[role];
+  const [email, setEmail] = useState(who.email);
+  const [phone, setPhone] = useState(who.phone);
+  const [prefs, setPrefs] = useState<Pref[]>(
+    role === "print"
+      ? [
+          { id: "requests", label: "New print requests", sub: "A tutor sends a request for approval", on: true },
+          { id: "failed", label: "Print failures", sub: "A job comes back failed from a printer", on: true },
+        ]
+      : [
+          { id: "requests", label: "New print requests", sub: "A tutor sends a request for approval", on: true },
+          { id: "failed", label: "Print failures", sub: "A job comes back failed from a printer", on: true },
+          { id: "trials", label: "Trials ending", sub: "A trial student is due a decision this week", on: true },
+          { id: "safeguard", label: "Safeguarding alerts", sub: "Always on. You are the escalation point.", on: true, locked: true },
+        ]
+  );
 
   const toggle = (id: string) => setPrefs((p) => p.map((x) => (x.id === id || !x.locked ? (x.id === id ? { ...x, on: !x.on } : x) : x)));
 
@@ -42,13 +52,13 @@ export default function AdminSettings() {
         <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 14px" }}>Profile</h2>
 
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-          <span style={{ width: 62, height: 62, borderRadius: "50%", background: "linear-gradient(135deg,var(--accent-teal),var(--accent-navy-blue))", color: "#fff", fontSize: 19, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
-            {ADMIN.initials}
+          <span style={{ width: 62, height: 62, borderRadius: "50%", background: "linear-gradient(135deg," + who.accent + ",var(--accent-navy-blue))", color: "#fff", fontSize: 19, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
+            {who.initials}
           </span>
           <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: "block", fontSize: 14, fontWeight: 800 }}>{ADMIN.name}</span>
+            <span style={{ display: "block", fontSize: 14, fontWeight: 800 }}>{who.person}</span>
             <span style={{ display: "block", fontSize: 12, color: "var(--fg4)", marginTop: 2 }}>
-              {ADMIN.role} · {ADMIN.centre}
+              {who.label} · {who.centre}
             </span>
             <button onClick={() => notWired("Change photo")} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700, marginTop: 8, display: "inline-flex", alignItems: "center", gap: 7 }}>
               <Icon path={IC.camera} size={13} />

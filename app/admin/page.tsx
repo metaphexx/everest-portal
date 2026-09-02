@@ -7,13 +7,19 @@
 //
 // No donuts. A three-slice ring makes the legend do all the reading; sorted bars
 // carry the same numbers and can be read across a room.
+//
+// Two roles read this page. The Manager gets all of it. The Admin (print) role
+// gets the parts that end at a printer - what is running, what is upcoming,
+// what is to print - and none of the oversight: no safeguarding, no staff or
+// student counts, no stock planning.
 
 import React, { useMemo, useState } from "react";
 import Link from "@/components/ui/Link";
 import { useAdmin } from "@/lib/admin-store";
+import { useBase, useRole } from "@/lib/admin-role";
 import { Icon } from "@/components/ui/Icon";
 import { SAFEGUARDING, STAFF, allClasses, allStudents } from "@/lib/admin-data";
-import { AdminSession, allSessions, centreStyle, needsRequest } from "@/lib/admin-schedule";
+import { AdminSession, allSessions, centreStyle, needsRequest, nextToday, runningNow } from "@/lib/admin-schedule";
 import { DayList, MonthCalendar } from "@/components/admin/MonthCalendar";
 import { RequestDetail } from "@/components/admin/RequestDetail";
 import { BookletRequest } from "@/lib/tutor-data";
@@ -39,7 +45,10 @@ function Bar({ label, n, max, colour, note }: { label: string; n: number; max: n
 }
 
 export default function AdminDashboard() {
-  const { requests, pendingCount, toPrintCount, setApproval, updateRequest, scheduled } = useAdmin();
+  const { requests, pendingCount, toPrintCount, setApproval, setPrinting, updateRequest, scheduled } = useAdmin();
+  const role = useRole();
+  const base = useBase();
+  const isManager = role === "office";
   const [day, setDay] = useState<string | null>("2026-07-02");
   const [open, setOpen] = useState<BookletRequest | null>(null);
 
@@ -50,16 +59,30 @@ export default function AdminDashboard() {
 
   const printJobs = requests.filter((r) => (r.delivery ?? "print") === "print");
   const pending = printJobs.filter((r) => r.approval === "pending");
+  const toPrint = printJobs.filter((r) => r.approval === "approved" && r.printing === "not_started");
+  const failed = printJobs.filter((r) => r.approval === "approved" && r.printing === "failed");
+  const printed = printJobs.filter((r) => r.printing === "completed");
+
+  // What is in a room (or on a call) at the demo clock, and what starts next.
+  const live = useMemo(() => runningNow(sessions), [sessions]);
+  const next = useMemo(() => nextToday(sessions), [sessions]);
 
   // Sessions in the next fortnight whose booklets nobody has requested.
   const gaps = sessions.filter((s) => needsRequest(s) && s.k >= "2026-07-02" && s.k <= "2026-07-16");
 
-  const stats = [
-    { label: "TUTORS", value: STAFF.length, sub: STAFF.filter((s) => s.status === "active").length + " active this term", color: "var(--fg1)" },
-    { label: "CLASSES ASSIGNED", value: classes.length, sub: "across all centres and online", color: "var(--fg1)" },
-    { label: "STUDENTS", value: students.length, sub: "enrolled this term", color: "var(--fg1)" },
-    { label: "BOOKLET REQUESTS", value: printJobs.length, sub: pendingCount + " waiting on you", color: pendingCount ? "var(--warn-700)" : "var(--fg1)" },
-  ];
+  const stats = isManager
+    ? [
+        { label: "TUTORS", value: STAFF.length, sub: STAFF.filter((s) => s.status === "active").length + " active this term", color: "var(--fg1)" },
+        { label: "CLASSES ASSIGNED", value: classes.length, sub: "across all centres and online", color: "var(--fg1)" },
+        { label: "STUDENTS", value: students.length, sub: "enrolled this term", color: "var(--fg1)" },
+        { label: "BOOKLET REQUESTS", value: printJobs.length, sub: pendingCount + " waiting on you", color: pendingCount ? "var(--warn-700)" : "var(--fg1)" },
+      ]
+    : [
+        { label: "CLASSES", value: classes.length, sub: "across all centres and online", color: "var(--fg1)" },
+        { label: "TO APPROVE", value: pendingCount, sub: "requests from tutors", color: pendingCount ? "var(--warn-700)" : "var(--fg1)" },
+        { label: "TO PRINT", value: toPrintCount, sub: failed.length ? failed.length + " failed at the printer" : "approved, not yet printed", color: toPrintCount ? "var(--brand-600)" : "var(--fg1)" },
+        { label: "PRINTED", value: printed.length, sub: "jobs this term", color: "var(--fg1)" },
+      ];
 
   // Copies requested per subject, biggest first. Derived from the live requests,
   // so the bars can never disagree with the queue.
@@ -87,7 +110,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 16 }}>
-      {openFlags.length > 0 && (
+      {isManager && openFlags.length > 0 && (
         <div className="glass-card ev-wrap-row" style={{ gridColumn: "span 12", padding: "14px 20px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 14, border: "1px solid rgba(224,65,65,.3)", background: "rgba(224,65,65,.06)", animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
           <span style={{ width: 34, height: 34, borderRadius: 11, background: "rgba(224,65,65,.12)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
             <Icon path={IC.alert} size={16} style={{ color: "var(--danger-500)" }} />
@@ -96,7 +119,7 @@ export default function AdminDashboard() {
             {openFlags.length === 1 ? "1 flagged message needs a person" : openFlags.length + " flagged messages need a person"}
             <span style={{ display: "block", fontSize: 11.5, fontWeight: 500, color: "var(--fg3)", marginTop: 2 }}>{openFlags.map((f) => f.student).join(", ")}</span>
           </span>
-          <Link href="/admin/safeguarding" className="press ev-tap-h ev-wrap-cta" style={{ height: 36, padding: "0 15px", borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", background: "var(--danger-500)", color: "#fff" }}>
+          <Link href={base + "/safeguarding"} className="press ev-tap-h ev-wrap-cta" style={{ height: 36, padding: "0 15px", borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", background: "var(--danger-500)", color: "#fff" }}>
             Open safeguarding
           </Link>
         </div>
@@ -109,11 +132,15 @@ export default function AdminDashboard() {
 
       <div className="glass-card" style={{ gridColumn: "span 5", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .08s backwards", display: "flex", flexDirection: "column" }}>
         <DayList dayKey={day} sessions={sessions} onOpenRequest={openRequestFor} />
-        <div style={{ marginTop: "auto", paddingTop: 14 }}>
-          <Link href="/admin/schedule" className="btn-soft press ev-tap-h" style={{ height: 40, borderRadius: 11, fontSize: 12.5, fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            Open the full schedule
-          </Link>
-        </div>
+        {/* Only the Manager has a Schedule page; for the Admin role the
+            calendar beside this IS the schedule. */}
+        {isManager && (
+          <div style={{ marginTop: "auto", paddingTop: 14 }}>
+            <Link href={base + "/schedule"} className="btn-soft press ev-tap-h" style={{ height: 40, borderRadius: 11, fontSize: 12.5, fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              Open the full schedule
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Classes running soon with nothing requested. This is the line that
@@ -127,7 +154,7 @@ export default function AdminDashboard() {
               {gaps.length > 3 ? " and " + (gaps.length - 3) + " more" : ""}
             </span>
           </span>
-          <Link href="/admin/approvals" className="btn-ghost press ev-tap-h ev-wrap-cta" style={{ height: 36, padding: "0 15px", borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", color: "var(--fg2)" }}>
+          <Link href={base + "/approvals"} className="btn-ghost press ev-tap-h ev-wrap-cta" style={{ height: 36, padding: "0 15px", borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", color: "var(--fg2)" }}>
             Chase the tutors
           </Link>
         </div>
@@ -141,12 +168,76 @@ export default function AdminDashboard() {
         </div>
       ))}
 
+      {/* ---- TO PRINT ---- the print desk's actual work list */}
+      <div className="glass-card" style={{ gridColumn: "span 7", alignSelf: "start", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .22s backwards" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+          <h2 className="portal-section-title" style={{ fontSize: 15, margin: 0 }}>To print</h2>
+          <span className="ev-spacer-flex" style={{ flex: 1 }} />
+          <Link href={base + "/history"} style={{ fontSize: 12, fontWeight: 700, color: "var(--accent-teal)", textDecoration: "none" }} className="ev-tap-link">
+            Open print history
+          </Link>
+        </div>
+        {toPrint.length === 0 && <div style={{ padding: "20px 4px", textAlign: "center", fontSize: 12.5, color: "var(--fg4)" }}>Nothing to print. Every approved job is done.</div>}
+        {toPrint.map((r) => {
+          const cs = centreStyle(r.printer.startsWith("Harrisdale") ? "Harrisdale SHS" : r.printer.startsWith("Piara") ? "Piara Waters" : "Head office");
+          return (
+            <div key={r.id} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 0", borderTop: "1px solid rgba(0,32,63,.07)" }}>
+              <span style={{ flex: "none", width: 4, alignSelf: "stretch", borderRadius: 2, background: cs.colour }} />
+              <span className="ev-wrap-main" style={{ flex: "1 0 auto", minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: 12.5, fontWeight: 700 }}>{r.classText}</span>
+                <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 3 }}>
+                  {r.items.reduce((n, i) => n + i.qty, 0)} copies · {r.printer} · for {r.date}
+                </span>
+              </span>
+              <span className="ev-wrap-cta" style={{ display: "flex", gap: 8, flex: "none" }}>
+                <button onClick={() => setOpen(r)} className="btn-ghost press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
+                  Open
+                </button>
+                <button onClick={() => setPrinting(r.id, "completed")} className="btn-primary press ev-tap-h" style={{ height: 34, padding: "0 14px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
+                  Mark as printed
+                </button>
+              </span>
+            </div>
+          );
+        })}
+        {failed.length > 0 && (
+          <div style={{ marginTop: 10, borderRadius: 10, background: "rgba(224,65,65,.07)", padding: "9px 12px", fontSize: 11.5, color: "var(--danger-500)", lineHeight: 1.5 }}>
+            {failed.length} job{failed.length === 1 ? "" : "s"} failed at the printer: {failed.map((r) => r.classText).join(", ")}. Open Booklet Requests to send {failed.length === 1 ? "it" : "them"} back to the queue.
+          </div>
+        )}
+      </div>
+
+      {/* ---- RUNNING NOW ---- what is in a room or on a call at this minute */}
+      <div className="glass-card" style={{ gridColumn: "span 5", alignSelf: "start", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .25s backwards" }}>
+        <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 4px" }}>Running now</h2>
+        <p style={{ margin: "0 0 10px", fontSize: 11.5, color: "var(--fg3)" }}>Classes in session at this minute, and what starts next today.</p>
+        {live.length === 0 && <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "8px 0" }}>No class is running right now.</div>}
+        {live.map((s) => {
+          const cs = centreStyle(s.centre);
+          return (
+            <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 0", borderTop: "1px solid rgba(0,32,63,.07)" }}>
+              <span style={{ flex: "none", width: 4, alignSelf: "stretch", borderRadius: 2, background: cs.colour }} />
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: 12.5, fontWeight: 700 }}>{s.className}</span>
+                <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 2 }}>
+                  {s.time} · {s.tutor} · {s.centre} · {s.students} students
+                </span>
+              </span>
+              <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.4, color: "var(--success-700)", background: "rgba(34,160,91,.12)", padding: "4px 10px", borderRadius: 980, flex: "none" }}>LIVE</span>
+            </div>
+          );
+        })}
+        <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(0,32,63,.07)", lineHeight: 1.5 }}>
+          {next ? "Next today: " + next.className + " at " + next.time + " · " + next.centre : "Nothing more today."}
+        </div>
+      </div>
+
       {/* ---- WAITING ON APPROVAL ---- */}
       <div className="glass-card" style={{ gridColumn: "span 7", alignSelf: "start", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .28s backwards" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
           <h2 className="portal-section-title" style={{ fontSize: 15, margin: 0 }}>Waiting on your approval</h2>
           <span className="ev-spacer-flex" style={{ flex: 1 }} />
-          <Link href="/admin/approvals" style={{ fontSize: 12, fontWeight: 700, color: "var(--accent-teal)", textDecoration: "none" }} className="ev-tap-link">
+          <Link href={base + "/approvals"} style={{ fontSize: 12, fontWeight: 700, color: "var(--accent-teal)", textDecoration: "none" }} className="ev-tap-link">
             Open booklet requests
           </Link>
         </div>
@@ -194,15 +285,17 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ---- MOST REQUESTED SUBJECTS ---- */}
-      <div className="glass-card" style={{ gridColumn: "span 12", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .38s backwards" }}>
-        <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 4px" }}>Most requested subjects</h2>
-        <p style={{ margin: "0 0 8px", fontSize: 11.5, color: "var(--fg3)" }}>Copies requested this term, so you can see what to keep in stock.</p>
-        {subjects.length === 0 && <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "10px 0" }}>Nothing requested yet this term.</div>}
-        {subjects.map((s) => (
-          <Bar key={s.label} label={s.label} n={s.n} max={subjects[0].n} colour="var(--accent-teal)" note="copies" />
-        ))}
-      </div>
+      {/* ---- MOST REQUESTED SUBJECTS ---- stock planning, a Manager question */}
+      {isManager && (
+        <div className="glass-card" style={{ gridColumn: "span 12", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .38s backwards" }}>
+          <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 4px" }}>Most requested subjects</h2>
+          <p style={{ margin: "0 0 8px", fontSize: 11.5, color: "var(--fg3)" }}>Copies requested this term, so you can see what to keep in stock.</p>
+          {subjects.length === 0 && <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "10px 0" }}>Nothing requested yet this term.</div>}
+          {subjects.map((s) => (
+            <Bar key={s.label} label={s.label} n={s.n} max={subjects[0].n} colour="var(--accent-teal)" note="copies" />
+          ))}
+        </div>
+      )}
 
       <RequestDetail
         request={open}
@@ -213,6 +306,10 @@ export default function AdminDashboard() {
         }}
         onReject={(id, reason) => {
           setApproval(id, "rejected", reason);
+          setOpen(null);
+        }}
+        onPrint={(id, printing) => {
+          setPrinting(id, printing);
           setOpen(null);
         }}
         onUpdate={updateRequest}

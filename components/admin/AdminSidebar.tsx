@@ -5,8 +5,8 @@
 // away; here every destination is one click and the master screens share a
 // single page with a tab strip.
 //
-// The print-room role gets a strict subset: the queue, the history, and the
-// classes that need booklets. Nothing about tutors, students, files or
+// The Admin (print) role gets a strict subset: the request queue, the history,
+// and the classes that need booklets. Nothing about tutors, students, files or
 // safeguarding is rendered or routed for them.
 
 import React from "react";
@@ -17,6 +17,8 @@ import { useAdmin } from "@/lib/admin-store";
 import { ROLE_META, useBase, useRole } from "@/lib/admin-role";
 import { SAFEGUARDING } from "@/lib/admin-data";
 import { DrawerAccount } from "@/components/portal/DrawerAccount";
+
+const SWAP = "M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3ZM9 3 5 6.99h3V14h2V6.99h3L9 3Z";
 
 interface NavItem {
   href: string;
@@ -69,13 +71,14 @@ export function AdminSidebar() {
   const role = useRole();
   const base = useBase();
   const meta = ROLE_META[role];
-  const { pendingCount } = useAdmin();
+  const { pendingCount, toPrintCount } = useAdmin();
   const openFlags = SAFEGUARDING.filter((f) => f.status === "open").length;
   const isPrint = role === "print";
 
   const MAIN: NavItem[] = [{ href: base, label: "Dashboard", icon: ICON.grid }];
+  // The Admin role both approves and prints, so its badge counts both jobs.
   const QUEUES: NavItem[] = [
-    { href: base + "/approvals", label: isPrint ? "To Print" : "Booklet Requests", icon: ICON.clipboard, badge: pendingCount },
+    { href: base + "/approvals", label: "Booklet Requests", icon: ICON.clipboard, badge: isPrint ? pendingCount + toPrintCount : pendingCount },
     { href: base + "/history", label: "Print History", icon: ICON.play },
   ];
   const RECORDS: NavItem[] = isPrint
@@ -140,6 +143,8 @@ export function AdminSidebar() {
         {OVERSIGHT.map((n) => (
           <NavLink key={n.href} item={n} active={isActive(pathname, n.href, base)} accent={meta.accent} />
         ))}
+        {/* Demo affordance: a real login lands on one view or the other. */}
+        <NavLink item={{ href: meta.switchTo, label: meta.switchLabel, icon: SWAP }} active={false} accent={meta.accent} />
       </nav>
     </aside>
   );

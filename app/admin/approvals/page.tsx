@@ -14,6 +14,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useAdmin } from "@/lib/admin-store";
+import { useRole } from "@/lib/admin-role";
 import { Icon } from "@/components/ui/Icon";
 import { APPROVAL_META, BookletRequest, DEFAULT_FORMAT, PRINTING_META, centreOfPrinter } from "@/lib/tutor-data";
 import { allSessions, centreStyle, needsRequest } from "@/lib/admin-schedule";
@@ -37,8 +38,11 @@ const FILTERS: { id: Filter; label: string; colour: string }[] = [
 ];
 
 export default function AdminApprovals() {
-  const { requests, setApproval, updateRequest, scheduled, notWired } = useAdmin();
-  const [filter, setFilter] = useState<Filter>("pending");
+  const { requests, setApproval, setPrinting, updateRequest, scheduled, notWired } = useAdmin();
+  const isPrint = useRole() === "print";
+  // The Admin role approves AND prints, so its queue opens on everything
+  // actionable rather than on the pending slice alone.
+  const [filter, setFilter] = useState<Filter>(isPrint ? "all" : "pending");
   const [centre, setCentre] = useState("All");
   const [view, setView] = useState<"cards" | "table">("cards");
   const [day, setDay] = useState<string | null>(null);
@@ -285,6 +289,8 @@ export default function AdminApprovals() {
 
                 {r.remark && <div style={{ fontSize: 11.5, color: "var(--fg3)", marginTop: 9, fontStyle: "italic", lineHeight: 1.5 }}>&ldquo;{r.remark}&rdquo;</div>}
 
+                {/* The next action for this job, whichever stage it is at: a
+                    decision while pending, then the printing itself. */}
                 <div style={{ display: "flex", gap: 8, marginTop: "auto", paddingTop: 14, flexWrap: "wrap" }}>
                   {r.approval === "pending" ? (
                     <>
@@ -293,6 +299,24 @@ export default function AdminApprovals() {
                       </button>
                       <button onClick={() => setOpen(r)} className="btn-ghost press ev-tap-h" style={{ height: 38, padding: "0 14px", borderRadius: 11, fontSize: 12, fontWeight: 600, color: "var(--fg2)" }}>
                         Open and edit
+                      </button>
+                    </>
+                  ) : r.approval === "approved" && r.printing === "not_started" ? (
+                    <>
+                      <button onClick={() => setPrinting(r.id, "completed")} className="btn-primary press ev-tap-h" style={{ height: 38, padding: "0 16px", borderRadius: 11, fontSize: 12, fontWeight: 700 }}>
+                        Mark as printed
+                      </button>
+                      <button onClick={() => setOpen(r)} className="btn-ghost press ev-tap-h" style={{ height: 38, padding: "0 14px", borderRadius: 11, fontSize: 12, fontWeight: 600, color: "var(--fg2)" }}>
+                        Open
+                      </button>
+                    </>
+                  ) : r.approval === "approved" && r.printing === "failed" ? (
+                    <>
+                      <button onClick={() => setPrinting(r.id, "not_started")} className="btn-soft press ev-tap-h" style={{ height: 38, padding: "0 16px", borderRadius: 11, fontSize: 12, fontWeight: 700 }}>
+                        Back to the print queue
+                      </button>
+                      <button onClick={() => setOpen(r)} className="btn-ghost press ev-tap-h" style={{ height: 38, padding: "0 14px", borderRadius: 11, fontSize: 12, fontWeight: 600, color: "var(--fg2)" }}>
+                        Open
                       </button>
                     </>
                   ) : (
@@ -315,6 +339,10 @@ export default function AdminApprovals() {
         }}
         onReject={(id, reason) => {
           setApproval(id, "rejected", reason);
+          setOpen(null);
+        }}
+        onPrint={(id, printing) => {
+          setPrinting(id, printing);
           setOpen(null);
         }}
         onUpdate={updateRequest}

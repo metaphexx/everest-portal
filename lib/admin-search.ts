@@ -5,6 +5,15 @@
 import { Indexable, rank } from "./search-core";
 import { ADMIN_NAV, SAFEGUARDING, STAFF, allClasses, allStudents } from "./admin-data";
 import { BookletRequest, CATALOGUE } from "./tutor-data";
+import type { AdminRole } from "./admin-role";
+
+/**
+ * What the Admin (print) role can reach. Everything else is a Manager screen,
+ * and a search result must never link to a page the role's route table does
+ * not have - it would land on the 404.
+ */
+const PRINT_PAGES = new Set(["/admin", "/admin/approvals", "/admin/history", "/admin/classes", "/admin/settings"]);
+const PRINT_KINDS = new Set(["Page", "Class", "Request"]);
 
 const DESTINATIONS: Indexable[] = [
   { name: "Dashboard", meta: "The day at a glance", kind: "Page", color: "#0E9C8E", page: "/admin", keywords: "home overview today", boost: 30 },
@@ -76,6 +85,10 @@ export function buildAdminIndex(requests: BookletRequest[] = []): Indexable[] {
   return idx;
 }
 
-export function adminSearch(query: string, requests: BookletRequest[] = [], limit = 10) {
-  return rank(buildAdminIndex(requests), query, limit);
+export function adminSearch(query: string, requests: BookletRequest[] = [], limit = 10, opts: { role?: AdminRole; base?: string } = {}) {
+  const { role = "office", base = "/admin" } = opts;
+  let idx = buildAdminIndex(requests);
+  if (role === "print") idx = idx.filter((i) => PRINT_KINDS.has(i.kind ?? "") && PRINT_PAGES.has((i.page ?? "").split("?")[0]));
+  if (base !== "/admin") idx = idx.map((i) => ({ ...i, page: (i.page ?? "").replace(/^\/admin/, base) }));
+  return rank(idx, query, limit);
 }
