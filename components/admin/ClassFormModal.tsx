@@ -23,6 +23,8 @@ import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
 import { COURSES } from "@/lib/admin-masters";
 import { STAFF, allStudents } from "@/lib/admin-data";
+import { useAdmin } from "@/lib/admin-store";
+import { studentBusyAt } from "@/lib/admin-schedule";
 import { MeetLinkField } from "@/components/admin/MeetLinkField";
 import { PeoplePicker, PickerOption } from "@/components/admin/PeoplePicker";
 
@@ -90,6 +92,7 @@ export function ClassFormModal({
   scope,
   initial,
   subtitle,
+  excludeClassId,
   onClose,
   onSubmit,
 }: {
@@ -98,9 +101,12 @@ export function ClassFormModal({
   initial?: ClassFormInitial;
   /** A line under the title, e.g. which class or which date is being changed. */
   subtitle?: string;
+  /** The class being edited - a student is not "clashing" with the class they are already in. */
+  excludeClassId?: string;
   onClose: () => void;
   onSubmit: (v: ClassFormValues) => void;
 }) {
+  const { classPatches } = useAdmin();
   const firstCourse = COURSES.find((c) => c.active) ?? COURSES[0];
   const [title, setTitle] = useState(initial?.title ?? "");
   const [course, setCourse] = useState(initial?.course ?? firstCourse.name);
@@ -138,16 +144,39 @@ export function ClassFormModal({
     return [...eligible, ...extra];
   }, [initial?.tutors]);
 
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  const startMin = sh * 60 + sm;
+  const endMin = eh * 60 + em;
+  const mins = endMin - startMin;
+
+  // Which day of the week the class lands on. A class names its weekday; a
+  // session carries a date, and the date decides it.
+  const weekday = useMemo(() => {
+    if (scope === "class") return (WEEKDAYS.indexOf(day) + 1) % 7;
+    const d = new Date(day + "T12:00:00");
+    return Number.isNaN(d.getTime()) ? -1 : d.getDay();
+  }, [scope, day]);
+
+  // The year level tells you who a person is; the clash tells you whether you
+  // can have them. Listing every class they are in did neither.
   const studentOptions: PickerOption[] = useMemo(
-    () => allStudents().map((s) => ({ id: s.name, label: s.name, meta: s.year + " · " + s.classNames.join(", "), initials: s.initials })),
-    []
+    () =>
+      allStudents().map((s) => {
+        const busy = weekday < 0 || mins <= 0 ? [] : studentBusyAt(s.name, weekday, startMin, endMin, { patches: classPatches, excludeClassId });
+        return {
+          id: s.name,
+          label: s.name,
+          meta: s.year,
+          warn: busy.length ? "Busy " + busy[0].when + " · " + busy[0].className + (busy.length > 1 ? " and " + (busy.length - 1) + " more" : "") : undefined,
+          initials: s.initials,
+        };
+      }),
+    [weekday, startMin, endMin, mins, classPatches, excludeClassId]
   );
 
-  const mins = (() => {
-    const [sh, sm] = start.split(":").map(Number);
-    const [eh, em] = end.split(":").map(Number);
-    return eh * 60 + em - (sh * 60 + sm);
-  })();
+  /** Students already chosen who cannot actually make it. */
+  const clashing = useMemo(() => students.filter((n) => studentOptions.find((o) => o.id === n)?.warn), [students, studentOptions]);
 
   // A new class must have somewhere to meet. An existing one already runs, and
   // the seeded classes predate the link field, so requiring it on edit would
@@ -315,6 +344,23 @@ export function ClassFormModal({
             emptyHint="Add them here and the roll, the class size and the seats left all follow from it."
           />
         </Row>
+
+        {/* A clash can appear AFTER the students were chosen, by moving the
+            time. The picker's own warnings are inside a closed dropdown by
+            then, so the ones that matter are repeated here. */}
+        {clashing.length > 0 && (
+          <div style={{ marginTop: 10, borderRadius: 12, background: "rgba(245,166,35,.09)", padding: "11px 13px" }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--warn-700)", lineHeight: 1.5 }}>
+              {clashing.length === 1 ? clashing[0] + " is" : clashing.length + " students are"} already in another class at this time
+            </div>
+            <div style={{ fontSize: 11, color: "var(--fg3)", marginTop: 4, lineHeight: 1.55 }}>
+              {clashing
+                .map((n) => n + " (" + (studentOptions.find((o) => o.id === n)?.warn ?? "").replace(/^Busy /, "") + ")")
+                .join(", ")}
+              . Move the time or take them off the class.
+            </div>
+          </div>
+        )}
 
         <div style={{ marginTop: 12 }}>
           <MeetLinkField value={link} onChange={setLink} required={needsLink} />

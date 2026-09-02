@@ -13,10 +13,11 @@ import {
   DeliveryMode,
   TUTOR_COURSES,
   TutorClass,
+  TutorCourseId,
   bookletStatusFromRequest,
   buildTutorClasses,
 } from "./tutor-data";
-import { STAFF } from "./admin-data";
+import { STAFF, allClasses } from "./admin-data";
 import { hourOf } from "./block";
 
 /**
@@ -88,6 +89,68 @@ export function applySessionPatches(sessions: AdminSession[], patches: Record<st
     if (studentNames) next.students = studentNames.length;
     return next;
   });
+}
+
+// ---------------------------------------------------------------------------
+// Clashes
+// ---------------------------------------------------------------------------
+
+/** A class a student is already in at the time being asked about. */
+export interface BusyClass {
+  className: string;
+  /** As the office writes it, e.g. "Tuesdays 5:00pm to 8:00pm". */
+  when: string;
+}
+
+/** "7:00pm" -> 1140 minutes past midnight. */
+function minutesOf(display: string): number {
+  const m = display.match(/(\d{1,2}):(\d{2})\s*(am|pm)/i);
+  if (!m) return 0;
+  let h = Number(m[1]) % 12;
+  if (/pm/i.test(m[3])) h += 12;
+  return h * 60 + Number(m[2]);
+}
+
+/** Who is on a class's roll. Only the tutor courses carry named students. */
+function rollOf(classId: string, patched?: string[]): string[] {
+  if (patched) return patched;
+  const c = TUTOR_COURSES[classId as TutorCourseId];
+  return c ? c.students.map((s) => s.name) : [];
+}
+
+/**
+ * The classes a student already has that overlap a proposed time.
+ *
+ * Listing what a student is enrolled in looked like a safety net but was not
+ * one: it never said whether any of it collided with the class being scheduled,
+ * so the office still had to hold the timetable in its head. This answers the
+ * question that actually prevents a double booking.
+ *
+ * `weekday` is a JavaScript day number (0 = Sunday), and the window is minutes
+ * past midnight. Two classes clash when they overlap at all, not merely when
+ * they start together.
+ */
+export function studentBusyAt(
+  student: string,
+  weekday: number,
+  startMin: number,
+  endMin: number,
+  opts: { patches?: Record<string, { sched?: string; studentNames?: string[] }>; excludeClassId?: string } = {}
+): BusyClass[] {
+  const { patches = {}, excludeClassId } = opts;
+  const out: BusyClass[] = [];
+  for (const c of allClasses()) {
+    if (c.id === excludeClassId) continue;
+    const p = patches[c.id];
+    if (!rollOf(c.id, p?.studentNames).includes(student)) continue;
+    const sched = p?.sched ?? c.sched;
+    if (dayOf(sched) !== weekday) continue;
+    const s = minutesOf(timeOf(sched));
+    // Only the tutor courses model a length; an hour is the sane default.
+    const e = s + (TUTOR_COURSES[c.id as TutorCourseId]?.durationMins ?? 60);
+    if (s < endMin && startMin < e) out.push({ className: c.name, when: sched });
+  }
+  return out;
 }
 
 /** The office demo clock - Thursday 2 July 2026 at 7:00pm, the header's date. */

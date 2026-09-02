@@ -248,6 +248,7 @@ export default function AdminClasses() {
           mode="edit"
           scope="class"
           subtitle={editing.year + " · online · changes apply every week"}
+          excludeClassId={editing.id}
           initial={{
             title: editing.name,
             // "Thursdays 7:00pm" is one field holding two facts; the form asks

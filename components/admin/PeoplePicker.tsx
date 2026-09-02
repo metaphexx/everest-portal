@@ -26,6 +26,12 @@ export interface PickerOption {
   label: string;
   /** Second line in the list, e.g. a year group or which centres they cover. */
   meta?: string;
+  /**
+   * A problem with picking this person, shown in amber under the meta line -
+   * a clash with something already in their timetable. Only rows with an
+   * actual problem carry one, so the list stays quiet until it matters.
+   */
+  warn?: string;
   initials: string;
   colour?: string;
 }
@@ -183,6 +189,11 @@ export function PeoplePicker({
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "var(--fg1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.label}</span>
                   {o.meta && <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.meta}</span>}
+                  {o.warn && (
+                    <span style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--warn-700)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 1 }}>
+                      {o.warn}
+                    </span>
+                  )}
                 </span>
                 <span
                   style={{ width: 20, height: 20, borderRadius: 6, flex: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", border: on ? "none" : "1.5px solid rgba(0,32,63,.16)", background: on ? "var(--brand-500)" : "transparent", color: "#fff" }}

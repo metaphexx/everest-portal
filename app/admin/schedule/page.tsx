@@ -173,6 +173,9 @@ export default function AdminSchedule() {
           mode="edit"
           scope="session"
           subtitle="Changes apply to this session only, not to every week."
+          // A session id is "<classId>:<date>", and a student is not clashing
+          // with the very class this session belongs to.
+          excludeClassId={editing.id.split(":")[0]}
           initial={{
             title: editing.className,
             day: editing.k,
