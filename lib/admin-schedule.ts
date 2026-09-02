@@ -54,6 +54,35 @@ export interface AdminSession {
   durationMins?: number;
 }
 
+/**
+ * An office edit to one dated session. The first block are fields of the
+ * session itself; the rest are things the office attaches to a lesson that the
+ * timetable does not model - the meeting link, what is being handed out, and a
+ * note for the tutor.
+ */
+export interface SessionPatch {
+  className?: string;
+  k?: string;
+  time?: string;
+  tutor?: string;
+  students?: number;
+  durationMins?: number;
+  link?: string;
+  materials?: string[];
+  notes?: string;
+}
+
+/** Overlay the office's edits onto the generated sessions. */
+export function applySessionPatches(sessions: AdminSession[], patches: Record<string, SessionPatch>): AdminSession[] {
+  if (!patches || Object.keys(patches).length === 0) return sessions;
+  return sessions.map((s) => {
+    const p = patches[s.id];
+    if (!p) return s;
+    const { link, materials, notes, ...fields } = p;
+    return { ...s, ...fields };
+  });
+}
+
 /** The office demo clock - Thursday 2 July 2026 at 7:00pm, the header's date. */
 export const OFFICE_NOW = { k: "2026-07-02", hour: 19 };
 

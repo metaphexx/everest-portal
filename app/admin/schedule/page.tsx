@@ -6,11 +6,14 @@
 // is coming, which is what the office reads on a Monday morning.
 
 import React, { useMemo, useState } from "react";
+import { useRouter } from "@/lib/router";
 import { useAdmin } from "@/lib/admin-store";
 import { Icon } from "@/components/ui/Icon";
 import { DayList, MonthCalendar } from "@/components/admin/MonthCalendar";
 import { ScheduleClassModal } from "@/components/admin/ScheduleClassModal";
-import { allSessions, centreStyle, needsRequest } from "@/lib/admin-schedule";
+import { ClassViewModal } from "@/components/admin/ClassViewModal";
+import { EditSessionModal } from "@/components/admin/EditSessionModal";
+import { AdminSession, allSessions, applySessionPatches, centreStyle, needsRequest } from "@/lib/admin-schedule";
 import { BOOKLET_META } from "@/lib/tutor-data";
 
 const IC = {
@@ -18,11 +21,32 @@ const IC = {
 };
 
 export default function AdminSchedule() {
-  const { scheduled, addScheduledClass, notWired, requests } = useAdmin();
+  const { scheduled, addScheduledClass, requests, assignments, sessionPatches, patchSession } = useAdmin();
+  const router = useRouter();
   const [day, setDay] = useState<string | null>("2026-07-02");
   const [adding, setAdding] = useState(false);
+  const [viewing, setViewing] = useState<AdminSession | null>(null);
+  const [editing, setEditing] = useState<AdminSession | null>(null);
 
-  const sessions = useMemo(() => allSessions(scheduled, requests), [scheduled, requests]);
+  const sessions = useMemo(
+    () => applySessionPatches(allSessions(scheduled, requests), sessionPatches),
+    [scheduled, requests, sessionPatches]
+  );
+
+  /**
+   * Editing an ONLINE class is editing this lesson - its time, its tutor, its
+   * link - so it happens here. An in-person class is a room and a tutor
+   * allocation at a centre, which is master data; sending the office to the
+   * form instead would let it change a thing the timetable does not own.
+   */
+  const editSession = (s: AdminSession) => {
+    setViewing(null);
+    if (s.delivery === "online") {
+      setEditing(s);
+      return;
+    }
+    router.push("/admin/masters?tab=course-tutors");
+  };
   const upcoming = useMemo(() => sessions.filter((s) => s.k >= "2026-07-02").slice(0, 24), [sessions]);
 
   return (
@@ -91,8 +115,11 @@ export default function AdminSchedule() {
                       {BOOKLET_META[s.booklet].label}
                     </span>
                   )}
-                  <button onClick={() => notWired("Edit class")} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
-                    Edit
+                  {/* Viewing comes first: the office opens a class to check
+                      what it is far more often than to change it, and editing
+                      is one click on from here. */}
+                  <button onClick={() => setViewing(s)} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
+                    View class
                   </button>
                 </span>
               </div>
@@ -102,6 +129,25 @@ export default function AdminSchedule() {
       </div>
 
       {adding && <ScheduleClassModal onClose={() => setAdding(false)} onCreate={addScheduledClass} defaultDay={day} />}
+
+      {viewing && (
+        <ClassViewModal
+          session={viewing}
+          request={requests.find((r) => r.classId === viewing.id)}
+          assignments={assignments.filter((a) => (a.sessionISO ?? "").slice(0, 10) === viewing.k)}
+          onClose={() => setViewing(null)}
+          onEdit={() => editSession(viewing)}
+        />
+      )}
+
+      {editing && (
+        <EditSessionModal
+          session={editing}
+          patch={sessionPatches[editing.id]}
+          onClose={() => setEditing(null)}
+          onSave={patchSession}
+        />
+      )}
     </div>
   );
 }
