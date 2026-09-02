@@ -122,13 +122,15 @@ export default function AdminHistory() {
     {
       key: "b",
       label: "Booklet",
+      // The button needs its own truncation: a nested box does not inherit the
+      // cell's ellipsis, so a long booklet name would run under the next column.
       render: (r) => (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: centreStyle(centreOfPrinter(r.printer)).colour, flex: "none" }} />
           <button
             onClick={() => setPreview(r)}
             className="press ev-tap-h"
-            style={{ border: "none", background: "none", padding: 0, font: "inherit", fontWeight: 700, color: "var(--brand-600)", textAlign: "left", cursor: "pointer" }}
+            style={{ border: "none", background: "none", padding: 0, font: "inherit", fontWeight: 700, color: "var(--brand-600)", textAlign: "left", cursor: "pointer", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
           >
             {r.items.map((i) => i.name).join(", ")}
           </button>

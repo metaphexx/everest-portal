@@ -83,21 +83,26 @@ export default function AdminApprovals() {
       // Year level, subject and day stay on one line - it reads as the class
       // you would say out loud. A custom request has no class behind it, so it
       // is called out rather than left looking like a row with a missing name.
+      // A table cell truncates on one line. Never let the dot and the text be
+      // two wrappable flex items: flex-wrap is a separate mechanism from the
+      // cell's white-space: nowrap, so a long class name dropped BELOW the dot
+      // instead of ellipsising. The dot holds its size, the name shrinks, and
+      // the custom badge is the last thing to go.
       render: (r) => (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: centreStyle(centreOf(r)).colour, flex: "none" }} />
-          {isCustomRequest(r) ? (
-            <>
-              <strong style={{ fontWeight: 700 }}>{r.yearLevel} {r.subject}</strong>
-              <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.4, color: "var(--accent-purple)", background: "rgba(122,90,248,.13)", padding: "3px 8px", borderRadius: 980, flex: "none" }}>CUSTOM REQUEST</span>
-            </>
-          ) : (
-            <strong style={{ fontWeight: 700 }}>{r.classText}</strong>
+          <strong style={{ fontWeight: 700, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {isCustomRequest(r) ? r.yearLevel + " " + r.subject : r.classText}
+          </strong>
+          {isCustomRequest(r) && (
+            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.4, color: "var(--accent-purple)", background: "rgba(122,90,248,.13)", padding: "3px 8px", borderRadius: 980, flex: "none" }}>CUSTOM REQUEST</span>
           )}
         </span>
       ),
       text: (r) => (isCustomRequest(r) ? r.yearLevel + " " + r.subject + " custom request" : r.classText),
-      width: 250,
+      // Wide enough for a full class name AND the custom badge beside it. At
+      // 250 the badge won the space and left "Year 11 Eng...".
+      width: 310,
     },
     { key: "t", label: "Tutor", render: (r) => requestTutor(r), text: (r) => requestTutor(r), width: 130 },
     { key: "ce", label: "Centre", render: (r) => centreOf(r), text: (r) => centreOf(r) },
