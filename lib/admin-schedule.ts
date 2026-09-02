@@ -118,31 +118,33 @@ function rollOf(classId: string, patched?: string[]): string[] {
   return c ? c.students.map((s) => s.name) : [];
 }
 
+type ClassPatchLike = { sched?: string; studentNames?: string[]; tutorName?: string };
+
+interface BusyOpts {
+  patches?: Record<string, ClassPatchLike>;
+  excludeClassId?: string;
+}
+
 /**
- * The classes a student already has that overlap a proposed time.
- *
- * Listing what a student is enrolled in looked like a safety net but was not
- * one: it never said whether any of it collided with the class being scheduled,
- * so the office still had to hold the timetable in its head. This answers the
- * question that actually prevents a double booking.
+ * The classes matching `isOn` that overlap a proposed time.
  *
  * `weekday` is a JavaScript day number (0 = Sunday), and the window is minutes
- * past midnight. Two classes clash when they overlap at all, not merely when
- * they start together.
+ * past midnight. Two classes clash when they overlap AT ALL, not merely when
+ * they start together - which matters here because a three-hour block swallows
+ * any one-hour class dropped inside it.
  */
-export function studentBusyAt(
-  student: string,
+function busyAt(
+  isOn: (c: ReturnType<typeof allClasses>[number], p?: ClassPatchLike) => boolean,
   weekday: number,
   startMin: number,
   endMin: number,
-  opts: { patches?: Record<string, { sched?: string; studentNames?: string[] }>; excludeClassId?: string } = {}
+  { patches = {}, excludeClassId }: BusyOpts
 ): BusyClass[] {
-  const { patches = {}, excludeClassId } = opts;
   const out: BusyClass[] = [];
   for (const c of allClasses()) {
     if (c.id === excludeClassId) continue;
     const p = patches[c.id];
-    if (!rollOf(c.id, p?.studentNames).includes(student)) continue;
+    if (!isOn(c, p)) continue;
     const sched = p?.sched ?? c.sched;
     if (dayOf(sched) !== weekday) continue;
     const s = minutesOf(timeOf(sched));
@@ -151,6 +153,36 @@ export function studentBusyAt(
     if (s < endMin && startMin < e) out.push({ className: c.name, when: sched });
   }
   return out;
+}
+
+/**
+ * What a student is already in at a proposed time.
+ *
+ * Listing what a student is enrolled in looked like a safety net but was not
+ * one: it never said whether any of it collided with the class being scheduled,
+ * so the office still had to hold the timetable in its head. This answers the
+ * question that actually prevents a double booking.
+ */
+export function studentBusyAt(student: string, weekday: number, startMin: number, endMin: number, opts: BusyOpts = {}): BusyClass[] {
+  return busyAt((c, p) => rollOf(c.id, p?.studentNames).includes(student), weekday, startMin, endMin, opts);
+}
+
+/**
+ * What a tutor is already teaching at a proposed time.
+ *
+ * Unlike a student's, this counts IN-PERSON classes too: a tutor cannot be in a
+ * room at Harrisdale and on a call at the same moment, so every class they take
+ * is a constraint on the next one. A class can carry more than one tutor, so
+ * the name is matched against the list rather than the whole string.
+ */
+export function tutorBusyAt(tutor: string, weekday: number, startMin: number, endMin: number, opts: BusyOpts = {}): BusyClass[] {
+  return busyAt(
+    (c, p) => (p?.tutorName ?? c.tutorName).split(",").map((t) => t.trim()).includes(tutor),
+    weekday,
+    startMin,
+    endMin,
+    opts
+  );
 }
 
 /** The office demo clock - Thursday 2 July 2026 at 7:00pm, the header's date. */

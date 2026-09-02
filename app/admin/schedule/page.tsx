@@ -52,8 +52,8 @@ export default function AdminSchedule() {
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 16 }}>
       <div className="glass-card ev-wrap-row" style={{ gridColumn: "span 12", padding: "14px 18px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 12, animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
         <span className="ev-wrap-main" style={{ flex: "1 1 260px", minWidth: 0, fontSize: 12, color: "var(--fg3)", lineHeight: 1.55 }}>
-          Add an online class with a conferencing link, or an in-person class at a centre. An in-person class is mapped to a tutor, which
-          is what lets that tutor raise booklet requests against it.
+          Add an online class with a conferencing link, the tutors taking it and the students in it. In-person classes are set up in
+          Master Records, where the room and the tutor allocation for each centre live.
         </span>
         <button onClick={() => setAdding(true)} className="btn-primary press ev-tap-h ev-wrap-cta" style={{ height: 44, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 8, flex: "none" }}>
           <Icon path={IC.plus} size={15} />

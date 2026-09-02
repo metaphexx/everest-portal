@@ -24,7 +24,7 @@ import { Icon } from "@/components/ui/Icon";
 import { COURSES } from "@/lib/admin-masters";
 import { STAFF, allStudents } from "@/lib/admin-data";
 import { useAdmin } from "@/lib/admin-store";
-import { studentBusyAt } from "@/lib/admin-schedule";
+import { BusyClass, studentBusyAt, tutorBusyAt } from "@/lib/admin-schedule";
 import { MeetLinkField } from "@/components/admin/MeetLinkField";
 import { PeoplePicker, PickerOption } from "@/components/admin/PeoplePicker";
 
@@ -80,6 +80,32 @@ export function to24(display: string): string {
   return String(h).padStart(2, "0") + ":" + m[2];
 }
 
+/**
+ * A clash can appear AFTER people are chosen, by moving the time - and by then
+ * the picker's own warnings are inside a closed dropdown. So whichever of the
+ * chosen cannot make it are named again under the field they were picked in.
+ */
+function ClashNotice({ people, options, noun }: { people: string[]; options: PickerOption[]; noun: "tutor" | "student" }) {
+  if (people.length === 0) return null;
+  return (
+    <div style={{ marginTop: 10, borderRadius: 12, background: "rgba(245,166,35,.09)", padding: "11px 13px" }}>
+      <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--warn-700)", lineHeight: 1.5 }}>
+        {people.length === 1 ? people[0] + " is" : people.length + " " + noun + "s are"} not free at this time
+      </div>
+      <div style={{ fontSize: 11, color: "var(--fg3)", marginTop: 4, lineHeight: 1.55 }}>
+        {people.map((n) => n + " (" + (options.find((o) => o.id === n)?.warn ?? "").replace(/^Busy /, "") + ")").join(", ")}
+        {". Move the time or take them off the class."}
+      </div>
+    </div>
+  );
+}
+
+/** "Busy Thursdays 7:00pm · Year 11 Chemistry", or nothing when they are free. */
+function busyLine(busy: BusyClass[]): string | undefined {
+  if (busy.length === 0) return undefined;
+  return "Busy " + busy[0].when + " · " + busy[0].className + (busy.length > 1 ? " and " + (busy.length - 1) + " more" : "");
+}
+
 export function toDisplay(t: string): string {
   const [h, m] = t.split(":").map(Number);
   const ap = h >= 12 ? "pm" : "am";
@@ -127,23 +153,6 @@ export function ClassFormModal({
 
   const courseDef = useMemo(() => COURSES.find((c) => c.name === course), [course]);
 
-  const tutorOptions: PickerOption[] = useMemo(() => {
-    const eligible = STAFF.filter((s) => s.duties === "both" || s.duties === "online").map((s) => ({
-      id: s.name,
-      label: s.name,
-      meta: s.status === "on_leave" ? "On leave" : s.role,
-      initials: s.initials,
-      colour: s.colour,
-    }));
-    // Whoever is already on the class stays selectable even if their duties
-    // have since changed - the alternative is silently dropping them on save.
-    const known = new Set(eligible.map((e) => e.id));
-    const extra = (initial?.tutors ?? [])
-      .filter((t) => t && !known.has(t))
-      .map((t) => ({ id: t, label: t, meta: "Already on this class", initials: t.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() }));
-    return [...eligible, ...extra];
-  }, [initial?.tutors]);
-
   const [sh, sm] = start.split(":").map(Number);
   const [eh, em] = end.split(":").map(Number);
   const startMin = sh * 60 + sm;
@@ -158,25 +167,49 @@ export function ClassFormModal({
     return Number.isNaN(d.getTime()) ? -1 : d.getDay();
   }, [scope, day]);
 
+  // No point checking anything against a date or a window that is not real yet.
+  const askable = weekday >= 0 && mins > 0;
+  const clashOpts = { patches: classPatches, excludeClassId };
+
+  const tutorOptions: PickerOption[] = useMemo(() => {
+    const eligible = STAFF.filter((s) => s.duties === "both" || s.duties === "online").map((s) => ({
+      id: s.name,
+      label: s.name,
+      meta: s.role,
+      // On leave is a bigger problem than a clash and used to be buried in the
+      // grey line, so it is warned about in the same place and wins over one.
+      warn: s.status === "on_leave" ? "On leave" : askable ? busyLine(tutorBusyAt(s.name, weekday, startMin, endMin, clashOpts)) : undefined,
+      initials: s.initials,
+      colour: s.colour,
+    }));
+    // Whoever is already on the class stays selectable even if their duties
+    // have since changed - the alternative is silently dropping them on save.
+    const known = new Set(eligible.map((e) => e.id));
+    const extra = (initial?.tutors ?? [])
+      .filter((t) => t && !known.has(t))
+      .map((t) => ({ id: t, label: t, meta: "Already on this class", initials: t.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() }));
+    return [...eligible, ...extra];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initial?.tutors, askable, weekday, startMin, endMin, classPatches, excludeClassId]);
+
   // The year level tells you who a person is; the clash tells you whether you
   // can have them. Listing every class they are in did neither.
   const studentOptions: PickerOption[] = useMemo(
     () =>
-      allStudents().map((s) => {
-        const busy = weekday < 0 || mins <= 0 ? [] : studentBusyAt(s.name, weekday, startMin, endMin, { patches: classPatches, excludeClassId });
-        return {
-          id: s.name,
-          label: s.name,
-          meta: s.year,
-          warn: busy.length ? "Busy " + busy[0].when + " · " + busy[0].className + (busy.length > 1 ? " and " + (busy.length - 1) + " more" : "") : undefined,
-          initials: s.initials,
-        };
-      }),
-    [weekday, startMin, endMin, mins, classPatches, excludeClassId]
+      allStudents().map((s) => ({
+        id: s.name,
+        label: s.name,
+        meta: s.year,
+        warn: askable ? busyLine(studentBusyAt(s.name, weekday, startMin, endMin, clashOpts)) : undefined,
+        initials: s.initials,
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [askable, weekday, startMin, endMin, classPatches, excludeClassId]
   );
 
-  /** Students already chosen who cannot actually make it. */
-  const clashing = useMemo(() => students.filter((n) => studentOptions.find((o) => o.id === n)?.warn), [students, studentOptions]);
+  /** People already chosen who cannot actually make it. */
+  const clashingStudents = useMemo(() => students.filter((n) => studentOptions.find((o) => o.id === n)?.warn), [students, studentOptions]);
+  const clashingTutors = useMemo(() => tutors.filter((n) => tutorOptions.find((o) => o.id === n)?.warn), [tutors, tutorOptions]);
 
   // A new class must have somewhere to meet. An existing one already runs, and
   // the seeded classes predate the link field, so requiring it on edit would
@@ -334,6 +367,8 @@ export function ClassFormModal({
           />
         </Row>
 
+        <ClashNotice people={clashingTutors} options={tutorOptions} noun="tutor" />
+
         <Row cols="1fr">
           <PeoplePicker
             label="Students"
@@ -345,22 +380,7 @@ export function ClassFormModal({
           />
         </Row>
 
-        {/* A clash can appear AFTER the students were chosen, by moving the
-            time. The picker's own warnings are inside a closed dropdown by
-            then, so the ones that matter are repeated here. */}
-        {clashing.length > 0 && (
-          <div style={{ marginTop: 10, borderRadius: 12, background: "rgba(245,166,35,.09)", padding: "11px 13px" }}>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--warn-700)", lineHeight: 1.5 }}>
-              {clashing.length === 1 ? clashing[0] + " is" : clashing.length + " students are"} already in another class at this time
-            </div>
-            <div style={{ fontSize: 11, color: "var(--fg3)", marginTop: 4, lineHeight: 1.55 }}>
-              {clashing
-                .map((n) => n + " (" + (studentOptions.find((o) => o.id === n)?.warn ?? "").replace(/^Busy /, "") + ")")
-                .join(", ")}
-              . Move the time or take them off the class.
-            </div>
-          </div>
-        )}
+        <ClashNotice people={clashingStudents} options={studentOptions} noun="student" />
 
         <div style={{ marginTop: 12 }}>
           <MeetLinkField value={link} onChange={setLink} required={needsLink} />
