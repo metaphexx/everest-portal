@@ -107,6 +107,9 @@ interface AdminApi extends AdminState {
   /** Reminders the office has sent, by what they were about. */
   nudges: Record<string, { on: string; count: number }>;
   nudge: (key: string, who: string) => void;
+  /** Recalled or blocked shared files, by the file's id in sharedFiles. */
+  fileActions: Record<string, { action: "recalled" | "blocked"; on: string }>;
+  recallFile: (id: string, action: "recalled" | "blocked") => void;
 }
 
 const Ctx = createContext<AdminApi | null>(null);
@@ -300,6 +303,31 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     showToast("Reminder sent to " + who);
   }, [showToast]);
 
+  /** Recalling or blocking a tutor's own material, on rows sourced from it. */
+  const [fileActions, setFileActions] = useState<Record<string, { action: "recalled" | "blocked"; on: string }>>(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-file-actions") : null;
+      return raw ? (JSON.parse(raw) as Record<string, { action: "recalled" | "blocked"; on: string }>) : {};
+    } catch {
+      return {};
+    }
+  });
+  const recallFile = useCallback(
+    (id: string, action: "recalled" | "blocked") => {
+      setFileActions((m) => {
+        const next = { ...m, [id]: { action, on: new Date().toISOString() } };
+        try {
+          window.localStorage.setItem("evr-admin-file-actions", JSON.stringify(next));
+        } catch {
+          /* storage full - the badge still shows for this session */
+        }
+        return next;
+      });
+      showToast(action === "recalled" ? "File recalled" : "File blocked");
+    },
+    [showToast]
+  );
+
   const [sessionPatches, setSessionPatches] = useState<Record<string, SessionPatch>>(() => {
     try {
       const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-sessions") : null;
@@ -377,6 +405,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     nudges,
     nudge,
     sharedFiles,
+    fileActions,
+    recallFile,
   };
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;

@@ -198,8 +198,10 @@ export interface AdminStudent {
   classNames: string[];
   centre: string;
   delivery: DeliveryMode;
+  email: string;
   parent: string;
   parentPhone: string;
+  parentEmail: string;
   /** Percentage of sessions attended this term. */
   attendance: number;
   /** Enrolment state. Withdrawn students stay visible to the office. */
@@ -239,6 +241,14 @@ function parentFor(name: string): { parent: string; phone: string } {
   return { parent: PARENT_FIRST[h % PARENT_FIRST.length] + " " + surname, phone: "04" + digits.slice(0, 2) + " " + digits.slice(2, 5) + " " + digits.slice(5, 8) };
 }
 
+const EMAIL_PROVIDERS = ["gmail.com", "outlook.com", "bigpond.com", "icloud.com"];
+
+/** A plausible personal email for a name, deterministic so it never reshuffles between renders. */
+function personalEmail(name: string): string {
+  const slug = name.toLowerCase().replace(/[^a-z\s]/g, "").trim().split(/\s+/).join(".");
+  return slug + "@" + EMAIL_PROVIDERS[hash(name) % EMAIL_PROVIDERS.length];
+}
+
 /** Roster of every enrolled student, built from the class records. */
 export function allStudents(): AdminStudent[] {
   const byName = new Map<string, AdminStudent>();
@@ -258,8 +268,10 @@ export function allStudents(): AdminStudent[] {
         classNames: [c.name],
         centre: c.centre,
         delivery: c.delivery,
+        email: personalEmail(st.name),
         parent: p.parent,
         parentPhone: p.phone,
+        parentEmail: personalEmail(p.parent),
         // Deterministic so the roster does not reshuffle between renders.
         attendance: 100 - (hash(st.name) % 24),
         status: st.name === "Cooper Hall" ? "trial" : "active",

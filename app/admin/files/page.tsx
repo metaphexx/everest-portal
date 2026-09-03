@@ -26,7 +26,7 @@ const KIND_META: Record<string, { label: string; color: string; bg: string }> = 
 };
 
 export default function AdminFiles() {
-  const { sharedFiles, notWired } = useAdmin();
+  const { sharedFiles, notWired, fileActions, recallFile } = useAdmin();
   const [q, setQ] = useState("");
   const [kind, setKind] = useState<string>("all");
 
@@ -61,6 +61,8 @@ export default function AdminFiles() {
         <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: "var(--fg2)", lineHeight: 1.6 }}>
           <strong style={{ fontWeight: 700 }}>Tutors know you can see this.</strong> Every tutor is shown a notice on My Drive, in the classroom composer and
           in message threads saying the office can see every file they upload, assign or share, along with who sent it and when.
+          On their own material, <strong style={{ fontWeight: 700 }}>Recall</strong> withdraws something that should not have gone out, and{" "}
+          <strong style={{ fontWeight: 700 }}>Block</strong> does the same for something that looks inappropriate.
         </span>
       </div>
 
@@ -88,13 +90,14 @@ export default function AdminFiles() {
         {shown.length === 0 && <div style={{ padding: "26px 0", textAlign: "center", fontSize: 12.5, color: "var(--fg4)" }}>No files match that search.</div>}
         {shown.map((f) => {
           const meta = KIND_META[f.kind];
+          const actioned = fileActions[f.id];
           return (
             <div key={f.id} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0", borderBottom: "1px solid rgba(0,32,63,.06)" }}>
               <span style={{ width: 34, height: 34, borderRadius: 10, background: meta.bg, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
                 <Icon path={IC.file} size={15} style={{ color: meta.color }} />
               </span>
               <span className="ev-wrap-main" style={{ flex: "1 0 auto", minWidth: 0 }}>
-                <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>{f.file}</span>
+                <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, lineHeight: 1.4, textDecoration: actioned ? "line-through" : "none", color: actioned ? "var(--fg3)" : "inherit" }}>{f.file}</span>
                 <span style={{ display: "block", fontSize: 11.5, color: "var(--fg3)", marginTop: 3 }}>
                   {f.from} to {f.to}
                 </span>
@@ -121,9 +124,38 @@ export default function AdminFiles() {
                   {f.source === "tutor" ? "Tutor's own" : "Everest folder"}
                 </span>
                 <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.4, color: meta.color, background: meta.bg, padding: "4px 10px", borderRadius: 980 }}>{meta.label}</span>
-                <button onClick={() => notWired("File preview")} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
-                  Preview
-                </button>
+                {actioned ? (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      letterSpacing: 0.4,
+                      color: "var(--danger-500)",
+                      background: "rgba(224,65,65,.1)",
+                      padding: "4px 10px",
+                      borderRadius: 980,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {actioned.action === "recalled" ? "Recalled" : "Blocked"}
+                  </span>
+                ) : (
+                  <>
+                    <button onClick={() => notWired("File preview")} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
+                      Preview
+                    </button>
+                    {f.source === "tutor" && (
+                      <>
+                        <button onClick={() => recallFile(f.id, "recalled")} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
+                          Recall
+                        </button>
+                        <button onClick={() => recallFile(f.id, "blocked")} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 700, color: "var(--danger-500)" }}>
+                          Block
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
               </span>
             </div>
           );

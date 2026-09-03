@@ -5,6 +5,7 @@
 // appears in both. Saying that on the page saves the question being asked.
 
 import React, { useMemo, useState } from "react";
+import Link from "@/components/ui/Link";
 import { useAdmin } from "@/lib/admin-store";
 import { Icon } from "@/components/ui/Icon";
 import { CAT_SUBJECTS, CATALOGUE, YEAR_GROUPS } from "@/lib/tutor-data";
@@ -37,11 +38,16 @@ export default function AdminCatalogue() {
       <div className="glass-card ev-wrap-row" style={{ gridColumn: "span 12", padding: "14px 18px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 12, animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
         <span className="ev-wrap-main" style={{ flex: "1 0 auto", minWidth: 0, fontSize: 12, color: "var(--fg2)", lineHeight: 1.6 }}>
           Everything here reaches tutors twice: in <strong style={{ fontWeight: 700 }}>Study Materials</strong> to request printed, and in{" "}
-          <strong style={{ fontWeight: 700 }}>My Booklets</strong> to assign to an online class.
+          <strong style={{ fontWeight: 700 }}>My Booklets</strong> to assign to an online class. A booklet is not uploaded here - it comes from whichever
+          Drive folder its subject is mapped to.
         </span>
-        <button onClick={() => notWired("Upload a booklet")} className="btn-primary press ev-tap-h ev-wrap-cta" style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, flex: "none" }}>
-          Upload a booklet
-        </button>
+        <Link
+          href="/admin/masters?tab=subject-drive"
+          className="btn-primary press ev-tap-h ev-wrap-cta"
+          style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, flex: "none", textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+        >
+          Map a subject's Drive folder
+        </Link>
       </div>
 
       <div className="glass-card" style={{ gridColumn: "span 12", padding: "16px 18px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .06s backwards" }}>

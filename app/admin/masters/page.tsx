@@ -23,6 +23,7 @@ import {
   CLASS_SELECTIONS,
   ClassSelectionRow,
   COURSES,
+  CourseRow,
   CourseCategory,
   COURSE_CATEGORIES,
   CourseTutorMap,
@@ -43,6 +44,7 @@ import {
   EditCentreModal,
   EditCentrePrinterModal,
   EditClassSelectionModal,
+  EditCourseModal,
   BookletDriveModal,
   CourseCategoryModal,
   SubjectDriveModal,
@@ -53,6 +55,7 @@ import {
   EditPrinterModal,
   EditStudentModal,
   EditTutorModal,
+  Selection,
 } from "@/components/admin/MasterEditModals";
 
 /** A short grey line, used wherever a cell is a list of other records. */
@@ -102,6 +105,7 @@ type EditTarget =
   | { kind: "course-tutor"; row: CourseTutorMap }
   | { kind: "subject-drive"; row: DriveMap }
   | { kind: "booklet-drive"; row: BookletDriveMap }
+  | { kind: "course"; row: CourseRow }
 ;
 
 export default function AdminMasters() {
@@ -110,7 +114,23 @@ export default function AdminMasters() {
   const { notWired, masterPatches, patchMaster, masterAdds, addMaster } = useAdmin();
   const tab = params.get("tab") ?? "centres";
   const [editing, setEditing] = useState<EditTarget | null>(null);
-  const [adding, setAdding] = useState<"subject" | "category" | "subject-drive" | "booklet-drive" | null>(null);
+  const [adding, setAdding] = useState<
+    | "subject"
+    | "category"
+    | "subject-drive"
+    | "booklet-drive"
+    | "centre"
+    | "printer"
+    | "centre-printer"
+    | "tutor"
+    | "student"
+    | "term"
+    | "year-group"
+    | "course"
+    | "class-selection"
+    | "course-tutor"
+    | null
+  >(null);
   /** Tutors as the Drive panels need them: a name, an address and initials. */
   const driveTutors = STAFF.map((t) => ({ name: t.name, email: t.email, initials: t.initials, colour: t.colour }));
 
@@ -122,8 +142,6 @@ export default function AdminMasters() {
   };
 
   const go = (id: string) => router.push("/admin/masters?tab=" + id);
-  const add = (what: string) => notWired("Add a " + what);
-  const edit = (what: string) => notWired("Edit " + what);
   const del = (what: string) => notWired("Delete " + what);
   const exp = () => notWired("Export");
 
@@ -139,13 +157,13 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={patched(PRINTERS_M)}
+            rows={[...patched(PRINTERS_M), ...((masterAdds.printers ?? []) as unknown as Printer[])]}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
             searchHint="Search printers by name, model or centre"
             addLabel="Add a printer"
-            onAdd={() => add("printer")}
+            onAdd={() => setAdding("printer")}
             onEdit={(r) => setEditing({ kind: "printer", row: r })}
             onDelete={() => del("printer")}
             onExport={exp}
@@ -162,13 +180,13 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={patched(CENTRE_PRINTERS)}
+            rows={[...patched(CENTRE_PRINTERS), ...((masterAdds["centre-printers"] ?? []) as unknown as CentrePrinter[])]}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
             searchHint="Search by centre or printer"
             addLabel="Map a printer"
-            onAdd={() => add("mapping")}
+            onAdd={() => setAdding("centre-printer")}
             onEdit={(r) => setEditing({ kind: "centre-printer", row: r })}
             onDelete={() => del("mapping")}
             onExport={exp}
@@ -185,13 +203,13 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={patched(STAFF)}
+            rows={[...patched(STAFF), ...((masterAdds.tutors ?? []) as unknown as StaffMember[])]}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={(r) => (r.status === "active" ? PILL.active : { label: "On leave", color: "var(--warn-700)", bg: "rgba(245,166,35,.16)" })}
             searchHint="Search tutors by name, email or centre"
             addLabel="Add a tutor"
-            onAdd={() => add("tutor")}
+            onAdd={() => setAdding("tutor")}
             onEdit={(r) => setEditing({ kind: "tutor", row: r })}
             onDelete={() => del("tutor")}
             onExport={exp}
@@ -201,7 +219,7 @@ export default function AdminMasters() {
         );
       }
       case "students": {
-        const rows = allStudents();
+        const rows = [...allStudents(), ...((masterAdds.students ?? []) as unknown as AdminStudent[])];
         const cols: Column<(typeof rows)[number]>[] = [
           { key: "n", label: "Student", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
           { key: "y", label: "Year", render: (r) => r.year, text: (r) => r.year },
@@ -218,7 +236,7 @@ export default function AdminMasters() {
             countNoun="online students"
             searchHint="Search students by name, parent or class"
             addLabel="Enrol a student"
-            onAdd={() => add("student")}
+            onAdd={() => setAdding("student")}
             onEdit={(r) => setEditing({ kind: "student", row: r })}
             onExport={exp}
             emptyTitle="No students enrolled"
@@ -244,14 +262,14 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={patched(CLASS_SELECTIONS)}
+            rows={[...patched(CLASS_SELECTIONS), ...((masterAdds["class-selection"] ?? []) as unknown as ClassSelectionRow[])]}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
             numbered
             searchHint="Search by tutor, centre or subject"
             addLabel="Add a selection"
-            onAdd={() => add("class selection")}
+            onAdd={() => setAdding("class-selection")}
             onEdit={(r) => setEditing({ kind: "class-selection", row: r })}
             onDelete={() => del("class selection")}
             onExport={exp}
@@ -264,17 +282,17 @@ export default function AdminMasters() {
         const cols: Column<(typeof YEAR_GROUPS)[number]>[] = [
           { key: "n", label: "Cohort", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
           { key: "y", label: "Year level", render: (r) => r.year, text: (r) => r.year },
-          { key: "s", label: "Subjects", render: (r) => SUBJECTS.filter((x) => x.year === r.year).length + " subjects", text: (r) => r.year, minor: true },
+          { key: "s", label: "Subjects", render: (r) => patched(SUBJECTS).filter((x) => x.year === r.year).length + " subjects", text: (r) => r.year, minor: true },
         ];
         return (
           <MasterTable
-            rows={patched(YEAR_GROUPS)}
+            rows={[...patched(YEAR_GROUPS), ...((masterAdds["year-groups"] ?? []) as unknown as YearGroup[])]}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
             searchHint="Search year groups"
             addLabel="Add a year group"
-            onAdd={() => add("year group")}
+            onAdd={() => setAdding("year-group")}
             onEdit={(r) => setEditing({ kind: "year-group", row: r })}
             onDelete={() => del("year group")}
             emptyTitle="No year groups"
@@ -315,13 +333,13 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={patched(TERMS)}
+            rows={[...patched(TERMS), ...((masterAdds.terms ?? []) as unknown as Term[])]}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={(r) => (r.state === "ongoing" ? PILL.ongoing : r.state === "upcoming" ? PILL.pending : PILL.inactive)}
             searchHint="Search terms"
             addLabel="Add a term"
-            onAdd={() => add("term")}
+            onAdd={() => setAdding("term")}
             onEdit={(r) => setEditing({ kind: "term", row: r })}
             onDelete={() => del("term")}
             emptyTitle="No terms set up"
@@ -339,14 +357,14 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={COURSES}
+            rows={[...patched(COURSES), ...((masterAdds.courses ?? []) as unknown as CourseRow[])]}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
             searchHint="Search courses by name, category or subject"
             addLabel="Add a course"
-            onAdd={() => add("course")}
-            onEdit={() => edit("course")}
+            onAdd={() => setAdding("course")}
+            onEdit={(r) => setEditing({ kind: "course", row: r })}
             onDelete={() => del("course")}
             onExport={exp}
             emptyTitle="No courses yet"
@@ -377,18 +395,21 @@ export default function AdminMasters() {
         );
       }
       case "course-tutors": {
-        const cols: Column<(typeof COURSE_TUTORS)[number]>[] = [
+        const rows = [...patched(COURSE_TUTORS), ...((masterAdds["course-tutors"] ?? []) as unknown as CourseTutorMap[])];
+        const cols: Column<(typeof rows)[number]>[] = [
           { key: "c", label: "Course", render: (r) => <strong style={{ fontWeight: 700 }}>{r.course}</strong>, text: (r) => r.course },
           { key: "t", label: "Tutors", render: (r) => <List items={r.tutors} empty="Nobody assigned" />, text: (r) => r.tutors.join(" "), width: 320 },
         ];
         return (
           <MasterTable
-            rows={patched(COURSE_TUTORS)}
+            rows={rows}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
             numbered
             searchHint="Search by course or tutor"
+            addLabel="Staff a course"
+            onAdd={() => setAdding("course-tutor")}
             onEdit={(r) => setEditing({ kind: "course-tutor", row: r })}
             onExport={exp}
             emptyTitle="Nothing assigned"
@@ -465,13 +486,13 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={patched(CENTRES_M)}
+            rows={[...patched(CENTRES_M), ...((masterAdds.centres ?? []) as unknown as Centre[])]}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
             searchHint="Search centres by name or suburb"
             addLabel="Add a centre"
-            onAdd={() => add("centre")}
+            onAdd={() => setAdding("centre")}
             onEdit={(r) => setEditing({ kind: "centre", row: r })}
             onDelete={() => del("centre")}
             onExport={exp}
@@ -533,20 +554,109 @@ export default function AdminMasters() {
       {editing?.kind === "centre" && (
         <EditCentreModal centre={editing.row} onClose={() => setEditing(null)} onSave={save("Centre")} />
       )}
+      {adding === "centre" && (
+        <EditCentreModal
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("centres", { id, ...patch }, "Centre");
+            setAdding(null);
+          }}
+        />
+      )}
       {editing?.kind === "printer" && (
         <EditPrinterModal printer={editing.row} centres={CENTRES_M.map((c) => c.name)} onClose={() => setEditing(null)} onSave={save("Printer")} />
+      )}
+      {adding === "printer" && (
+        <EditPrinterModal
+          centres={CENTRES_M.map((c) => c.name)}
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("printers", { id, ...patch }, "Printer");
+            setAdding(null);
+          }}
+        />
       )}
       {editing?.kind === "centre-printer" && (
         <EditCentrePrinterModal mapping={editing.row} centres={CENTRES_M.map((c) => c.name)} printers={patched(PRINTERS_M)} onClose={() => setEditing(null)} onSave={save("Mapping")} />
       )}
+      {adding === "centre-printer" && (
+        <EditCentrePrinterModal
+          centres={CENTRES_M.map((c) => c.name)}
+          printers={patched(PRINTERS_M)}
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("centre-printers", { id, ...patch }, "Mapping");
+            setAdding(null);
+          }}
+        />
+      )}
       {editing?.kind === "tutor" && (
         <EditTutorModal tutor={editing.row} onClose={() => setEditing(null)} onSave={save("Tutor")} />
+      )}
+      {adding === "tutor" && (
+        <EditTutorModal
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("tutors", { id, ...patch }, "Tutor");
+            setAdding(null);
+          }}
+        />
       )}
       {editing?.kind === "student" && (
         <EditStudentModal student={editing.row} onClose={() => setEditing(null)} onSave={save("Student")} />
       )}
+      {adding === "student" && (
+        <EditStudentModal
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("students", patch, "Student");
+            setAdding(null);
+          }}
+        />
+      )}
       {editing?.kind === "term" && <EditTermModal term={editing.row} onClose={() => setEditing(null)} onSave={save("Term")} />}
-      {editing?.kind === "year-group" && <EditYearGroupModal group={editing.row} onClose={() => setEditing(null)} onSave={save("Year group")} />}
+      {adding === "term" && (
+        <EditTermModal
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("terms", { id, ...patch }, "Term");
+            setAdding(null);
+          }}
+        />
+      )}
+      {editing?.kind === "year-group" && (
+        <EditYearGroupModal
+          group={editing.row}
+          subjects={patched(SUBJECTS)}
+          onSetSubjectYear={(sid, y) => patchMaster(sid, { year: y }, "Subject")}
+          onClose={() => setEditing(null)}
+          onSave={save("Year group")}
+        />
+      )}
+      {adding === "year-group" && (
+        <EditYearGroupModal
+          subjects={patched(SUBJECTS)}
+          onSetSubjectYear={(sid, y) => patchMaster(sid, { year: y }, "Subject")}
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("year-groups", { id, ...patch }, "Year group");
+            setAdding(null);
+          }}
+        />
+      )}
+      {editing?.kind === "course" && (
+        <EditCourseModal course={editing.row} categories={COURSE_CATEGORIES.map((c) => c.name)} onClose={() => setEditing(null)} onSave={save("Course")} />
+      )}
+      {adding === "course" && (
+        <EditCourseModal
+          categories={COURSE_CATEGORIES.map((c) => c.name)}
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("courses", { id, ...patch }, "Course");
+            setAdding(null);
+          }}
+        />
+      )}
       {editing?.kind === "category" && <CourseCategoryModal category={editing.row} onClose={() => setEditing(null)} onSave={save("Category")} />}
       {adding === "category" && (
         <CourseCategoryModal
@@ -587,6 +697,19 @@ export default function AdminMasters() {
       {editing?.kind === "course-tutor" && (
         <EditCourseTutorModal mapping={editing.row} tutors={STAFF.map((t) => t.name)} onClose={() => setEditing(null)} onSave={save("Course tutors")} />
       )}
+      {adding === "course-tutor" && (
+        <EditCourseTutorModal
+          courses={[...COURSES, ...((masterAdds.courses ?? []) as unknown as CourseRow[])]
+            .map((c) => c.name)
+            .filter((name) => ![...COURSE_TUTORS, ...((masterAdds["course-tutors"] ?? []) as unknown as CourseTutorMap[])].some((ct) => ct.course === name))}
+          tutors={STAFF.map((t) => t.name)}
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("course-tutors", { id, ...patch }, "Course tutors");
+            setAdding(null);
+          }}
+        />
+      )}
       {editing?.kind === "subject" && <SubjectModal subject={editing.row} onClose={() => setEditing(null)} onSave={save("Subject")} />}
       {adding === "subject" && (
         <SubjectModal
@@ -605,6 +728,18 @@ export default function AdminMasters() {
           subjects={SUBJECTS.map((x) => x.name)}
           onClose={() => setEditing(null)}
           onSave={save("Class selection")}
+        />
+      )}
+      {adding === "class-selection" && (
+        <EditClassSelectionModal
+          tutors={STAFF.map((t) => t.name)}
+          centres={CENTRES_M.map((c) => c.name)}
+          subjects={SUBJECTS.map((x) => x.name)}
+          onClose={() => setAdding(null)}
+          onAddAll={(rows: Selection[]) => {
+            rows.forEach((r, i) => addMaster("class-selection", { id: "cs" + Date.now().toString(36) + i, ...r }, "Class selection"));
+            setAdding(null);
+          }}
         />
       )}
     </div>

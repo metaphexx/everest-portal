@@ -55,17 +55,17 @@ export interface CentrePrinter {
   centre: string;
   printers: string[];
   defaultPrinter: string;
-  /** Tutors who may send to this centre's printers. Empty means everyone at it. */
-  tutors: string[];
   active: boolean;
 }
 
+// Any tutor may send to any printer mapped to a centre - there is no
+// tutor-to-printer restriction to configure here.
 export const CENTRE_PRINTERS: CentrePrinter[] = [
-  { id: "cp1", centre: "Harrisdale SHS", printers: ["Harrisdale print room", "Harrisdale back office"], defaultPrinter: "Harrisdale print room", tutors: ["Priya Rao", "Tobi Okafor"], active: true },
-  { id: "cp2", centre: "Piara Waters", printers: ["Piara Waters office"], defaultPrinter: "Piara Waters office", tutors: ["Priya Rao"], active: true },
-  { id: "cp3", centre: "Willetton", printers: ["Willetton front desk", "Head office"], defaultPrinter: "Willetton front desk", tutors: ["Grace Lin"], active: true },
-  { id: "cp4", centre: "Perth Modern", printers: ["Perth Modern spare"], defaultPrinter: "Perth Modern spare", tutors: [], active: false },
-  { id: "cp5", centre: "Head office", printers: ["Head office"], defaultPrinter: "Head office", tutors: [], active: true },
+  { id: "cp1", centre: "Harrisdale SHS", printers: ["Harrisdale print room", "Harrisdale back office"], defaultPrinter: "Harrisdale print room", active: true },
+  { id: "cp2", centre: "Piara Waters", printers: ["Piara Waters office"], defaultPrinter: "Piara Waters office", active: true },
+  { id: "cp3", centre: "Willetton", printers: ["Willetton front desk", "Head office"], defaultPrinter: "Willetton front desk", active: true },
+  { id: "cp4", centre: "Perth Modern", printers: ["Perth Modern spare"], defaultPrinter: "Perth Modern spare", active: false },
+  { id: "cp5", centre: "Head office", printers: ["Head office"], defaultPrinter: "Head office", active: true },
 ];
 
 export interface SystemRow {

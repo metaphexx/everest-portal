@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
 import { PeoplePicker, PickerOption } from "@/components/admin/PeoplePicker";
-import { BookletDriveMap, Centre, CentrePrinter, CourseCategory, CourseTutorMap, DriveMap, Printer, SubjectRow, Term, YearGroup } from "@/lib/admin-masters";
+import { BookletDriveMap, Centre, CentrePrinter, CourseCategory, CourseRow, CourseTutorMap, DriveMap, Printer, SubjectRow, Term, YearGroup } from "@/lib/admin-masters";
 import { AdminStudent, STAFF, StaffMember } from "@/lib/admin-data";
 import {
   COLOUR_OPTIONS,
@@ -90,19 +90,19 @@ function sel(label: string, value: string, options: string[], onChange: (v: stri
 
 // ---------------------------------------------------------------------------
 
-export function EditCentreModal({ centre, onClose, onSave }: { centre: Centre; onClose: () => void; onSave: (id: string, patch: Partial<Centre>) => void }) {
-  const [name, setName] = useState(centre.name);
-  const [email, setEmail] = useState(centre.adminEmail);
-  const [location, setLocation] = useState(centre.location);
-  const [status, setStatus] = useState(centre.active ? "Active" : "Inactive");
+export function EditCentreModal({ centre, onClose, onSave }: { /** Absent when adding a new centre. */ centre?: Centre; onClose: () => void; onSave: (id: string, patch: Partial<Centre>) => void }) {
+  const [name, setName] = useState(centre?.name ?? "");
+  const [email, setEmail] = useState(centre?.adminEmail ?? "");
+  const [location, setLocation] = useState(centre?.location ?? "");
+  const [status, setStatus] = useState(centre ? (centre.active ? "Active" : "Inactive") : "Active");
 
   const valid = name.trim().length > 0 && email.trim().length > 0 && location.trim().length > 0;
-  const save = () => valid && onSave(centre.id, { name: name.trim(), adminEmail: email.trim(), location: location.trim(), active: status === "Active" });
+  const save = () => valid && onSave(centre?.id ?? "c" + Date.now().toString(36), { name: name.trim(), adminEmail: email.trim(), location: location.trim(), active: status === "Active" });
 
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(600px, calc(100vw - 32px))", maxHeight: "min(88vh, 720px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title="Edit centre" sub="Where classes run, and who the office writes to about them." onClose={onClose} />
+        <Head title={centre ? "Edit centre" : "Add a centre"} sub="Where classes run, and who the office writes to about them." onClose={onClose} />
         <Row>
           <span>
             <Label required>Centre name</Label>
@@ -123,7 +123,7 @@ export function EditCentreModal({ centre, onClose, onSave }: { centre: Centre; o
           </span>
           {sel("Status", status, STATUS, setStatus, true)}
         </Row>
-        <Actions valid={valid} why="A centre needs a name, an email and a location." onSave={save} onClose={onClose} />
+        <Actions valid={valid} why="A centre needs a name, an email and a location." onSave={save} onClose={onClose} label={centre ? "Save changes" : "Add centre"} />
       </div>
     </Modal>
   );
@@ -131,19 +131,21 @@ export function EditCentreModal({ centre, onClose, onSave }: { centre: Centre; o
 
 // ---------------------------------------------------------------------------
 
-export function EditPrinterModal({ printer, centres, onClose, onSave }: { printer: Printer; centres: string[]; onClose: () => void; onSave: (id: string, patch: Partial<Printer>) => void }) {
-  const [name, setName] = useState(printer.name);
-  const [model, setModel] = useState(printer.model);
-  const [centre, setCentre] = useState(printer.centre);
-  const [status, setStatus] = useState(printer.active ? "Active" : "Inactive");
-  const [stapler, setStapler] = useState(printer.stapler ? "Yes" : "No");
-  const [fmt, setFmt] = useState<PrintFormat>(printer.defaults);
+const NEW_PRINTER_DEFAULTS: PrintFormat = { paper: "A4", sides: "Double sided", colour: "Black and white", orientation: "Portrait", staple: "No staple", scale: "100%", perSheet: "2 per page" };
+
+export function EditPrinterModal({ printer, centres, onClose, onSave }: { /** Absent when adding a new printer. */ printer?: Printer; centres: string[]; onClose: () => void; onSave: (id: string, patch: Partial<Printer>) => void }) {
+  const [name, setName] = useState(printer?.name ?? "");
+  const [model, setModel] = useState(printer?.model ?? "");
+  const [centre, setCentre] = useState(printer?.centre ?? centres[0] ?? "");
+  const [status, setStatus] = useState(printer ? (printer.active ? "Active" : "Inactive") : "Active");
+  const [stapler, setStapler] = useState(printer?.stapler ? "Yes" : "No");
+  const [fmt, setFmt] = useState<PrintFormat>(printer?.defaults ?? NEW_PRINTER_DEFAULTS);
 
   const set = (patch: Partial<PrintFormat>) => setFmt((f) => ({ ...f, ...patch }));
   const valid = name.trim().length > 0 && model.trim().length > 0;
   const save = () =>
     valid &&
-    onSave(printer.id, {
+    onSave(printer?.id ?? "p" + Date.now().toString(36), {
       name: name.trim(),
       model: model.trim(),
       centre,
@@ -156,7 +158,7 @@ export function EditPrinterModal({ printer, centres, onClose, onSave }: { printe
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(780px, calc(100vw - 32px))", maxHeight: "min(90vh, 900px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title="Edit printer" sub="What it is, and what a job sent to it uses unless the request says otherwise." onClose={onClose} />
+        <Head title={printer ? "Edit printer" : "Add a printer"} sub="What it is, and what a job sent to it uses unless the request says otherwise." onClose={onClose} />
 
         <div className="ev-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginTop: 14 }}>
           <div style={{ minWidth: 0 }}>
@@ -207,7 +209,7 @@ export function EditPrinterModal({ printer, centres, onClose, onSave }: { printe
           </div>
         </div>
 
-        <Actions valid={valid} why="A printer needs a name and a model." onSave={save} onClose={onClose} />
+        <Actions valid={valid} why="A printer needs a name and a model." onSave={save} onClose={onClose} label={printer ? "Save changes" : "Add printer"} />
       </div>
     </Modal>
   );
@@ -222,16 +224,16 @@ export function EditCentrePrinterModal({
   onClose,
   onSave,
 }: {
-  mapping: CentrePrinter;
+  /** Absent when mapping a new centre's printers. */
+  mapping?: CentrePrinter;
   centres: string[];
   printers: Printer[];
   onClose: () => void;
   onSave: (id: string, patch: Partial<CentrePrinter>) => void;
 }) {
-  const [centre, setCentre] = useState(mapping.centre);
-  const [chosen, setChosen] = useState<string[]>(mapping.printers);
-  const [tutors, setTutors] = useState<string[]>(mapping.tutors);
-  const [status, setStatus] = useState(mapping.active ? "Active" : "Inactive");
+  const [centre, setCentre] = useState(mapping?.centre ?? centres[0] ?? "");
+  const [chosen, setChosen] = useState<string[]>(mapping?.printers ?? []);
+  const [status, setStatus] = useState(mapping ? (mapping.active ? "Active" : "Inactive") : "Active");
 
   const printerOptions: PickerOption[] = printers.map((p) => ({
     id: p.name,
@@ -239,19 +241,18 @@ export function EditCentrePrinterModal({
     meta: p.model + " · " + p.centre,
     initials: p.model.slice(0, 2).toUpperCase(),
   }));
-  const tutorOptions: PickerOption[] = STAFF.map((t) => ({ id: t.name, label: t.name, meta: t.centres.join(", "), initials: t.initials, colour: t.colour }));
 
   // The default has to be one of the mapped printers, or a job has nowhere to go.
-  const [defaultPrinter, setDefaultPrinter] = useState(mapping.defaultPrinter);
+  const [defaultPrinter, setDefaultPrinter] = useState(mapping?.defaultPrinter ?? "");
   const effectiveDefault = chosen.includes(defaultPrinter) ? defaultPrinter : chosen[0] ?? "";
 
   const valid = chosen.length > 0;
-  const save = () => valid && onSave(mapping.id, { centre, printers: chosen, tutors, defaultPrinter: effectiveDefault, active: status === "Active" });
+  const save = () => valid && onSave(mapping?.id ?? "cp" + Date.now().toString(36), { centre, printers: chosen, defaultPrinter: effectiveDefault, active: status === "Active" });
 
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(680px, calc(100vw - 32px))", maxHeight: "min(90vh, 880px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title="Edit centre printers" sub="Which printers a centre can send to, and who may send to them." onClose={onClose} />
+        <Head title={mapping ? "Edit centre printers" : "Map a centre's printers"} sub="Which printers a centre can send to. Any tutor may send to any printer mapped here." onClose={onClose} />
 
         <Row>
           {sel("Centre", centre, centres, setCentre, true)}
@@ -267,17 +268,6 @@ export function EditCentrePrinterModal({
             onChange={setChosen}
             placeholder="Choose the printers at this centre"
             emptyHint="A centre with no printer cannot receive a print request."
-          />
-        </Row>
-
-        <Row cols="1fr">
-          <PeoplePicker
-            label="Tutors"
-            options={tutorOptions}
-            value={tutors}
-            onChange={setTutors}
-            placeholder="Anyone at this centre"
-            emptyHint="Leave empty and every tutor at the centre may send to these printers."
           />
         </Row>
 
@@ -309,7 +299,7 @@ export function EditCentrePrinterModal({
           </div>
         )}
 
-        <Actions valid={valid} why="Map at least one printer to the centre." onSave={save} onClose={onClose} />
+        <Actions valid={valid} why="Map at least one printer to the centre." onSave={save} onClose={onClose} label={mapping ? "Save changes" : "Add mapping"} />
       </div>
     </Modal>
   );
@@ -352,29 +342,31 @@ function PasswordField({ label, value, onChange }: { label: string; value: strin
   );
 }
 
-export function EditTutorModal({ tutor, onClose, onSave }: { tutor: StaffMember; onClose: () => void; onSave: (id: string, patch: Partial<StaffMember>) => void }) {
-  const [name, setName] = useState(tutor.name);
-  const [email, setEmail] = useState(tutor.email);
-  const [phone, setPhone] = useState(tutor.phone);
+export function EditTutorModal({ tutor, onClose, onSave }: { /** Absent when adding a new tutor. */ tutor?: StaffMember; onClose: () => void; onSave: (id: string, patch: Partial<StaffMember>) => void }) {
+  const [name, setName] = useState(tutor?.name ?? "");
+  const [email, setEmail] = useState(tutor?.email ?? "");
+  const [phone, setPhone] = useState(tutor?.phone ?? "");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
-  const [status, setStatus] = useState(tutor.status === "active" ? "Active" : "On leave");
+  const [status, setStatus] = useState(tutor?.status === "on_leave" ? "On leave" : "Active");
 
   const mismatch = pw.length > 0 && pw !== pw2;
-  const valid = name.trim().length > 0 && email.trim().length > 0 && phone.trim().length > 0 && !mismatch;
+  const valid = name.trim().length > 0 && email.trim().length > 0 && phone.trim().length > 0 && !mismatch && (!!tutor || pw.length > 0);
+  const initials = name.trim().split(/\s+/).map((p) => p[0]).join("").slice(0, 2).toUpperCase();
   const save = () =>
     valid &&
-    onSave(tutor.id, {
+    onSave(tutor?.id ?? "st" + Date.now().toString(36), {
       name: name.trim(),
       email: email.trim(),
       phone: phone.trim(),
       status: status === "Active" ? "active" : "on_leave",
+      ...(tutor ? {} : { initials, role: "Tutor", duties: "both", centres: [], colour: "var(--accent-teal)" }),
     });
 
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(620px, calc(100vw - 32px))", maxHeight: "min(90vh, 820px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title="Edit tutor" sub="Their details and whether they can sign in." onClose={onClose} />
+        <Head title={tutor ? "Edit tutor" : "Add a tutor"} sub="Their details and whether they can sign in." onClose={onClose} />
         <Row>
           <span>
             <Label required>Name</Label>
@@ -393,16 +385,22 @@ export function EditTutorModal({ tutor, onClose, onSave }: { tutor: StaffMember;
           {sel("Status", status, ["Active", "On leave"], setStatus)}
         </Row>
         <Row>
-          <PasswordField label="Set a new password" value={pw} onChange={setPw} />
+          <PasswordField label={tutor ? "Set a new password" : "Set a password"} value={pw} onChange={setPw} />
           <span>
             <PasswordField label="Confirm password" value={pw2} onChange={setPw2} />
             {mismatch && <span style={{ display: "block", fontSize: 11, color: "var(--danger-500)", marginTop: 5 }}>The two passwords do not match.</span>}
           </span>
         </Row>
         <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 8, lineHeight: 1.5 }}>
-          Left blank, the tutor keeps the password they have.
+          {tutor ? "Left blank, the tutor keeps the password they have." : "A new tutor needs a password to sign in with."}
         </div>
-        <Actions valid={valid} why={mismatch ? "The two passwords do not match." : "A tutor needs a name, an email and a phone number."} onSave={save} onClose={onClose} />
+        <Actions
+          valid={valid}
+          why={mismatch ? "The two passwords do not match." : tutor ? "A tutor needs a name, an email and a phone number." : "A tutor needs a name, an email, a phone number and a password."}
+          onSave={save}
+          onClose={onClose}
+          label={tutor ? "Save changes" : "Add tutor"}
+        />
       </div>
     </Modal>
   );
@@ -415,37 +413,49 @@ export function EditStudentModal({
   onClose,
   onSave,
 }: {
-  student: AdminStudent;
+  /** Absent when enrolling a new student. */
+  student?: AdminStudent;
   onClose: () => void;
   onSave: (id: string, patch: Record<string, unknown>) => void;
 }) {
-  const [name, setName] = useState(student.name);
-  const [year, setYear] = useState(student.year);
-  const [parent, setParent] = useState(student.parent);
-  const [phone, setPhone] = useState(student.parentPhone);
-  const [status, setStatus] = useState(student.status === "active" ? "Active" : student.status === "trial" ? "Trial" : "Withdrawn");
+  const [name, setName] = useState(student?.name ?? "");
+  const [year, setYear] = useState(student?.year ?? "Year 7");
+  const [email, setEmail] = useState(student?.email ?? "");
+  const [parent, setParent] = useState(student?.parent ?? "");
+  const [phone, setPhone] = useState(student?.parentPhone ?? "");
+  const [parentEmail, setParentEmail] = useState(student?.parentEmail ?? "");
+  const [status, setStatus] = useState(student ? (student.status === "active" ? "Active" : student.status === "trial" ? "Trial" : "Withdrawn") : "Trial");
 
   const valid = name.trim().length > 0 && parent.trim().length > 0;
   const save = () =>
     valid &&
-    onSave(student.name, {
+    onSave(student?.name ?? name.trim(), {
       name: name.trim(),
       year,
+      email: email.trim(),
       parent: parent.trim(),
       parentPhone: phone.trim(),
+      parentEmail: parentEmail.trim(),
       status: status === "Active" ? "active" : status === "Trial" ? "trial" : "withdrawn",
+      ...(student ? {} : { initials: name.trim().split(/\s+/).map((p) => p[0]).join("").slice(0, 2).toUpperCase(), classNames: [], centre: "Online", delivery: "online", attendance: 100 }),
     });
 
   return (
-    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(620px, calc(100vw - 32px))", maxHeight: "min(90vh, 820px)", overflowY: "auto" }}>
+    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(620px, calc(100vw - 32px))", maxHeight: "min(90vh, 900px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title="Edit student" sub="Their details and who the office rings about them." onClose={onClose} />
+        <Head title={student ? "Edit student" : "Enrol a student"} sub="Their details and who the office rings about them." onClose={onClose} />
         <Row>
           <span>
             <Label required>Student name</Label>
             <input value={name} onChange={(e) => setName(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} autoFocus />
           </span>
           {sel("Year", year, ["Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"], setYear, true)}
+        </Row>
+        <Row cols="1fr">
+          <span>
+            <Label>Student email</Label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
+          </span>
         </Row>
         <Row>
           <span>
@@ -457,11 +467,17 @@ export function EditStudentModal({
             <input value={phone} onChange={(e) => setPhone(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
           </span>
         </Row>
+        <Row cols="1fr">
+          <span>
+            <Label>Parent or guardian email</Label>
+            <input type="email" value={parentEmail} onChange={(e) => setParentEmail(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
+          </span>
+        </Row>
         <Row>{sel("Status", status, ["Active", "Trial", "Withdrawn"], setStatus)}</Row>
         <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 8, lineHeight: 1.5 }}>
           Which classes a student is in is set on the class itself, not here.
         </div>
-        <Actions valid={valid} why="A student needs a name and a parent or guardian." onSave={save} onClose={onClose} />
+        <Actions valid={valid} why="A student needs a name and a parent or guardian." onSave={save} onClose={onClose} label={student ? "Save changes" : "Enrol student"} />
       </div>
     </Modal>
   );
@@ -513,6 +529,68 @@ function Chip({ label, tone, onRemove }: { label: string; tone: "date" | "subjec
   );
 }
 
+const CAL_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+function dayLabel(d: Date): string {
+  return d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+}
+
+/**
+ * A month grid for picking every session date at once, instead of one date
+ * plus a click each time - a term is usually a dozen Wednesdays, not one.
+ * Dates are matched and stored as the same short label ("21 Jul") the rest of
+ * a selection already uses, so a click here and a click to remove a chip stay
+ * in sync with each other.
+ */
+function SessionCalendar({ selected, onToggle }: { selected: string[]; onToggle: (label: string) => void }) {
+  const [view, setView] = useState(() => new Date(2026, 6, 1));
+  const year = view.getFullYear();
+  const month = view.getMonth();
+  const first = new Date(year, month, 1);
+  const lead = (first.getDay() + 6) % 7; // Monday-first grid; Date.getDay() is Sunday-first.
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: (Date | null)[] = [...Array(lead).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1))];
+
+  return (
+    <div style={{ border: "1px solid rgba(0,32,63,.08)", borderRadius: 14, background: "rgba(255,255,255,.66)", padding: "12px 14px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+        <button type="button" onClick={() => setView(new Date(year, month - 1, 1))} aria-label="Previous month" className="btn-ghost press" style={{ width: 28, height: 28, borderRadius: 8, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 15, fontWeight: 700, color: "var(--fg2)" }}>
+          ‹
+        </button>
+        <span style={{ fontSize: 12, fontWeight: 800 }}>{CAL_MONTHS[month]} {year}</span>
+        <button type="button" onClick={() => setView(new Date(year, month + 1, 1))} aria-label="Next month" className="btn-ghost press" style={{ width: 28, height: 28, borderRadius: 8, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 15, fontWeight: 700, color: "var(--fg2)" }}>
+          ›
+        </button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3, fontSize: 10, fontWeight: 700, color: "var(--fg4)", textAlign: "center", marginBottom: 4 }}>
+        {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+          <span key={i}>{d}</span>
+        ))}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3 }}>
+        {cells.map((d, i) => {
+          if (!d) return <span key={i} />;
+          const label = dayLabel(d);
+          const on = selected.includes(label);
+          return (
+            <button
+              type="button"
+              key={i}
+              onClick={() => onToggle(label)}
+              aria-pressed={on}
+              aria-label={(on ? "Remove " : "Add ") + label}
+              className="press"
+              style={{ height: 30, borderRadius: 8, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 11.5, fontWeight: 700, background: on ? "var(--accent-teal)" : "transparent", color: on ? "#fff" : "var(--fg2)" }}
+            >
+              {d.getDate()}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /**
  * Class selection: which subjects a tutor covers at a centre, and on which
  * dates. The live form builds these one at a time and lists what has been built
@@ -527,23 +605,26 @@ export function EditClassSelectionModal({
   subjects,
   onClose,
   onSave,
+  onAddAll,
 }: {
-  selection: Selection & { id: string };
+  /** Absent when adding new selections. */
+  selection?: Selection & { id: string };
   tutors: string[];
   centres: string[];
   subjects: string[];
   onClose: () => void;
-  onSave: (id: string, patch: Partial<Selection>) => void;
+  onSave?: (id: string, patch: Partial<Selection>) => void;
+  /** Used instead of onSave when adding - every selection built in this sitting is created at once. */
+  onAddAll?: (rows: Selection[]) => void;
 }) {
   // Everything built so far. Editing an existing row starts with it in the list.
-  const [built, setBuilt] = useState<Selection[]>([{ ...selection }]);
+  const [built, setBuilt] = useState<Selection[]>(selection ? [{ ...selection }] : []);
   const [editingAt, setEditingAt] = useState<number | null>(null);
 
   const [tutor, setTutor] = useState(tutors[0] ?? "");
   const [centre, setCentre] = useState(centres[0] ?? "");
   const [subs, setSubs] = useState<string[]>([]);
   const [dates, setDates] = useState<string[]>([]);
-  const [date, setDate] = useState("");
   const [active, setActive] = useState(true);
 
   const reset = () => {
@@ -551,17 +632,11 @@ export function EditClassSelectionModal({
     setCentre(centres[0] ?? "");
     setSubs([]);
     setDates([]);
-    setDate("");
     setActive(true);
     setEditingAt(null);
   };
 
-  const addDate = () => {
-    if (!date) return;
-    const label = new Date(date + "T12:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" });
-    if (!dates.includes(label)) setDates((d) => [...d, label]);
-    setDate("");
-  };
+  const toggleDate = (label: string) => setDates((d) => (d.includes(label) ? d.filter((x) => x !== label) : [...d, label]));
 
   const canAdd = tutor && centre && subs.length > 0 && dates.length > 0;
   const addSelection = () => {
@@ -581,15 +656,21 @@ export function EditClassSelectionModal({
     setEditingAt(i);
   };
 
-  // The row being edited is the first selection; the rest are new ones the
-  // office built in this sitting, which a prototype cannot create yet.
+  // Editing an existing row: the row being edited is the first selection, and
+  // only it saves - the rest are new ones the office built in this sitting,
+  // which a prototype cannot create from an edit dialog. Adding: every
+  // selection built in this sitting is created.
   const valid = built.length > 0;
-  const save = () => valid && onSave(selection.id, built[0]);
+  const save = () => {
+    if (!valid) return;
+    if (selection) onSave?.(selection.id, built[0]);
+    else onAddAll?.(built);
+  };
 
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(880px, calc(100vw - 32px))", maxHeight: "min(90vh, 900px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title="Edit class selection" sub="Which subjects a tutor covers at a centre, and on which dates." onClose={onClose} />
+        <Head title={selection ? "Edit class selection" : "Add a class selection"} sub="Which subjects a tutor covers at a centre, and on which dates." onClose={onClose} />
 
         <div className="ev-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 16 }}>
           {/* ---- the form ---- */}
@@ -632,12 +713,8 @@ export function EditClassSelectionModal({
             <Row cols="1fr">
               <span>
                 <Label required>Session dates</Label>
-                <span style={{ display: "flex", gap: 8 }}>
-                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label="Pick a session date" className="field" style={{ flex: 1, minWidth: 0, height: 44, boxSizing: "border-box" }} />
-                  <button onClick={addDate} disabled={!date} className="btn-soft press ev-tap-h" style={{ height: 44, padding: "0 14px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, flex: "none", opacity: date ? 1 : 0.5 }}>
-                    <Icon path={IC3.plus} size={13} />
-                  </button>
-                </span>
+                <span style={{ fontSize: 11, color: "var(--fg4)", display: "block", marginBottom: 8 }}>Click every date this runs on - a term is usually several at once.</span>
+                <SessionCalendar selected={dates} onToggle={toggleDate} />
                 {dates.length > 0 && (
                   <span style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
                     {dates.map((x) => (
@@ -728,7 +805,7 @@ export function EditClassSelectionModal({
           </div>
         </div>
 
-        <Actions valid={valid} why="Add at least one selection." onSave={save} onClose={onClose} />
+        <Actions valid={valid} why="Add at least one selection." onSave={save} onClose={onClose} label={selection ? "Save changes" : built.length > 1 ? "Add " + built.length + " selections" : "Add selection"} />
       </div>
     </Modal>
   );
@@ -740,20 +817,20 @@ const TERM_STATES = ["ongoing", "upcoming", "finished"];
 const SUBJECT_AREAS = ["Mathematics", "English", "Science", "Humanities"];
 const YEARS = ["Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
 
-export function EditTermModal({ term, onClose, onSave }: { term: Term; onClose: () => void; onSave: (id: string, patch: Partial<Term>) => void }) {
-  const [name, setName] = useState(term.name);
-  const [start, setStart] = useState(term.start);
-  const [end, setEnd] = useState(term.end);
-  const [weeks, setWeeks] = useState(term.weeks);
-  const [state, setState] = useState<string>(term.state);
+export function EditTermModal({ term, onClose, onSave }: { /** Absent when adding a new term. */ term?: Term; onClose: () => void; onSave: (id: string, patch: Partial<Term>) => void }) {
+  const [name, setName] = useState(term?.name ?? "");
+  const [start, setStart] = useState(term?.start ?? "");
+  const [end, setEnd] = useState(term?.end ?? "");
+  const [weeks, setWeeks] = useState(term?.weeks ?? 10);
+  const [state, setState] = useState<string>(term?.state ?? "upcoming");
 
   const valid = name.trim().length > 0 && start.trim().length > 0 && end.trim().length > 0 && weeks > 0;
-  const save = () => valid && onSave(term.id, { name: name.trim(), start: start.trim(), end: end.trim(), weeks, state: state as Term["state"] });
+  const save = () => valid && onSave(term?.id ?? "t" + Date.now().toString(36), { name: name.trim(), start: start.trim(), end: end.trim(), weeks, state: state as Term["state"] });
 
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(620px, calc(100vw - 32px))", maxHeight: "min(88vh, 760px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title="Edit term" sub="The dates everything else is planned against." onClose={onClose} />
+        <Head title={term ? "Edit term" : "Add a term"} sub="The dates everything else is planned against." onClose={onClose} />
         <Row cols="1fr">
           <span>
             <Label required>Term name</Label>
@@ -777,24 +854,48 @@ export function EditTermModal({ term, onClose, onSave }: { term: Term; onClose: 
           </span>
           {sel("State", state, TERM_STATES, setState)}
         </Row>
-        <Actions valid={valid} why="A term needs a name, both dates and a length." onSave={save} onClose={onClose} />
+        <Actions valid={valid} why="A term needs a name, both dates and a length." onSave={save} onClose={onClose} label={term ? "Save changes" : "Add term"} />
       </div>
     </Modal>
   );
 }
 
-export function EditYearGroupModal({ group, onClose, onSave }: { group: YearGroup; onClose: () => void; onSave: (id: string, patch: Partial<YearGroup>) => void }) {
-  const [name, setName] = useState(group.name);
-  const [year, setYear] = useState(group.year);
-  const [status, setStatus] = useState(group.active ? "Active" : "Inactive");
+/**
+ * A year group's subjects are not stored on the group - they are whichever
+ * Subjects rows point their own year level back at it. So "choosing the
+ * subjects" here means reassigning subjects' year level, not editing a list
+ * that lives on the group itself.
+ */
+export function EditYearGroupModal({
+  group,
+  subjects,
+  onSetSubjectYear,
+  onClose,
+  onSave,
+}: {
+  /** Absent when adding a new year group. */
+  group?: YearGroup;
+  subjects: SubjectRow[];
+  /** Moves a subject into (or out of) this year group by changing its year level. */
+  onSetSubjectYear: (subjectId: string, year: string) => void;
+  onClose: () => void;
+  onSave: (id: string, patch: Partial<YearGroup>) => void;
+}) {
+  const [name, setName] = useState(group?.name ?? "");
+  const [year, setYear] = useState(group?.year ?? YEARS[1]);
+  const [status, setStatus] = useState(group ? (group.active ? "Active" : "Inactive") : "Active");
+  const [addSubject, setAddSubject] = useState("");
 
   const valid = name.trim().length > 0;
-  const save = () => valid && onSave(group.id, { name: name.trim(), year, active: status === "Active" });
+  const save = () => valid && onSave(group?.id ?? "yg" + Date.now().toString(36), { name: name.trim(), year, active: status === "Active" });
+
+  const inGroup = subjects.filter((s) => s.year === year);
+  const notInGroup = subjects.filter((s) => s.year !== year);
 
   return (
-    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(560px, calc(100vw - 32px))", maxHeight: "min(88vh, 620px)", overflowY: "auto" }}>
+    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(600px, calc(100vw - 32px))", maxHeight: "min(88vh, 760px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title="Edit year group" sub="A cohort, and the year level it sits at." onClose={onClose} />
+        <Head title={group ? "Edit year group" : "Add a year group"} sub="A cohort, the year level it sits at, and which subjects belong to it." onClose={onClose} />
         <Row cols="1fr">
           <span>
             <Label required>Name</Label>
@@ -805,7 +906,45 @@ export function EditYearGroupModal({ group, onClose, onSave }: { group: YearGrou
           {sel("Year level", year, YEARS, setYear, true)}
           {sel("Status", status, STATUS, setStatus)}
         </Row>
-        <Actions valid={valid} why="A year group needs a name." onSave={save} onClose={onClose} />
+
+        <Row cols="1fr">
+          <span>
+            <Label>Subjects in this year group</Label>
+            {inGroup.length === 0 ? (
+              <div style={{ fontSize: 12, color: "var(--fg4)", lineHeight: 1.55 }}>No subject points at {year} yet. Add one below.</div>
+            ) : (
+              <span style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {inGroup.map((s) => (
+                  <Chip key={s.id} label={s.name} tone="subject" onRemove={() => onSetSubjectYear(s.id, "")} />
+                ))}
+              </span>
+            )}
+            {notInGroup.length > 0 && (
+              <select
+                value={addSubject}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    onSetSubjectYear(e.target.value, year);
+                    setAddSubject("");
+                  }
+                }}
+                className="field"
+                style={{ width: "100%", height: 44, boxSizing: "border-box", marginTop: 8 }}
+                aria-label="Move a subject into this year group"
+              >
+                <option value="">Move a subject into this year group</option>
+                {notInGroup.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name} (currently {s.year || "unassigned"})</option>
+                ))}
+              </select>
+            )}
+            <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 6, lineHeight: 1.5 }}>
+              Removing a subject here does not delete it - it just leaves it unassigned until you move it into another year group.
+            </div>
+          </span>
+        </Row>
+
+        <Actions valid={valid} why="A year group needs a name." onSave={save} onClose={onClose} label={group ? "Save changes" : "Add year group"} />
       </div>
     </Modal>
   );
@@ -934,6 +1073,109 @@ export function CourseCategoryModal({
   );
 }
 
+/** One form for a course, whether it is being created or corrected. */
+export function EditCourseModal({
+  course,
+  categories,
+  onClose,
+  onSave,
+}: {
+  /** Absent when adding a new course. */
+  course?: CourseRow;
+  categories: string[];
+  onClose: () => void;
+  onSave: (id: string, patch: Record<string, unknown>) => void;
+}) {
+  const [name, setName] = useState(course?.name ?? "");
+  const [shortName, setShortName] = useState(course?.shortName ?? "");
+  const [category, setCategory] = useState(course?.category ?? categories[0] ?? "");
+  const [year, setYear] = useState(course?.year ?? YEARS[1]);
+  const [subs, setSubs] = useState<string[]>(course?.subjects ?? []);
+  const [subjectInput, setSubjectInput] = useState("");
+  const [weeks, setWeeks] = useState(course?.durationWeeks ?? 10);
+  const [status, setStatus] = useState(course ? (course.active ? "Active" : "Inactive") : "Active");
+
+  const addSubject = () => {
+    const v = subjectInput.trim();
+    if (v && !subs.includes(v)) setSubs((x) => [...x, v]);
+    setSubjectInput("");
+  };
+
+  const valid = name.trim().length > 0 && shortName.trim().length > 0 && subs.length > 0 && weeks > 0;
+  const save = () =>
+    valid &&
+    onSave(course?.id ?? "co" + Date.now().toString(36), {
+      name: name.trim(),
+      shortName: shortName.trim(),
+      category,
+      year,
+      subjects: subs,
+      durationWeeks: weeks,
+      active: status === "Active",
+    });
+
+  return (
+    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(680px, calc(100vw - 32px))", maxHeight: "min(90vh, 880px)", overflowY: "auto" }}>
+      <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
+        <Head title={course ? "Edit course" : "Add a course"} sub="What a student enrols in. Classes are the sessions that run it." onClose={onClose} />
+        <Row>
+          <span>
+            <Label required>Course name</Label>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="For example: Year 11 Chemistry ATAR" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} autoFocus />
+          </span>
+          <span>
+            <Label required>Short name</Label>
+            <input value={shortName} onChange={(e) => setShortName(e.target.value)} placeholder="For example: Y11 Chem" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
+          </span>
+        </Row>
+        <Row>
+          {sel("Category", category, categories, setCategory, true)}
+          {sel("Year", year, YEARS, setYear, true)}
+        </Row>
+        <Row cols="1fr">
+          <span>
+            <Label required>Subjects</Label>
+            <span style={{ display: "flex", gap: 8 }}>
+              <input
+                value={subjectInput}
+                onChange={(e) => setSubjectInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addSubject();
+                  }
+                }}
+                placeholder="Type a subject and press Enter"
+                aria-label="Add a subject"
+                className="field"
+                style={{ flex: 1, minWidth: 0, height: 44, boxSizing: "border-box" }}
+              />
+              <button type="button" onClick={addSubject} disabled={!subjectInput.trim()} className="btn-soft press ev-tap-h" style={{ height: 44, padding: "0 14px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, flex: "none", opacity: subjectInput.trim() ? 1 : 0.5 }}>
+                <Icon path={IC3.plus} size={13} />
+              </button>
+            </span>
+            {subs.length > 0 && (
+              <span style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                {subs.map((x) => (
+                  <Chip key={x} label={x} tone="subject" onRemove={() => setSubs((v) => v.filter((y) => y !== x))} />
+                ))}
+              </span>
+            )}
+          </span>
+        </Row>
+        <Row>
+          <span>
+            <Label required>Length, in weeks</Label>
+            <input type="number" min={1} max={20} value={weeks} onChange={(e) => setWeeks(Number(e.target.value))} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
+          </span>
+          {sel("Status", status, STATUS, setStatus)}
+        </Row>
+        <Actions valid={valid} why="A course needs a name, a short name, at least one subject and a length." onSave={save} onClose={onClose} label={course ? "Save changes" : "Add course"} />
+      </div>
+    </Modal>
+  );
+}
+
 /**
  * Which tutors teach a course. The course itself is fixed: this row IS that
  * course's mapping, so changing it here would silently rewrite a different
@@ -941,17 +1183,22 @@ export function CourseCategoryModal({
  */
 export function EditCourseTutorModal({
   mapping,
+  courses,
   tutors,
   onClose,
   onSave,
 }: {
-  mapping: CourseTutorMap;
+  /** Absent when mapping a course that has no tutor row yet. */
+  mapping?: CourseTutorMap;
+  /** Courses with no mapping yet - only used when adding. */
+  courses?: string[];
   tutors: string[];
   onClose: () => void;
   onSave: (id: string, patch: Partial<CourseTutorMap>) => void;
 }) {
-  const [chosen, setChosen] = useState<string[]>(mapping.tutors);
-  const [status, setStatus] = useState(mapping.active ? "Active" : "Inactive");
+  const [course, setCourse] = useState(mapping?.course ?? courses?.[0] ?? "");
+  const [chosen, setChosen] = useState<string[]>(mapping?.tutors ?? []);
+  const [status, setStatus] = useState(mapping ? (mapping.active ? "Active" : "Inactive") : "Active");
 
   const options: PickerOption[] = tutors.map((t) => {
     const member = STAFF.find((s) => s.name === t);
@@ -964,23 +1211,28 @@ export function EditCourseTutorModal({
     };
   });
 
-  const save = () => onSave(mapping.id, { tutors: chosen, active: status === "Active" });
+  const valid = course.trim().length > 0;
+  const save = () => valid && onSave(mapping?.id ?? "ct" + Date.now().toString(36), { course, tutors: chosen, active: status === "Active" });
 
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(600px, calc(100vw - 32px))", maxHeight: "min(88vh, 700px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title="Edit course tutors" sub="Who teaches this course, and whether the mapping is live." onClose={onClose} />
+        <Head title={mapping ? "Edit course tutors" : "Staff a course"} sub="Who teaches this course, and whether the mapping is live." onClose={onClose} />
 
         <Row cols="1fr">
-          <span>
-            <Label>Course</Label>
-            <div className="glass-control" style={{ display: "flex", alignItems: "center", height: 44, borderRadius: 12, padding: "0 13px", background: "rgba(0,32,63,.04)", color: "var(--fg3)", fontSize: 13, fontWeight: 600 }}>
-              {mapping.course}
-            </div>
-            <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 4 }}>
-              This row is that course. To staff a different one, edit its own row.
+          {mapping ? (
+            <span>
+              <Label>Course</Label>
+              <div className="glass-control" style={{ display: "flex", alignItems: "center", height: 44, borderRadius: 12, padding: "0 13px", background: "rgba(0,32,63,.04)", color: "var(--fg3)", fontSize: 13, fontWeight: 600 }}>
+                {mapping.course}
+              </div>
+              <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 4 }}>
+                This row is that course. To staff a different one, edit its own row.
+              </span>
             </span>
-          </span>
+          ) : (
+            sel("Course", course, courses ?? [], setCourse, true)
+          )}
         </Row>
 
         <Row cols="1fr">
@@ -996,7 +1248,7 @@ export function EditCourseTutorModal({
 
         <Row cols="1fr">{sel("Status", status, STATUS, setStatus, true)}</Row>
 
-        <Actions valid why="" onSave={save} onClose={onClose} />
+        <Actions valid={valid} why="Pick which course this is staffing." onSave={save} onClose={onClose} label={mapping ? "Save changes" : "Add mapping"} />
       </div>
     </Modal>
   );

@@ -80,18 +80,23 @@ function Card({ span, delay, children }: { span: number; delay: number; children
   );
 }
 
-/** "Chased today" / "Chased 2 days ago", so the office can see it already asked. */
-function chasedLabel(iso: string): string {
+/** "Reminded today" / "Reminded 2 days ago", so the office can see it already asked. */
+function remindedLabel(iso: string): string {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-  return days <= 0 ? "Chased today" : days === 1 ? "Chased yesterday" : "Chased " + days + " days ago";
+  return days <= 0 ? "Reminded today" : days === 1 ? "Reminded yesterday" : "Reminded " + days + " days ago";
 }
 
-function ChaseButton({ chased, onClick, label }: { chased?: { on: string; count: number }; onClick: () => void; label: string }) {
+/**
+ * A day still waiting has already had one automatic reminder for every day it
+ * has been waiting - the office does not have to ask for those. This button is
+ * only for an extra one, on top of the automatic run.
+ */
+function RemindButton({ chased, onClick, label }: { chased?: { on: string; count: number }; onClick: () => void; label: string }) {
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flex: "none" }}>
-      {chased && <span style={{ fontSize: 10.5, color: "var(--fg4)", whiteSpace: "nowrap" }}>{chasedLabel(chased.on)}</span>}
+      {chased && <span style={{ fontSize: 10.5, color: "var(--fg4)", whiteSpace: "nowrap" }}>{remindedLabel(chased.on)}</span>}
       <button onClick={onClick} className="btn-ghost press ev-tap-h" style={{ height: 30, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 700, color: "var(--fg2)", whiteSpace: "nowrap" }}>
-        {chased ? "Chase again" : label}
+        {chased ? "Remind again" : label}
       </button>
     </span>
   );
@@ -145,7 +150,8 @@ export default function AdminGrade() {
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 16 }}>
       <div className="glass-card" style={{ gridColumn: "span 12", padding: "13px 18px", boxSizing: "border-box", fontSize: 11.5, color: "var(--fg3)", lineHeight: 1.55, animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
         Online classes only. Work handed in on paper at a centre is marked and given back in the room, so the portal never sees it.
-        Chasing someone records the reminder here and shows when you last sent one, so nobody gets asked twice in a morning.
+        Everyone still waiting gets an automatic reminder every morning, so the count under WAITED is also how many of those have gone out.
+        Remind sends an extra one right now, and records when you sent it so nobody gets asked twice in a morning.
       </div>
 
       {stats.map((s, i) => (
@@ -183,11 +189,14 @@ export default function AdminGrade() {
                 </span>
               </span>
               <span className="ev-wrap-cta" style={{ display: "inline-flex", alignItems: "center", gap: 9, flex: "none" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 10, fontWeight: 800, letterSpacing: 0.4, color: tone.color, background: tone.bg, padding: "4px 10px", borderRadius: 980 }}>
+                <span
+                  title={s.days === 0 ? "No automatic reminder yet - it has not been a full day" : s.days + " automatic reminder" + (s.days === 1 ? "" : "s") + " sent so far"}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 10, fontWeight: 800, letterSpacing: 0.4, color: tone.color, background: tone.bg, padding: "4px 10px", borderRadius: 980 }}
+                >
                   <Icon path={IC.clock} size={11} />
                   {waitLabel(s.days)}
                 </span>
-                <ChaseButton chased={nudges["mark:" + s.id]} onClick={() => nudge("mark:" + s.id, tutorOf(s.course))} label="Chase" />
+                <RemindButton chased={nudges["mark:" + s.id]} onClick={() => nudge("mark:" + s.id, tutorOf(s.course))} label="Remind" />
               </span>
             </div>
           );
@@ -197,7 +206,7 @@ export default function AdminGrade() {
       {/* ---- who is sitting on it ---- */}
       <Card span={5} delay={0.26}>
         <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 4px" }}>By tutor</h2>
-        <p style={{ margin: "0 0 10px", fontSize: 11.5, color: "var(--fg3)" }}>Who to chase, and how far behind they are.</p>
+        <p style={{ margin: "0 0 10px", fontSize: 11.5, color: "var(--fg3)" }}>Who to remind, and how far behind they are.</p>
 
         {byTutor.length === 0 && <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "8px 0" }}>Nobody has anything outstanding.</div>}
 
@@ -208,11 +217,11 @@ export default function AdminGrade() {
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: "block", fontSize: 12.5, fontWeight: 700 }}>{t.tutor}</span>
                 <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 2 }}>
-                  {t.count} to mark · longest {waitLabel(t.oldest)}
+                  {t.count} to mark · longest {waitLabel(t.oldest)} · {t.oldest} automatic reminder{t.oldest === 1 ? "" : "s"} sent
                 </span>
               </span>
               <span style={{ fontSize: 19, fontWeight: 800, color: tone.color, flex: "none" }}>{t.count}</span>
-              <ChaseButton chased={nudges["tutor:" + t.tutor]} onClick={() => nudge("tutor:" + t.tutor, t.tutor)} label="Chase" />
+              <RemindButton chased={nudges["tutor:" + t.tutor]} onClick={() => nudge("tutor:" + t.tutor, t.tutor)} label="Remind" />
             </div>
           );
         })}
@@ -256,7 +265,7 @@ export default function AdminGrade() {
                 <span style={{ fontSize: 10, fontWeight: 700, color: MATERIAL_KIND_META[a.kind].color, background: MATERIAL_KIND_META[a.kind].bg, padding: "4px 10px", borderRadius: 980 }}>
                   {MATERIAL_KIND_META[a.kind].label}
                 </span>
-                <ChaseButton
+                <RemindButton
                   chased={nudges["work:" + a.id]}
                   onClick={() => nudge("work:" + a.id, a.target.kind === "student" ? a.target.studentName : cd.name)}
                   label="Remind"
