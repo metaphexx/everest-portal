@@ -22,6 +22,7 @@ const AdminSafeguarding = lazy(() => import("@/app/admin/safeguarding/page"));
 const AdminSettings = lazy(() => import("@/app/admin/settings/page"));
 const AdminSearch = lazy(() => import("@/app/admin/search/page"));
 const AdminSchedule = lazy(() => import("@/app/admin/schedule/page"));
+const AdminGrade = lazy(() => import("@/app/admin/grade/page"));
 const AdminMessages = lazy(() => import("@/app/admin/messages/page"));
 import StaffLayout from "@/app/staff/layout";
 
@@ -132,6 +133,7 @@ export default function App() {
         <Route path="/admin/approvals" element={<AdminApprovals />} />
         <Route path="/admin/classes" element={<AdminClasses />} />
         <Route path="/admin/schedule" element={<AdminSchedule />} />
+        <Route path="/admin/grade" element={<AdminGrade />} />
         <Route path="/admin/messages" element={<AdminMessages />} />
         <Route path="/admin/masters" element={<AdminMasters />} />
         <Route path="/admin/history" element={<AdminHistory />} />

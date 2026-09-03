@@ -58,7 +58,7 @@ export default function AdminSettings() {
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: "block", fontSize: 14, fontWeight: 800 }}>{who.person}</span>
             <span style={{ display: "block", fontSize: 12, color: "var(--fg4)", marginTop: 2 }}>
-              {who.label} · {who.centre}
+              {who.label}
             </span>
             <button onClick={() => notWired("Change photo")} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700, marginTop: 8, display: "inline-flex", alignItems: "center", gap: 7 }}>
               <Icon path={IC.camera} size={13} />

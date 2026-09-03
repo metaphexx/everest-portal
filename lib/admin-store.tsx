@@ -23,7 +23,9 @@ import {
   Submission,
   TUTOR,
   TUTOR_COURSES,
+  SEED_ASSIGNMENTS,
   seedRequests,
+  seedSubmissions,
 } from "./tutor-data";
 import { AdminClass, SHARED_FILES, SharedFileRow } from "./admin-data";
 import { AdminSession, SessionPatch } from "./admin-schedule";
@@ -131,8 +133,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         ...s,
         hydrated: true,
         requests: [...(t && Array.isArray(t.requests) ? t.requests : seedRequests()), ...readOfficeRequests()],
-        assignments: t && Array.isArray(t.assignments) ? t.assignments : [],
-        submissions: t && Array.isArray(t.submissions) ? t.submissions : [],
+        assignments: t && Array.isArray(t.assignments) ? t.assignments : SEED_ASSIGNMENTS,
+        submissions: t && Array.isArray(t.submissions) ? t.submissions : seedSubmissions(),
       }));
     };
     load();

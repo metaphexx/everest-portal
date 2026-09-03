@@ -33,6 +33,7 @@ function pageMeta(pathname: string, pending: number, toPrint: number, isPrint: b
 
   if (pathname.includes("/classes")) return { t: "Classes", s: "Every class Everest runs, across all centres and online." };
   if (pathname.includes("/masters")) return { t: "Master Records", s: "Centres, printers, people, terms, subjects, courses and Drive folders." };
+  if (pathname.includes("/grade")) return { t: "Marking", s: "Whether online work is being marked, and who is behind." };
   if (pathname.includes("/history")) return { t: "Print History", s: "Everything that has actually been printed, by centre." };
   if (pathname.includes("/catalogue")) return { t: "Catalogue", s: "The booklets tutors can request and assign." };
   if (pathname.includes("/files")) return { t: "Shared Files", s: "Every file shared on the platform, and who sent it to whom." };
