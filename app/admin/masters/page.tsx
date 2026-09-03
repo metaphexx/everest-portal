@@ -84,8 +84,8 @@ const TABS = [
   { id: "courses", label: "Courses", group: "Teaching" },
   { id: "categories", label: "Course categories", group: "Teaching" },
   { id: "course-tutors", label: "Course tutors", group: "Teaching" },
-  { id: "subject-drive", label: "(In person) Subject Drive map", group: "Drive" },
-  { id: "booklet-drive", label: "Booklet Drive map", group: "Drive" },
+  { id: "subject-drive", label: "(In-Person & Online) Subject Drive Map", group: "Drive" },
+  { id: "booklet-drive", label: "(Online only) Booklet Drive Map", group: "Drive" },
 ];
 
 type EditTarget =
@@ -414,7 +414,7 @@ export default function AdminMasters() {
             onEdit={(r) => setEditing({ kind: "subject-drive", row: r })}
             onDelete={() => del("mapping")}
             emptyTitle="Nothing mapped"
-            emptyBody="Point each subject at the Drive folder its materials live in, so tutors see the right files."
+            emptyBody="Point each subject at the Drive folder its materials live in. In-person requests print from it, and online tutors send from it."
           />
         );
       }
@@ -454,7 +454,7 @@ export default function AdminMasters() {
             onEdit={(r) => setEditing({ kind: "booklet-drive", row: r })}
             onDelete={() => del("mapping")}
             emptyTitle="Nothing mapped"
-            emptyBody="Point a Drive folder of booklets at the tutors who may take from it."
+            emptyBody="Share a folder of extra booklets with online tutors, beyond what their subject already gives them."
           />
         );
       }

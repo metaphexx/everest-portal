@@ -1009,7 +1009,11 @@ const IC4 = {
   tick: "M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z",
 };
 
-/** A subject and the Drive folder its in-person materials live in. */
+/**
+ * A subject and the Drive folder its materials live in. This map serves BOTH
+ * kinds of class: an in-person booklet request prints from it, and an online
+ * tutor sending work sees what it holds for their subject and year.
+ */
 export function SubjectDriveModal({
   map,
   subjects,
@@ -1034,7 +1038,7 @@ export function SubjectDriveModal({
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
         <Head
           title={map ? "Edit subject Drive map" : "Map a folder to a subject"}
-          sub="Where a subject's in-person materials live, so tutors see the right files."
+          sub="Where a subject's materials live. In-person requests print from here, and online tutors send from it."
           onClose={onClose}
         />
         <Row>
@@ -1114,7 +1118,7 @@ export function BookletDriveModal({
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
         <Head
           title={map ? (title?.edit ?? "Edit booklet Drive map") : (title?.add ?? "Map a booklet folder")}
-          sub={title?.sub ?? "A Drive folder of booklets, and who may take from it."}
+          sub={title?.sub ?? "Extra booklets for online tutors, beyond what their subject already gives them."}
           onClose={onClose}
         />
         {purposeOf && (
