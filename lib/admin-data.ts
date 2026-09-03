@@ -287,15 +287,27 @@ export interface SharedFileRow {
   context: string;
   when: string;
   kind: "assigned" | "message" | "classroom" | "drive";
+  /**
+   * Where the file came from. "everest" is a folder the office provided and
+   * vetted; "tutor" is something the tutor made or uploaded to their own My
+   * Drive. The office has no other way to tell those apart, and only one of
+   * them has been through anybody's hands but the tutor's.
+   */
+  source: "everest" | "tutor";
 }
 
 export const SHARED_FILES: SharedFileRow[] = [
-  { id: "sf1", file: "Organic pathways booklet.pdf", from: "Priya Rao", to: "Year 11 Chemistry (whole class)", context: "Assigned material", when: "25 Jun, 6:40pm", kind: "assigned" },
-  { id: "sf2", file: "Question 6a worked solution.pdf", from: "Priya Rao", to: "Year 11 Chemistry classroom", context: "Classroom post", when: "Today, 9:40am", kind: "classroom" },
-  { id: "sf3", file: "GATE_timed_paper_4.pdf", from: "David Chen", to: "Maya Kapoor", context: "Direct message", when: "1 Jul, 6:20pm", kind: "message" },
-  { id: "sf4", file: "Annotated essay exemplar.pdf", from: "Grace Lin", to: "Maya Kapoor", context: "Direct message", when: "24 Jun, 5:05pm", kind: "message" },
-  { id: "sf5", file: "Forces and motion problem set.pdf", from: "Priya Rao", to: "Cooper Hall", context: "Assigned material", when: "17 Jun, 4:12pm", kind: "assigned" },
-  { id: "sf6", file: "Holiday revision plan.docx", from: "Priya Rao", to: "Maya Kapoor", context: "Direct message", when: "18 Jun, 8:02pm", kind: "message" },
+  { id: "sf1", file: "Organic pathways booklet.pdf", from: "Priya Rao", to: "Year 11 Chemistry (whole class)", context: "Assigned material", when: "25 Jun, 6:40pm", kind: "assigned", source: "everest" },
+  { id: "sf2", file: "Question 6a worked solution.pdf", from: "Priya Rao", to: "Year 11 Chemistry classroom", context: "Classroom post", when: "Today, 9:40am", kind: "classroom", source: "tutor" },
+  { id: "sf3", file: "GATE_timed_paper_4.pdf", from: "David Chen", to: "Maya Kapoor", context: "Direct message", when: "1 Jul, 6:20pm", kind: "message", source: "everest" },
+  { id: "sf4", file: "Annotated essay exemplar.pdf", from: "Grace Lin", to: "Maya Kapoor", context: "Direct message", when: "24 Jun, 5:05pm", kind: "message", source: "tutor" },
+  { id: "sf5", file: "Forces and motion problem set.pdf", from: "Priya Rao", to: "Cooper Hall", context: "Assigned material", when: "17 Jun, 4:12pm", kind: "assigned", source: "everest" },
+  { id: "sf6", file: "Holiday revision plan.docx", from: "Priya Rao", to: "Maya Kapoor", context: "Direct message", when: "18 Jun, 8:02pm", kind: "message", source: "tutor" },
+  // From a tutor's OWN My Drive: made by them, seen by nobody at the office
+  // until it turns up here.
+  { id: "sf7", file: "Trial exam - my own questions.pdf", from: "Priya Rao", to: "Year 11 Chemistry (whole class)", context: "From their My Drive", when: "Today, 7:12am", kind: "drive", source: "tutor" },
+  { id: "sf8", file: "Equilibrium cheat sheet (draft).docx", from: "Tobi Okafor", to: "Year 10 Mathematics (whole class)", context: "From their My Drive", when: "Yesterday, 8:55pm", kind: "drive", source: "tutor" },
+  { id: "sf9", file: "Past paper solutions 2024.pdf", from: "Grace Lin", to: "Zara Patel", context: "From their My Drive", when: "30 Jun, 4:30pm", kind: "drive", source: "tutor" },
 ];
 
 /** Messages the safeguarding classifier flagged, newest first. */

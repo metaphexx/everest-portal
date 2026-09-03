@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
 import { PeoplePicker, PickerOption } from "@/components/admin/PeoplePicker";
-import { BookletDriveMap, Centre, DriveDataMap, CentrePrinter, CourseCategory, CourseTutorMap, DriveMap, Printer, SubjectRow, Term, YearGroup } from "@/lib/admin-masters";
+import { BookletDriveMap, Centre, CentrePrinter, CourseCategory, CourseTutorMap, DriveMap, Printer, SubjectRow, Term, YearGroup } from "@/lib/admin-masters";
 import { AdminStudent, STAFF, StaffMember } from "@/lib/admin-data";
 import {
   COLOUR_OPTIONS,
@@ -1076,7 +1076,7 @@ export function BookletDriveModal({
   onSave,
 }: {
   /** Absent when mapping a new folder. */
-  map?: BookletDriveMap | DriveDataMap;
+  map?: BookletDriveMap;
   tutors: { name: string; email: string; initials: string; colour?: string }[];
   /** Drive access labels each folder with what it is for; booklet maps do not. */
   purposeOf?: boolean;
@@ -1084,7 +1084,7 @@ export function BookletDriveModal({
   onClose: () => void;
   onSave: (id: string, patch: Record<string, unknown>) => void;
 }) {
-  const [purpose, setPurpose] = useState((map as DriveDataMap | undefined)?.purpose ?? "");
+  const [purpose, setPurpose] = useState(map?.purpose ?? "");
   const [folder, setFolder] = useState(map?.folder ?? "");
   const [status, setStatus] = useState(map ? (map.active ? "Active" : "Inactive") : "Active");
   const [rows, setRows] = useState<BookletDriveMap["tutors"]>(map?.tutors ?? []);

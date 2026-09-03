@@ -22,7 +22,7 @@ const KIND_META: Record<string, { label: string; color: string; bg: string }> = 
   assigned: { label: "Assigned", color: "var(--brand-600)", bg: "rgba(0,157,255,.12)" },
   message: { label: "Message", color: "var(--accent-violet)", bg: "rgba(122,90,248,.13)" },
   classroom: { label: "Classroom", color: "var(--accent-teal)", bg: "rgba(14,156,142,.13)" },
-  drive: { label: "Drive", color: "var(--warn-700)", bg: "rgba(245,166,35,.16)" },
+  drive: { label: "From My Drive", color: "var(--warn-700)", bg: "rgba(245,166,35,.16)" },
 };
 
 export default function AdminFiles() {
@@ -31,17 +31,25 @@ export default function AdminFiles() {
   const [kind, setKind] = useState<string>("all");
 
   const shown = sharedFiles.filter((f) => {
-    if (kind !== "all" && f.kind !== kind) return false;
+    if (kind === "own") {
+      if (f.source !== "tutor") return false;
+    } else if (kind !== "all" && f.kind !== kind) return false;
     const ql = q.trim().toLowerCase();
     return !ql || (f.file + " " + f.from + " " + f.to + " " + f.context).toLowerCase().includes(ql);
   });
 
   const KINDS = [
     { id: "all", label: "Everything" },
+    // The office's real question is not "what was shared" but "what went out
+    // that we never vetted", so a tutor's own material is one click away.
+    { id: "own", label: "Tutors' own material" },
     { id: "assigned", label: "Assigned" },
     { id: "message", label: "In messages" },
     { id: "classroom", label: "In classrooms" },
+    { id: "drive", label: "From a tutor's My Drive" },
   ];
+
+  const ownCount = sharedFiles.filter((f) => f.source === "tutor").length;
 
   return (
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 16 }}>
@@ -95,6 +103,23 @@ export default function AdminFiles() {
                 </span>
               </span>
               <span className="ev-row-end" style={{ display: "flex", alignItems: "center", gap: 8, flex: "none" }}>
+                {/* Whose file it is, which is the thing the office cannot tell
+                    from a name: an Everest folder has been through somebody
+                    here, a tutor's own material has not. */}
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: 0.3,
+                    color: f.source === "tutor" ? "var(--warn-700)" : "var(--fg3)",
+                    background: f.source === "tutor" ? "rgba(245,166,35,.14)" : "rgba(0,32,63,.05)",
+                    padding: "4px 10px",
+                    borderRadius: 980,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {f.source === "tutor" ? "Tutor's own" : "Everest folder"}
+                </span>
                 <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.4, color: meta.color, background: meta.bg, padding: "4px 10px", borderRadius: 980 }}>{meta.label}</span>
                 <button onClick={() => notWired("File preview")} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
                   Preview
@@ -104,7 +129,8 @@ export default function AdminFiles() {
           );
         })}
         <div style={{ fontSize: 11.5, color: "var(--fg4)", paddingTop: 12 }}>
-          {shown.length} of {sharedFiles.length} files shared on the platform.
+          {shown.length} of {sharedFiles.length} files shared on the platform. {ownCount} came from a tutor&apos;s own material rather than an
+          Everest folder.
         </div>
       </div>
     </div>

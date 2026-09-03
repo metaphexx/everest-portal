@@ -104,6 +104,9 @@ interface AdminApi extends AdminState {
   /** Master records the office has created, by table. */
   masterAdds: Record<string, MasterPatch[]>;
   addMaster: (table: string, row: MasterPatch, label?: string) => void;
+  /** Reminders the office has sent, by what they were about. */
+  nudges: Record<string, { on: string; count: number }>;
+  nudge: (key: string, who: string) => void;
 }
 
 const Ctx = createContext<AdminApi | null>(null);
@@ -271,6 +274,32 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     showToast(label + " added");
   }, [showToast]);
 
+  /**
+   * Chasing someone is a real event, so it is recorded rather than toasted and
+   * forgotten: the office needs to see it has already asked, and how long ago,
+   * or it nags the same tutor twice on a Monday and not at all on a Friday.
+   */
+  const [nudges, setNudges] = useState<Record<string, { on: string; count: number }>>(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-nudges") : null;
+      return raw ? (JSON.parse(raw) as Record<string, { on: string; count: number }>) : {};
+    } catch {
+      return {};
+    }
+  });
+  const nudge = useCallback((key: string, who: string) => {
+    setNudges((m) => {
+      const next = { ...m, [key]: { on: new Date().toISOString(), count: (m[key]?.count ?? 0) + 1 } };
+      try {
+        window.localStorage.setItem("evr-admin-nudges", JSON.stringify(next));
+      } catch {
+        /* storage full - the reminder still shows for this session */
+      }
+      return next;
+    });
+    showToast("Reminder sent to " + who);
+  }, [showToast]);
+
   const [sessionPatches, setSessionPatches] = useState<Record<string, SessionPatch>>(() => {
     try {
       const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-sessions") : null;
@@ -321,6 +350,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       context: "Assigned material",
       when: a.assignedAt,
       kind: "assigned" as const,
+      source: "everest" as const,
     }));
     return [...live, ...SHARED_FILES];
   }, [state.assignments]);
@@ -344,6 +374,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     patchMaster,
     masterAdds,
     addMaster,
+    nudges,
+    nudge,
     sharedFiles,
   };
 

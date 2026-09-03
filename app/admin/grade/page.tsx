@@ -80,8 +80,25 @@ function Card({ span, delay, children }: { span: number; delay: number; children
   );
 }
 
+/** "Chased today" / "Chased 2 days ago", so the office can see it already asked. */
+function chasedLabel(iso: string): string {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  return days <= 0 ? "Chased today" : days === 1 ? "Chased yesterday" : "Chased " + days + " days ago";
+}
+
+function ChaseButton({ chased, onClick, label }: { chased?: { on: string; count: number }; onClick: () => void; label: string }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flex: "none" }}>
+      {chased && <span style={{ fontSize: 10.5, color: "var(--fg4)", whiteSpace: "nowrap" }}>{chasedLabel(chased.on)}</span>}
+      <button onClick={onClick} className="btn-ghost press ev-tap-h" style={{ height: 30, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 700, color: "var(--fg2)", whiteSpace: "nowrap" }}>
+        {chased ? "Chase again" : label}
+      </button>
+    </span>
+  );
+}
+
 export default function AdminGrade() {
-  const { submissions, assignments } = useAdmin();
+  const { submissions, assignments, nudges, nudge } = useAdmin();
   const base = useBase();
 
   const online = useMemo(() => submissions.filter((s) => isOnline(s.course)), [submissions]);
@@ -128,6 +145,7 @@ export default function AdminGrade() {
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 16 }}>
       <div className="glass-card" style={{ gridColumn: "span 12", padding: "13px 18px", boxSizing: "border-box", fontSize: 11.5, color: "var(--fg3)", lineHeight: 1.55, animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
         Online classes only. Work handed in on paper at a centre is marked and given back in the room, so the portal never sees it.
+        Chasing someone records the reminder here and shows when you last sent one, so nobody gets asked twice in a morning.
       </div>
 
       {stats.map((s, i) => (
@@ -164,9 +182,12 @@ export default function AdminGrade() {
                   {s.wsName} · {cd.name} · {tutorOf(s.course)}
                 </span>
               </span>
-              <span className="ev-wrap-cta" style={{ display: "inline-flex", alignItems: "center", gap: 7, flex: "none", fontSize: 10, fontWeight: 800, letterSpacing: 0.4, color: tone.color, background: tone.bg, padding: "4px 10px", borderRadius: 980 }}>
-                <Icon path={IC.clock} size={11} />
-                {waitLabel(s.days)}
+              <span className="ev-wrap-cta" style={{ display: "inline-flex", alignItems: "center", gap: 9, flex: "none" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 10, fontWeight: 800, letterSpacing: 0.4, color: tone.color, background: tone.bg, padding: "4px 10px", borderRadius: 980 }}>
+                  <Icon path={IC.clock} size={11} />
+                  {waitLabel(s.days)}
+                </span>
+                <ChaseButton chased={nudges["mark:" + s.id]} onClick={() => nudge("mark:" + s.id, tutorOf(s.course))} label="Chase" />
               </span>
             </div>
           );
@@ -191,6 +212,7 @@ export default function AdminGrade() {
                 </span>
               </span>
               <span style={{ fontSize: 19, fontWeight: 800, color: tone.color, flex: "none" }}>{t.count}</span>
+              <ChaseButton chased={nudges["tutor:" + t.tutor]} onClick={() => nudge("tutor:" + t.tutor, t.tutor)} label="Chase" />
             </div>
           );
         })}
@@ -230,8 +252,15 @@ export default function AdminGrade() {
                   {a.due ? " · due " + new Date(a.due + "T12:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" }) : ""}
                 </span>
               </span>
-              <span className="ev-wrap-cta" style={{ fontSize: 10, fontWeight: 700, color: MATERIAL_KIND_META[a.kind].color, background: MATERIAL_KIND_META[a.kind].bg, padding: "4px 10px", borderRadius: 980, flex: "none" }}>
-                {MATERIAL_KIND_META[a.kind].label}
+              <span className="ev-wrap-cta" style={{ display: "inline-flex", alignItems: "center", gap: 9, flex: "none" }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: MATERIAL_KIND_META[a.kind].color, background: MATERIAL_KIND_META[a.kind].bg, padding: "4px 10px", borderRadius: 980 }}>
+                  {MATERIAL_KIND_META[a.kind].label}
+                </span>
+                <ChaseButton
+                  chased={nudges["work:" + a.id]}
+                  onClick={() => nudge("work:" + a.id, a.target.kind === "student" ? a.target.studentName : cd.name)}
+                  label="Remind"
+                />
               </span>
             </div>
           );

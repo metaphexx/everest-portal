@@ -173,6 +173,8 @@ export interface DriveMap {
 export interface BookletDriveMap {
   id: string;
   folder: string;
+  /** What is in it, so a folder link is not the only thing naming it. */
+  purpose: string;
   tutors: { name: string; email: string; allowAllStudents: boolean }[];
   active: boolean;
 }
@@ -192,6 +194,7 @@ export const BOOKLET_DRIVE: BookletDriveMap[] = [
   {
     id: "bd1",
     folder: DRIVE + "1LfSj1G63g3IwiFtKD1xZQZWrm3eZBbQQ",
+    purpose: "Chemistry booklets",
     tutors: [
       { name: "Priya Rao", email: "p.rao@everesttutoring.com.au", allowAllStudents: true },
       { name: "Grace Lin", email: "g.lin@everesttutoring.com.au", allowAllStudents: true },
@@ -201,6 +204,7 @@ export const BOOKLET_DRIVE: BookletDriveMap[] = [
   {
     id: "bd2",
     folder: DRIVE + "19KwNmGuI9_Tu2-2qL5b1uZRYVQVbAalc",
+    purpose: "Science booklets",
     tutors: [
       { name: "Priya Rao", email: "p.rao@everesttutoring.com.au", allowAllStudents: true },
       { name: "Tobi Okafor", email: "t.okafor@everesttutoring.com.au", allowAllStudents: false },
@@ -210,58 +214,17 @@ export const BOOKLET_DRIVE: BookletDriveMap[] = [
   {
     id: "bd3",
     folder: DRIVE + "1c9Wq2sLp0zTn4RvB7mYh6XdEa8FgHjKl",
+    purpose: "Mathematics booklets",
     tutors: [{ name: "David Chen", email: "d.chen@everesttutoring.com.au", allowAllStudents: true }],
     active: true,
   },
   {
     id: "bd4",
     folder: DRIVE + "1QpR3tYuI5oP7aS9dF2gH4jK6lZ8xC0vB",
+    purpose: "English booklets",
     tutors: [],
     active: false,
   },
-];
-
-/**
- * A Drive folder granted to tutors, with what it is for.
- *
- * NOTE: this is the same record as BookletDriveMap with a label on it - the
- * live system keeps both and its two forms are identical. Kept apart here only
- * because the live nav has both; they are candidates to merge.
- */
-export interface DriveDataMap {
-  id: string;
-  folder: string;
-  tutors: { name: string; email: string; allowAllStudents: boolean }[];
-  purpose: string;
-  active: boolean;
-}
-
-export const DRIVE_DATA: DriveDataMap[] = [
-  {
-    id: "dd1",
-    folder: DRIVE + "1LfSj1G63g3IwiFtKD1xZQZWrm3eZBbQQ",
-    tutors: [{ name: "Priya Rao", email: "p.rao@everesttutoring.com.au", allowAllStudents: true }],
-    purpose: "Chemistry booklets",
-    active: true,
-  },
-  {
-    id: "dd2",
-    folder: DRIVE + "19KwNmGuI9_Tu2-2qL5b1uZRYVQVbAalc",
-    tutors: [
-      { name: "Priya Rao", email: "p.rao@everesttutoring.com.au", allowAllStudents: true },
-      { name: "Tobi Okafor", email: "t.okafor@everesttutoring.com.au", allowAllStudents: false },
-    ],
-    purpose: "Science booklets",
-    active: true,
-  },
-  {
-    id: "dd3",
-    folder: DRIVE + "12pAiUPKD-Z0vNn1gRAUNMuA65coYwTf0",
-    tutors: [{ name: "Grace Lin", email: "g.lin@everesttutoring.com.au", allowAllStudents: true }],
-    purpose: "English booklets",
-    active: true,
-  },
-  { id: "dd4", folder: DRIVE + "1QpR3tYuI5oP7aS9dF2gH4jK6lZ8xC0vB", tutors: [], purpose: "Not yet in use", active: false },
 ];
 
 export interface ClassSelectionRow {
