@@ -221,18 +221,46 @@ export const BOOKLET_DRIVE: BookletDriveMap[] = [
   },
 ];
 
+/**
+ * A Drive folder granted to tutors, with what it is for.
+ *
+ * NOTE: this is the same record as BookletDriveMap with a label on it - the
+ * live system keeps both and its two forms are identical. Kept apart here only
+ * because the live nav has both; they are candidates to merge.
+ */
 export interface DriveDataMap {
   id: string;
   folder: string;
-  tutors: string[];
+  tutors: { name: string; email: string; allowAllStudents: boolean }[];
   purpose: string;
   active: boolean;
 }
 
 export const DRIVE_DATA: DriveDataMap[] = [
-  { id: "dd1", folder: DRIVE + "1LfSj1G63g3IwiFtKD1xZQZWrm3eZBbQQ", tutors: ["Priya Rao"], purpose: "Chemistry booklets", active: true },
-  { id: "dd2", folder: DRIVE + "19KwNmGuI9_Tu2-2qL5b1uZRYVQVbAalc", tutors: ["Priya Rao", "Tobi Okafor"], purpose: "Science booklets", active: true },
-  { id: "dd3", folder: DRIVE + "12pAiUPKD-Z0vNn1gRAUNMuA65coYwTf0", tutors: ["Grace Lin"], purpose: "English booklets", active: true },
+  {
+    id: "dd1",
+    folder: DRIVE + "1LfSj1G63g3IwiFtKD1xZQZWrm3eZBbQQ",
+    tutors: [{ name: "Priya Rao", email: "p.rao@everesttutoring.com.au", allowAllStudents: true }],
+    purpose: "Chemistry booklets",
+    active: true,
+  },
+  {
+    id: "dd2",
+    folder: DRIVE + "19KwNmGuI9_Tu2-2qL5b1uZRYVQVbAalc",
+    tutors: [
+      { name: "Priya Rao", email: "p.rao@everesttutoring.com.au", allowAllStudents: true },
+      { name: "Tobi Okafor", email: "t.okafor@everesttutoring.com.au", allowAllStudents: false },
+    ],
+    purpose: "Science booklets",
+    active: true,
+  },
+  {
+    id: "dd3",
+    folder: DRIVE + "12pAiUPKD-Z0vNn1gRAUNMuA65coYwTf0",
+    tutors: [{ name: "Grace Lin", email: "g.lin@everesttutoring.com.au", allowAllStudents: true }],
+    purpose: "English booklets",
+    active: true,
+  },
   { id: "dd4", folder: DRIVE + "1QpR3tYuI5oP7aS9dF2gH4jK6lZ8xC0vB", tutors: [], purpose: "Not yet in use", active: false },
 ];
 

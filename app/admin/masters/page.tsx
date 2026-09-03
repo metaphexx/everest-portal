@@ -27,6 +27,7 @@ import {
   COURSE_CATEGORIES,
   CourseTutorMap,
   COURSE_TUTORS,
+  DriveDataMap,
   DriveMap,
   DRIVE_DATA,
   Printer,
@@ -103,7 +104,8 @@ type EditTarget =
   | { kind: "category"; row: CourseCategory }
   | { kind: "course-tutor"; row: CourseTutorMap }
   | { kind: "subject-drive"; row: DriveMap }
-  | { kind: "booklet-drive"; row: BookletDriveMap };
+  | { kind: "booklet-drive"; row: BookletDriveMap }
+  | { kind: "drive-access"; row: DriveDataMap };
 
 export default function AdminMasters() {
   const params = useSearchParams();
@@ -111,7 +113,10 @@ export default function AdminMasters() {
   const { notWired, masterPatches, patchMaster, masterAdds, addMaster } = useAdmin();
   const tab = params.get("tab") ?? "centres";
   const [editing, setEditing] = useState<EditTarget | null>(null);
-  const [adding, setAdding] = useState<"subject" | "category" | "subject-drive" | "booklet-drive" | null>(null);
+  const [adding, setAdding] = useState<"subject" | "category" | "subject-drive" | "booklet-drive" | "drive-access" | null>(null);
+  // Drive access is the same record as a booklet Drive map with a label on it,
+  // so it uses the same panel rather than a second form that would drift.
+  const accessTitles = { add: "Grant access to a folder", edit: "Edit folder access", sub: "A Drive folder, what it is for, and who may take from it." };
   /** Tutors as the Drive panels need them: a name, an address and initials. */
   const driveTutors = STAFF.map((t) => ({ name: t.name, email: t.email, initials: t.initials, colour: t.colour }));
 
@@ -462,18 +467,36 @@ export default function AdminMasters() {
         const cols: Column<(typeof DRIVE_DATA)[number]>[] = [
           { key: "p", label: "Folder is for", render: (r) => <strong style={{ fontWeight: 700 }}>{r.purpose}</strong>, text: (r) => r.purpose },
           { key: "f", label: "Drive folder", render: (r) => <DriveLink url={r.folder} />, text: (r) => r.folder, width: 200 },
-          { key: "t", label: "Tutors with access", render: (r) => <List items={r.tutors} empty="Nobody yet" />, text: (r) => r.tutors.join(" "), width: 300 },
+          {
+            key: "t",
+            label: "Tutors with access",
+            render: (r) =>
+              r.tutors.length === 0 ? (
+                <span style={{ color: "var(--warn-700)" }}>Nobody yet</span>
+              ) : (
+                <span style={{ display: "inline-flex", gap: 6, flexWrap: "nowrap" }}>
+                  {r.tutors.map((t) => (
+                    <span key={t.name} style={{ fontSize: 11, fontWeight: 700, color: "var(--brand-700)", background: "rgba(0,157,255,.1)", padding: "3px 9px", borderRadius: 980, flex: "none" }}>
+                      {t.name}
+                    </span>
+                  ))}
+                </span>
+              ),
+            text: (r) => r.tutors.map((t) => t.name).join(" "),
+            width: 320,
+          },
         ];
         return (
           <MasterTable
-            rows={DRIVE_DATA}
+            rows={[...patched(DRIVE_DATA), ...((masterAdds["drive-access"] ?? []) as unknown as DriveDataMap[])]}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
+            numbered
             searchHint="Search by folder or tutor"
             addLabel="Grant access"
-            onAdd={() => add("access rule")}
-            onEdit={() => edit("access rule")}
+            onAdd={() => setAdding("drive-access")}
+            onEdit={(r) => setEditing({ kind: "drive-access", row: r })}
             onDelete={() => del("access rule")}
             emptyTitle="No access granted"
             emptyBody="This controls which tutors can see which Drive folders inside the portal."
@@ -601,6 +624,21 @@ export default function AdminMasters() {
           onClose={() => setAdding(null)}
           onSave={(id, patch) => {
             addMaster("booklet-drive", { id, ...patch }, "Drive map");
+            setAdding(null);
+          }}
+        />
+      )}
+      {editing?.kind === "drive-access" && (
+        <BookletDriveModal map={editing.row} tutors={driveTutors} purposeOf title={accessTitles} onClose={() => setEditing(null)} onSave={save("Access")} />
+      )}
+      {adding === "drive-access" && (
+        <BookletDriveModal
+          tutors={driveTutors}
+          purposeOf
+          title={accessTitles}
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("drive-access", { id, ...patch }, "Access");
             setAdding(null);
           }}
         />

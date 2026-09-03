@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
 import { PeoplePicker, PickerOption } from "@/components/admin/PeoplePicker";
-import { BookletDriveMap, Centre, CentrePrinter, CourseCategory, CourseTutorMap, DriveMap, Printer, SubjectRow, Term, YearGroup } from "@/lib/admin-masters";
+import { BookletDriveMap, Centre, DriveDataMap, CentrePrinter, CourseCategory, CourseTutorMap, DriveMap, Printer, SubjectRow, Term, YearGroup } from "@/lib/admin-masters";
 import { AdminStudent, STAFF, StaffMember } from "@/lib/admin-data";
 import {
   COLOUR_OPTIONS,
@@ -1070,15 +1070,21 @@ export function SubjectDriveModal({
 export function BookletDriveModal({
   map,
   tutors,
+  purposeOf,
+  title,
   onClose,
   onSave,
 }: {
   /** Absent when mapping a new folder. */
-  map?: BookletDriveMap;
+  map?: BookletDriveMap | DriveDataMap;
   tutors: { name: string; email: string; initials: string; colour?: string }[];
+  /** Drive access labels each folder with what it is for; booklet maps do not. */
+  purposeOf?: boolean;
+  title?: { add: string; edit: string; sub: string };
   onClose: () => void;
   onSave: (id: string, patch: Record<string, unknown>) => void;
 }) {
+  const [purpose, setPurpose] = useState((map as DriveDataMap | undefined)?.purpose ?? "");
   const [folder, setFolder] = useState(map?.folder ?? "");
   const [status, setStatus] = useState(map ? (map.active ? "Active" : "Inactive") : "Active");
   const [rows, setRows] = useState<BookletDriveMap["tutors"]>(map?.tutors ?? []);
@@ -1093,17 +1099,32 @@ export function BookletDriveModal({
       next.map((name) => prev.find((r) => r.name === name) ?? { name, email: tutors.find((t) => t.name === name)?.email ?? "", allowAllStudents: true })
     );
 
-  const valid = folder.trim().length > 0 && rows.length > 0;
-  const save = () => valid && onSave(map?.id ?? "bd-" + Date.now().toString(36), { folder: folder.trim(), tutors: rows, active: status === "Active" });
+  const valid = folder.trim().length > 0 && rows.length > 0 && (!purposeOf || purpose.trim().length > 0);
+  const save = () =>
+    valid &&
+    onSave(map?.id ?? (purposeOf ? "dd-" : "bd-") + Date.now().toString(36), {
+      folder: folder.trim(),
+      tutors: rows,
+      active: status === "Active",
+      ...(purposeOf ? { purpose: purpose.trim() } : {}),
+    });
 
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(720px, calc(100vw - 32px))", maxHeight: "min(90vh, 860px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
         <Head
-          title={map ? "Edit booklet Drive map" : "Map a booklet folder"}
-          sub="A Drive folder of booklets, and who may take from it."
+          title={map ? (title?.edit ?? "Edit booklet Drive map") : (title?.add ?? "Map a booklet folder")}
+          sub={title?.sub ?? "A Drive folder of booklets, and who may take from it."}
           onClose={onClose}
         />
+        {purposeOf && (
+          <Row cols="1fr">
+            <span>
+              <Label required>What the folder is for</Label>
+              <input value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="For example: Chemistry booklets" aria-label="What the folder is for" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
+            </span>
+          </Row>
+        )}
         <Row>
           <span>
             <Label required>Drive link</Label>
@@ -1165,7 +1186,13 @@ export function BookletDriveModal({
           </div>
         )}
 
-        <Actions valid={valid} why="Paste the folder link and share it with at least one tutor." onSave={save} onClose={onClose} label={map ? "Save changes" : "Map the folder"} />
+        <Actions
+          valid={valid}
+          why={purposeOf && !purpose.trim() ? "Say what the folder is for." : "Paste the folder link and share it with at least one tutor."}
+          onSave={save}
+          onClose={onClose}
+          label={map ? "Save changes" : purposeOf ? "Grant access" : "Map the folder"}
+        />
       </div>
     </Modal>
   );
