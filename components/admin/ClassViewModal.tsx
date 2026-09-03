@@ -3,9 +3,12 @@
 // It answers the two questions the office is actually asked on the phone: what
 // is this class and who is teaching it, and what has been handed out for it.
 // Nothing is invented - the Library lists the materials a tutor really assigned
-// to this session plus the booklets on its print request, and the roll is the
-// student records attached to the class. When there is nothing, it says so
-// rather than drawing an empty frame.
+// and who each one went to, and the roll is the student records attached to the
+// class. When there is nothing, it says so rather than drawing an empty frame.
+//
+// A print request is deliberately NOT in the Library. Printing is copies on
+// paper for an in-person class; assigning is giving a student a file. Mixing
+// them told an online class it had booklets at a print room.
 //
 // Editing is not a second screen: the header's Edit goes to the right place for
 // the KIND of class. An online class is edited here; an in-person one is a room
@@ -20,6 +23,7 @@ import { allStudents } from "@/lib/admin-data";
 import {
   BOOKLET_META,
   BookletRequest,
+  BookletStatus,
   MATERIAL_KIND_META,
   MaterialAssignment,
   MaterialKind,
@@ -45,13 +49,29 @@ function durationLabel(mins: number): string {
   return h > 0 ? h + "h " + (m ? m + "m" : "") : m + "m";
 }
 
-/** A material in the Library list, however it got attached to the class. */
+/**
+ * A row in the Library. The two kinds of class fill it from different places:
+ * an online class from what a tutor assigned, an in-person one from what was
+ * sent to the print room.
+ */
 interface LibraryItem {
   id: string;
   name: string;
   kind: MaterialKind;
+  /** Online: the student it went to, or the whole class. */
+  who?: string;
   note: string;
+  /** Online: how far the student has got with it. */
+  status?: MaterialAssignment["status"];
+  /** In person: how far the print job has got. */
+  booklet?: BookletStatus;
 }
+
+const ASSIGN_STATUS_META: Record<MaterialAssignment["status"], { label: string; color: string; bg: string }> = {
+  assigned: { label: "Assigned", color: "var(--warn-700)", bg: "rgba(245,166,35,.16)" },
+  submitted: { label: "Submitted", color: "var(--accent-purple)", bg: "rgba(122,90,248,.13)" },
+  graded: { label: "Graded", color: "var(--success-700)", bg: "rgba(34,160,91,.12)" },
+};
 
 function Card({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -85,21 +105,35 @@ export function ClassViewModal({
   const cs = centreStyle(online ? "Online" : s.centre);
   const dateLabel = new Date(s.k + "T12:00:00").toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
-  // Everything genuinely attached to this class: what the tutor assigned, and
-  // the booklets that were sent to the print room for it.
+  // The two kinds of class are asked different questions, so the Library
+  // answers different ones. For an ONLINE class: what did a tutor hand out and
+  // who got it. For an IN-PERSON one: what was sent to the print room and has
+  // it been approved yet. Mixing the two told an online class it had booklets
+  // waiting at a print room.
   const items = useMemo<LibraryItem[]>(() => {
-    const out: LibraryItem[] = [];
-    for (const a of assignments) {
-      out.push({ id: a.id, name: a.fileName, kind: a.kind, note: MATERIAL_KIND_META[a.kind].label + " · assigned " + a.assignedAt });
+    if (online) {
+      return assignments.map((a) => ({
+        id: a.id,
+        name: a.fileName,
+        kind: a.kind,
+        who: a.target.kind === "student" ? a.target.studentName : "Everyone in the class",
+        note:
+          MATERIAL_KIND_META[a.kind].label +
+          " · " +
+          new Date(a.assignedAt).toLocaleDateString("en-AU", { day: "numeric", month: "short" }),
+        status: a.status,
+      }));
     }
-    if (request) {
-      for (const it of request.items) {
-        if (out.some((o) => o.name === it.name)) continue;
-        out.push({ id: request.id + ":" + it.itemId, name: it.name, kind: "booklet", note: it.qty + " copies · " + request.printer });
-      }
-    }
-    return out;
-  }, [assignments, request]);
+    if (!request) return [];
+    const stage = bookletStatusFromRequest(request);
+    return request.items.map((it) => ({
+      id: request.id + ":" + it.itemId,
+      name: it.name,
+      kind: "booklet" as MaterialKind,
+      note: it.qty + " copies · " + request.printer,
+      booklet: stage,
+    }));
+  }, [online, assignments, request]);
 
   const kinds = useMemo(() => [...new Set(items.map((i) => i.kind))], [items]);
   const shown = kind === "all" ? items : items.filter((i) => i.kind === kind);
@@ -158,27 +192,31 @@ export function ClassViewModal({
                   <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 2 }}>{online ? "Takes this class online" : "Can request booklets for this class"}</span>
                 </span>
               </div>
-              {/* Read from the request itself where there is one. Deriving this
-                  from the class's delivery alone said "no print request
-                  applies" on a class whose booklets are listed below it. */}
-              <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 10, paddingTop: 9, borderTop: "1px solid rgba(0,32,63,.06)" }}>
-                {(() => {
-                  const status = request ? bookletStatusFromRequest(request) : s.booklet;
-                  if (!status) return "No booklets requested for this class";
-                  return (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
-                      Booklets
-                      <span style={{ fontSize: 10, fontWeight: 700, color: BOOKLET_META[status].color, background: BOOKLET_META[status].bg, padding: "2px 8px", borderRadius: 980 }}>
-                        {BOOKLET_META[status].label}
+              {/* Only a class that prints has a print status. An online class
+                  showed "approved" here off the back of a seeded request,
+                  which is the in-person half of the product leaking in. */}
+              {s.booklet !== null && (
+                <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 10, paddingTop: 9, borderTop: "1px solid rgba(0,32,63,.06)" }}>
+                  {(() => {
+                    const status = request ? bookletStatusFromRequest(request) : s.booklet;
+                    return (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                        Booklets
+                        <span style={{ fontSize: 10, fontWeight: 700, color: BOOKLET_META[status].color, background: BOOKLET_META[status].bg, padding: "2px 8px", borderRadius: 980 }}>
+                          {BOOKLET_META[status].label}
+                        </span>
                       </span>
-                    </span>
-                  );
-                })()}
-              </div>
+                    );
+                  })()}
+                </div>
+              )}
             </Card>
           </div>
 
-          {/* tabs */}
+          {/* Participations is an online idea - the portal knows who joined a
+              call. Attendance in a room is taken on paper at the centre, so an
+              in-person class gets the Library on its own and no tab strip. */}
+          {online ? (
           <div className="glass-control" style={{ display: "inline-flex", gap: 2, padding: 4, borderRadius: 12, marginTop: 16 }}>
             {([
               { id: "library", label: "Library" },
@@ -195,8 +233,11 @@ export function ClassViewModal({
               </button>
             ))}
           </div>
+          ) : (
+            <h3 className="portal-section-title" style={{ fontSize: 14, margin: "18px 0 0" }}>Booklets for this class</h3>
+          )}
 
-          {tab === "library" && (
+          {(!online || tab === "library") && (
             <div style={{ marginTop: 14 }}>
               {kinds.length > 1 && (
                 <div className="ev-scroll-x" style={{ display: "flex", gap: 7, marginBottom: 10 }}>
@@ -220,9 +261,13 @@ export function ClassViewModal({
 
               {shown.length === 0 && (
                 <div style={{ textAlign: "center", padding: "26px 10px" }}>
-                  <div style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 800 }}>Nothing handed out yet</div>
+                  <div style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 800 }}>
+                    {online ? "Nothing handed out yet" : "No booklets requested"}
+                  </div>
                   <div style={{ fontSize: 12, color: "var(--fg4)", marginTop: 5, lineHeight: 1.55 }}>
-                    Materials a tutor assigns to this class, and any booklets requested for it, appear here.
+                    {online
+                      ? "Materials a tutor assigns appear here, with who each one went to."
+                      : "The tutor has not asked the print room for anything for this class."}
                   </div>
                 </div>
               )}
@@ -234,8 +279,21 @@ export function ClassViewModal({
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, wordBreak: "break-word" }}>{it.name}</span>
+                    {it.who && (
+                      <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: "var(--fg2)", marginTop: 2 }}>{it.who}</span>
+                    )}
                     <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 2 }}>{it.note}</span>
                   </span>
+                  {it.status && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: ASSIGN_STATUS_META[it.status].color, background: ASSIGN_STATUS_META[it.status].bg, padding: "3px 9px", borderRadius: 980, flex: "none" }}>
+                      {ASSIGN_STATUS_META[it.status].label}
+                    </span>
+                  )}
+                  {it.booklet && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: BOOKLET_META[it.booklet].color, background: BOOKLET_META[it.booklet].bg, padding: "3px 9px", borderRadius: 980, flex: "none" }}>
+                      {BOOKLET_META[it.booklet].label}
+                    </span>
+                  )}
                   <button onClick={() => setPreview(it)} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)", flex: "none" }}>
                     Preview
                   </button>
@@ -244,7 +302,7 @@ export function ClassViewModal({
             </div>
           )}
 
-          {tab === "participations" && (
+          {online && tab === "participations" && (
             <div style={{ marginTop: 14 }}>
               <div style={{ fontSize: 11.5, color: "var(--fg3)", marginBottom: 4, lineHeight: 1.55 }}>
                 {roll.length === 0

@@ -112,7 +112,7 @@ export default function AdminClasses() {
 
   /**
    * Same split as the Schedule: an online class is edited here, an in-person
-   * one is a room and a tutor allocation, which is master data.
+   * one is master data and goes to Master Records, Class selection.
    */
   const editClass = (c: AdminClass) => {
     setRoll(null);
@@ -120,7 +120,7 @@ export default function AdminClasses() {
       setEditing(c);
       return;
     }
-    router.push("/admin/masters?tab=course-tutors");
+    router.push("/admin/masters?tab=class-selection");
   };
 
   const shown = classes.filter((c) => {

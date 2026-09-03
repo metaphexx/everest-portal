@@ -34,9 +34,10 @@ export default function AdminSchedule() {
 
   /**
    * Editing an ONLINE class is editing this lesson - its time, its tutor, its
-   * link - so it happens here. An in-person class is a room and a tutor
-   * allocation at a centre, which is master data; sending the office to the
-   * form instead would let it change a thing the timetable does not own.
+   * link - so it happens here. An in-person class is a room and a centre
+   * allocation, which is master data, so it goes to Master Records and its
+   * Class selection tab; the session form would let the office change a thing
+   * the timetable does not own.
    */
   const editSession = (s: AdminSession) => {
     setViewing(null);
@@ -44,7 +45,7 @@ export default function AdminSchedule() {
       setEditing(s);
       return;
     }
-    router.push("/admin/masters?tab=course-tutors");
+    router.push("/admin/masters?tab=class-selection");
   };
   const upcoming = useMemo(() => sessions.filter((s) => s.k >= "2026-07-02").slice(0, 24), [sessions]);
 
@@ -162,7 +163,10 @@ export default function AdminSchedule() {
         <ClassViewModal
           session={viewing}
           request={requests.find((r) => r.classId === viewing.id)}
-          assignments={assignments.filter((a) => (a.sessionISO ?? "").slice(0, 10) === viewing.k)}
+          // Everything assigned for this class, not only this date: the office
+          // is asked "has she been given the work", and the answer is rarely
+          // confined to the lesson they happen to have open.
+          assignments={assignments.filter((a) => a.courseId === viewing.courseId)}
           onClose={() => setViewing(null)}
           onEdit={() => editSession(viewing)}
         />
