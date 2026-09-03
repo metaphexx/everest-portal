@@ -245,25 +245,24 @@ export interface SubjectRow {
   name: string;
   year: string;
   area: "Mathematics" | "English" | "Science" | "Humanities";
-  topics: number;
   active: boolean;
 }
 
 export const SUBJECTS: SubjectRow[] = [
-  { id: "sb1", name: "Year 7 Mathematics", year: "Year 7", area: "Mathematics", topics: 8, active: true },
-  { id: "sb2", name: "Year 7 English", year: "Year 7", area: "English", topics: 6, active: true },
-  { id: "sb3", name: "Year 7 Science", year: "Year 7", area: "Science", topics: 7, active: true },
-  { id: "sb4", name: "Year 8 Mathematics", year: "Year 8", area: "Mathematics", topics: 9, active: true },
-  { id: "sb5", name: "Year 8 English", year: "Year 8", area: "English", topics: 6, active: true },
-  { id: "sb6", name: "Year 8 Science", year: "Year 8", area: "Science", topics: 8, active: true },
-  { id: "sb7", name: "Year 9 Mathematics", year: "Year 9", area: "Mathematics", topics: 9, active: true },
-  { id: "sb8", name: "Year 9 English", year: "Year 9", area: "English", topics: 7, active: true },
-  { id: "sb9", name: "Year 9 Science", year: "Year 9", area: "Science", topics: 8, active: true },
-  { id: "sb10", name: "Year 10 Mathematics", year: "Year 10", area: "Mathematics", topics: 10, active: true },
-  { id: "sb11", name: "Year 10 English", year: "Year 10", area: "English", topics: 7, active: true },
-  { id: "sb12", name: "Year 10 Science", year: "Year 10", area: "Science", topics: 9, active: true },
-  { id: "sb13", name: "Year 11 Chemistry", year: "Year 11", area: "Science", topics: 8, active: true },
-  { id: "sb14", name: "Year 11 Humanities", year: "Year 11", area: "Humanities", topics: 5, active: false },
+  { id: "sb1", name: "Year 7 Mathematics", year: "Year 7", area: "Mathematics", active: true },
+  { id: "sb2", name: "Year 7 English", year: "Year 7", area: "English", active: true },
+  { id: "sb3", name: "Year 7 Science", year: "Year 7", area: "Science", active: true },
+  { id: "sb4", name: "Year 8 Mathematics", year: "Year 8", area: "Mathematics", active: true },
+  { id: "sb5", name: "Year 8 English", year: "Year 8", area: "English", active: true },
+  { id: "sb6", name: "Year 8 Science", year: "Year 8", area: "Science", active: true },
+  { id: "sb7", name: "Year 9 Mathematics", year: "Year 9", area: "Mathematics", active: true },
+  { id: "sb8", name: "Year 9 English", year: "Year 9", area: "English", active: true },
+  { id: "sb9", name: "Year 9 Science", year: "Year 9", area: "Science", active: true },
+  { id: "sb10", name: "Year 10 Mathematics", year: "Year 10", area: "Mathematics", active: true },
+  { id: "sb11", name: "Year 10 English", year: "Year 10", area: "English", active: true },
+  { id: "sb12", name: "Year 10 Science", year: "Year 10", area: "Science", active: true },
+  { id: "sb13", name: "Year 11 Chemistry", year: "Year 11", area: "Science", active: true },
+  { id: "sb14", name: "Year 11 Humanities", year: "Year 11", area: "Humanities", active: false },
 ];
 
 export interface TopicRow {

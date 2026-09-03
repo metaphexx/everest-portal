@@ -55,6 +55,8 @@ export interface MasterTableProps<T> {
   searchHint: string;
   /** A running total shown at the left of the toolbar, e.g. "33 students". */
   countNoun?: string;
+  /** Number the rows down the left. Counts through paging, not from 1 per page. */
+  numbered?: boolean;
   /** Label for the primary create action. Omit for read-only maps. */
   addLabel?: string;
   onAdd?: () => void;
@@ -74,6 +76,7 @@ export function MasterTable<T>({
   statusOf,
   searchHint,
   countNoun,
+  numbered,
   addLabel,
   onAdd,
   onEdit,
@@ -164,6 +167,9 @@ export function MasterTable<T>({
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
+                {numbered && (
+                  <th style={{ textAlign: "left", fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, color: "var(--fg4)", padding: "10px 14px", borderBottom: "1px solid rgba(0,32,63,.08)", whiteSpace: "nowrap", width: 44 }}>#</th>
+                )}
                 {columns.map((c) => (
                   <th key={c.key} style={{ textAlign: "left", fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, color: "var(--fg4)", padding: "10px 14px", borderBottom: "1px solid rgba(0,32,63,.08)", whiteSpace: "nowrap" }}>
                     {c.label.toUpperCase()}
@@ -176,11 +182,14 @@ export function MasterTable<T>({
               </tr>
             </thead>
             <tbody>
-              {shown.map((row) => {
+              {shown.map((row, i) => {
                 const id = idOf(row);
                 const st = statusOf ? statusOf(row) : null;
                 return (
                   <tr key={id} className="list-hover">
+                    {numbered && (
+                      <td style={{ padding: "12px 14px", borderBottom: "1px solid rgba(0,32,63,.05)", fontSize: 12, fontWeight: 700, color: "var(--fg4)", whiteSpace: "nowrap" }}>{from + i + 1}</td>
+                    )}
                     {columns.map((c) => (
                       <td
                         key={c.key}

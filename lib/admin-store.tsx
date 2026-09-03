@@ -99,6 +99,9 @@ interface AdminApi extends AdminState {
   patchSession: (id: string, patch: SessionPatch) => void;
   masterPatches: Record<string, MasterPatch>;
   patchMaster: (id: string, patch: MasterPatch, label?: string) => void;
+  /** Master records the office has created, by table. */
+  masterAdds: Record<string, MasterPatch[]>;
+  addMaster: (table: string, row: MasterPatch, label?: string) => void;
 }
 
 const Ctx = createContext<AdminApi | null>(null);
@@ -243,6 +246,29 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     showToast(label + " updated");
   }, [showToast]);
 
+  // New master records, kept apart from the edits so a patch cannot be mistaken
+  // for a row and a row cannot be mistaken for a patch.
+  const [masterAdds, setMasterAdds] = useState<Record<string, MasterPatch[]>>(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-master-adds") : null;
+      return raw ? (JSON.parse(raw) as Record<string, MasterPatch[]>) : {};
+    } catch {
+      return {};
+    }
+  });
+  const addMaster = useCallback((table: string, row: MasterPatch, label = "Record") => {
+    setMasterAdds((m) => {
+      const next = { ...m, [table]: [...(m[table] ?? []), row] };
+      try {
+        window.localStorage.setItem("evr-admin-master-adds", JSON.stringify(next));
+      } catch {
+        /* storage full - the row still shows for this session */
+      }
+      return next;
+    });
+    showToast(label + " added");
+  }, [showToast]);
+
   const [sessionPatches, setSessionPatches] = useState<Record<string, SessionPatch>>(() => {
     try {
       const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-sessions") : null;
@@ -314,6 +340,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     patchSession,
     masterPatches,
     patchMaster,
+    masterAdds,
+    addMaster,
     sharedFiles,
   };
 

@@ -18,25 +18,33 @@ import {
   Centre,
   CentrePrinter,
   CENTRES_M,
-  CURRICULUM,
   CENTRE_PRINTERS,
   CLASS_SELECTIONS,
+  ClassSelectionRow,
   COURSES,
+  CourseCategory,
   COURSE_CATEGORIES,
   COURSE_TUTORS,
   DRIVE_DATA,
   Printer,
   PRINTERS_M,
+  SubjectRow,
   SUBJECTS,
   SUBJECT_DRIVE,
+  Term,
   TERMS,
-  TOPICS,
+  YearGroup,
   YEAR_GROUPS,
 } from "@/lib/admin-masters";
 import { AdminStudent, STAFF, StaffMember, allStudents } from "@/lib/admin-data";
 import {
   EditCentreModal,
   EditCentrePrinterModal,
+  EditClassSelectionModal,
+  EditCourseCategoryModal,
+  EditTermModal,
+  EditYearGroupModal,
+  SubjectModal,
   EditPrinterModal,
   EditStudentModal,
   EditTutorModal,
@@ -68,8 +76,6 @@ const TABS = [
   { id: "terms", label: "Terms", group: "Teaching" },
   { id: "year-groups", label: "Year groups", group: "Teaching" },
   { id: "subjects", label: "Subjects", group: "Teaching" },
-  { id: "topics", label: "Topics", group: "Teaching" },
-  { id: "curriculum", label: "Curriculum", group: "Teaching" },
   { id: "courses", label: "Courses", group: "Teaching" },
   { id: "categories", label: "Course categories", group: "Teaching" },
   { id: "course-tutors", label: "Course tutors", group: "Teaching" },
@@ -83,14 +89,20 @@ type EditTarget =
   | { kind: "printer"; row: Printer }
   | { kind: "centre-printer"; row: CentrePrinter }
   | { kind: "tutor"; row: StaffMember }
-  | { kind: "student"; row: AdminStudent };
+  | { kind: "student"; row: AdminStudent }
+  | { kind: "class-selection"; row: ClassSelectionRow }
+  | { kind: "term"; row: Term }
+  | { kind: "year-group"; row: YearGroup }
+  | { kind: "subject"; row: SubjectRow }
+  | { kind: "category"; row: CourseCategory };
 
 export default function AdminMasters() {
   const params = useSearchParams();
   const router = useRouter();
-  const { notWired, masterPatches, patchMaster } = useAdmin();
+  const { notWired, masterPatches, patchMaster, masterAdds, addMaster } = useAdmin();
   const tab = params.get("tab") ?? "centres";
   const [editing, setEditing] = useState<EditTarget | null>(null);
+  const [adding, setAdding] = useState<"subject" | null>(null);
 
   /** Office edits sit over the seeded master records wherever they are read. */
   const patched = <T extends { id: string }>(rows: T[]): T[] => rows.map((r) => ({ ...r, ...(masterPatches[r.id] as Partial<T>) }));
@@ -212,23 +224,25 @@ export default function AdminMasters() {
           {
             key: "d",
             label: "Session dates",
-            // The live version prints "27-Feb 2026 | 07-Mar 2026 +5 More", which
-            // is a date range typed out badly. First, last and a count reads.
-            render: (r) => (r.dates.length <= 2 ? r.dates.join(" and ") : r.dates[0] + " to " + r.dates[r.dates.length - 1] + " (" + r.dates.length + " sessions)"),
+            // Every date, in order, with the count at the end. The live version
+            // prints "27-Feb 2026 | 07-Mar 2026 +5 More", which hides most of
+            // what the office came to check.
+            render: (r) => r.dates.join(", ") + " (" + r.dates.length + " session" + (r.dates.length === 1 ? "" : "s") + ")",
             text: (r) => r.dates.join(" "),
-            width: 260,
+            width: 380,
           },
         ];
         return (
           <MasterTable
-            rows={CLASS_SELECTIONS}
+            rows={patched(CLASS_SELECTIONS)}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
+            numbered
             searchHint="Search by tutor, centre or subject"
             addLabel="Add a selection"
             onAdd={() => add("class selection")}
-            onEdit={() => edit("class selection")}
+            onEdit={(r) => setEditing({ kind: "class-selection", row: r })}
             onDelete={() => del("class selection")}
             onExport={exp}
             emptyTitle="No class selections"
@@ -244,14 +258,14 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={YEAR_GROUPS}
+            rows={patched(YEAR_GROUPS)}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
             searchHint="Search year groups"
             addLabel="Add a year group"
             onAdd={() => add("year group")}
-            onEdit={() => edit("year group")}
+            onEdit={(r) => setEditing({ kind: "year-group", row: r })}
             onDelete={() => del("year group")}
             emptyTitle="No year groups"
             emptyBody="A year group is what a subject and a class both hang off, so set these up first."
@@ -265,81 +279,20 @@ export default function AdminMasters() {
           // subject that does not know its year cannot be put on a timetable.
           { key: "y", label: "Year level", render: (r) => r.year, text: (r) => r.year },
           { key: "a", label: "Area", render: (r) => r.area, text: (r) => r.area },
-          { key: "t", label: "Topics", render: (r) => (r.topics === 0 ? <span style={{ color: "var(--warn-700)" }}>None yet</span> : r.topics + " topics"), text: (r) => String(r.topics), minor: true },
         ];
         return (
           <MasterTable
-            rows={SUBJECTS}
+            rows={[...patched(SUBJECTS), ...((masterAdds.subjects ?? []) as unknown as SubjectRow[])]}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
             searchHint="Search subjects by name, year or area"
             addLabel="Add a subject"
-            onAdd={() => add("subject")}
-            onEdit={() => edit("subject")}
+            onAdd={() => setAdding("subject")}
+            onEdit={(r) => setEditing({ kind: "subject", row: r })}
             onDelete={() => del("subject")}
             emptyTitle="No subjects defined"
             emptyBody="A subject is the unit a class, a booklet and a curriculum outline all point at."
-          />
-        );
-      }
-      case "topics": {
-        const cols: Column<(typeof TOPICS)[number]>[] = [
-          { key: "n", label: "Topic", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
-          { key: "s", label: "Subject", render: (r) => (<><span>{r.subject}</span><span style={{ display: "block", fontSize: 11, color: "var(--fg4)" }}>{r.year}</span></>), text: (r) => r.subject + " " + r.year, width: 200 },
-          { key: "d", label: "What it covers", render: (r) => r.description, text: (r) => r.description, width: 320, minor: true },
-        ];
-        return (
-          <MasterTable
-            rows={TOPICS}
-            columns={cols}
-            idOf={(r) => r.id}
-            statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
-            searchHint="Search topics by name or subject"
-            addLabel="Add a topic"
-            onAdd={() => add("topic")}
-            onEdit={() => edit("topic")}
-            onDelete={() => del("topic")}
-            emptyTitle="No topics yet"
-            emptyBody="Topics sit under a subject and are what a booklet request and a weekly outline both name."
-          />
-        );
-      }
-      case "curriculum": {
-        const cols: Column<(typeof CURRICULUM)[number]>[] = [
-          { key: "s", label: "Subject", render: (r) => (<><strong style={{ fontWeight: 700 }}>{r.subject}</strong><span style={{ display: "block", fontSize: 11, color: "var(--fg4)" }}>{r.term}</span></>), text: (r) => r.subject + " " + r.term, width: 190 },
-          {
-            key: "w",
-            label: "Week by week",
-            // The live Curriculum master shows "Wk 1: Grammar ()(+2 more)". The
-            // whole value of this row is the sequence, so the sequence shows.
-            render: (r) => (
-              <span style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                {r.weeks.map((w, i) => (
-                  <span key={i} style={{ fontSize: 10.5, fontWeight: 600, background: "rgba(0,32,63,.05)", borderRadius: 6, padding: "2px 7px", whiteSpace: "nowrap" }}>
-                    <span style={{ color: "var(--fg4)" }}>W{i + 1}</span> {w}
-                  </span>
-                ))}
-              </span>
-            ),
-            text: (r) => r.weeks.join(" "),
-            width: 460,
-          },
-          { key: "l", label: "Weeks", render: (r) => r.weeks.length, text: (r) => String(r.weeks.length), minor: true },
-        ];
-        return (
-          <MasterTable
-            rows={CURRICULUM}
-            columns={cols}
-            idOf={(r) => r.id}
-            statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
-            searchHint="Search the curriculum by subject or week"
-            addLabel="Add an outline"
-            onAdd={() => add("curriculum outline")}
-            onEdit={() => edit("curriculum outline")}
-            onDelete={() => del("curriculum outline")}
-            emptyTitle="No curriculum outlines"
-            emptyBody="An outline is the week by week plan a tutor teaches to, and what a parent is shown."
           />
         );
       }
@@ -352,14 +305,14 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={TERMS}
+            rows={patched(TERMS)}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={(r) => (r.state === "ongoing" ? PILL.ongoing : r.state === "upcoming" ? PILL.pending : PILL.inactive)}
             searchHint="Search terms"
             addLabel="Add a term"
             onAdd={() => add("term")}
-            onEdit={() => edit("term")}
+            onEdit={(r) => setEditing({ kind: "term", row: r })}
             onDelete={() => del("term")}
             emptyTitle="No terms set up"
             emptyBody="Terms drive the timetable and the booklet tracker, so add the current one first."
@@ -398,14 +351,14 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={COURSE_CATEGORIES}
+            rows={patched(COURSE_CATEGORIES)}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
             searchHint="Search categories"
             addLabel="Add a category"
             onAdd={() => add("category")}
-            onEdit={() => edit("category")}
+            onEdit={(r) => setEditing({ kind: "category", row: r })}
             onDelete={() => del("category")}
             emptyTitle="No categories yet"
             emptyBody="Categories group courses on the enrolment pages."
@@ -563,6 +516,29 @@ export default function AdminMasters() {
       )}
       {editing?.kind === "student" && (
         <EditStudentModal student={editing.row} onClose={() => setEditing(null)} onSave={save("Student")} />
+      )}
+      {editing?.kind === "term" && <EditTermModal term={editing.row} onClose={() => setEditing(null)} onSave={save("Term")} />}
+      {editing?.kind === "year-group" && <EditYearGroupModal group={editing.row} onClose={() => setEditing(null)} onSave={save("Year group")} />}
+      {editing?.kind === "category" && <EditCourseCategoryModal category={editing.row} onClose={() => setEditing(null)} onSave={save("Category")} />}
+      {editing?.kind === "subject" && <SubjectModal subject={editing.row} onClose={() => setEditing(null)} onSave={save("Subject")} />}
+      {adding === "subject" && (
+        <SubjectModal
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("subjects", { id, ...patch }, "Subject");
+            setAdding(null);
+          }}
+        />
+      )}
+      {editing?.kind === "class-selection" && (
+        <EditClassSelectionModal
+          selection={editing.row}
+          tutors={STAFF.map((t) => t.name)}
+          centres={CENTRES_M.map((c) => c.name)}
+          subjects={SUBJECTS.map((x) => x.name)}
+          onClose={() => setEditing(null)}
+          onSave={save("Class selection")}
+        />
       )}
     </div>
   );

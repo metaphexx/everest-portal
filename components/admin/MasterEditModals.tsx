@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
 import { PeoplePicker, PickerOption } from "@/components/admin/PeoplePicker";
-import { Centre, CentrePrinter, Printer } from "@/lib/admin-masters";
+import { Centre, CentrePrinter, CourseCategory, Printer, SubjectRow, Term, YearGroup } from "@/lib/admin-masters";
 import { AdminStudent, STAFF, StaffMember } from "@/lib/admin-data";
 import {
   COLOUR_OPTIONS,
@@ -462,6 +462,431 @@ export function EditStudentModal({
           Which classes a student is in is set on the class itself, not here.
         </div>
         <Actions valid={valid} why="A student needs a name and a parent or guardian." onSave={save} onClose={onClose} />
+      </div>
+    </Modal>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+const IC3 = {
+  layers: "M12 2 2 8l10 6 10-6-10-6Zm0 13.5L4.2 10.8 2 12l10 6 10-6-2.2-1.2L12 15.5Z",
+  cal: "M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7ZM5 9h14v11H5V9Z",
+  book: "M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 0-3 3V4Zm3 14h9V7a1 1 0 0 0-1-1H6v12.2A3 3 0 0 1 7 18Z",
+  edit: "M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25ZM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z",
+  bin: "M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12ZM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4Z",
+  plus: "M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z",
+};
+
+/** One tutor's subjects at one centre, on a set of dates. */
+export interface Selection {
+  tutor: string;
+  centre: string;
+  subjects: string[];
+  dates: string[];
+  active: boolean;
+}
+
+function Chip({ label, tone, onRemove }: { label: string; tone: "date" | "subject"; onRemove?: () => void }) {
+  const c = tone === "date" ? { color: "var(--brand-700)", bg: "rgba(0,157,255,.1)" } : { color: "var(--accent-purple)", bg: "rgba(122,90,248,.13)" };
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: c.bg, color: c.color, borderRadius: 980, padding: onRemove ? "3px 5px 3px 10px" : "4px 10px", fontSize: 11, fontWeight: 700, flex: "none" }}>
+      {label}
+      {onRemove && (
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label={"Remove " + label}
+          onClick={onRemove}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onRemove();
+            }
+          }}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 17, height: 17, borderRadius: "50%", background: "rgba(0,32,63,.08)", cursor: "pointer" }}
+        >
+          <Icon path={IC.close} size={8} />
+        </span>
+      )}
+    </span>
+  );
+}
+
+/**
+ * Class selection: which subjects a tutor covers at a centre, and on which
+ * dates. The live form builds these one at a time and lists what has been built
+ * beside the form, which is right - a term is several of these, and losing the
+ * list while you add the next one is what makes the screen hard. This keeps
+ * that shape and drops its "center003" ids, which name nothing to a person.
+ */
+export function EditClassSelectionModal({
+  selection,
+  tutors,
+  centres,
+  subjects,
+  onClose,
+  onSave,
+}: {
+  selection: Selection & { id: string };
+  tutors: string[];
+  centres: string[];
+  subjects: string[];
+  onClose: () => void;
+  onSave: (id: string, patch: Partial<Selection>) => void;
+}) {
+  // Everything built so far. Editing an existing row starts with it in the list.
+  const [built, setBuilt] = useState<Selection[]>([{ ...selection }]);
+  const [editingAt, setEditingAt] = useState<number | null>(null);
+
+  const [tutor, setTutor] = useState(tutors[0] ?? "");
+  const [centre, setCentre] = useState(centres[0] ?? "");
+  const [subs, setSubs] = useState<string[]>([]);
+  const [dates, setDates] = useState<string[]>([]);
+  const [date, setDate] = useState("");
+  const [active, setActive] = useState(true);
+
+  const reset = () => {
+    setTutor(tutors[0] ?? "");
+    setCentre(centres[0] ?? "");
+    setSubs([]);
+    setDates([]);
+    setDate("");
+    setActive(true);
+    setEditingAt(null);
+  };
+
+  const addDate = () => {
+    if (!date) return;
+    const label = new Date(date + "T12:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+    if (!dates.includes(label)) setDates((d) => [...d, label]);
+    setDate("");
+  };
+
+  const canAdd = tutor && centre && subs.length > 0 && dates.length > 0;
+  const addSelection = () => {
+    if (!canAdd) return;
+    const next: Selection = { tutor, centre, subjects: subs, dates, active };
+    setBuilt((b) => (editingAt === null ? [...b, next] : b.map((x, i) => (i === editingAt ? next : x))));
+    reset();
+  };
+
+  const loadForEdit = (i: number) => {
+    const sel = built[i];
+    setTutor(sel.tutor);
+    setCentre(sel.centre);
+    setSubs(sel.subjects);
+    setDates(sel.dates);
+    setActive(sel.active);
+    setEditingAt(i);
+  };
+
+  // The row being edited is the first selection; the rest are new ones the
+  // office built in this sitting, which a prototype cannot create yet.
+  const valid = built.length > 0;
+  const save = () => valid && onSave(selection.id, built[0]);
+
+  return (
+    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(880px, calc(100vw - 32px))", maxHeight: "min(90vh, 900px)", overflowY: "auto" }}>
+      <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
+        <Head title="Edit class selection" sub="Which subjects a tutor covers at a centre, and on which dates." onClose={onClose} />
+
+        <div className="ev-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 16 }}>
+          {/* ---- the form ---- */}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <Icon path={IC3.layers} size={15} style={{ color: "var(--brand-600)" }} />
+              <span style={{ fontSize: 12.5, fontWeight: 800 }}>{editingAt === null ? "New selection" : "Selection " + (editingAt + 1)}</span>
+            </div>
+
+            <Row cols="1fr">{sel("Tutor", tutor, tutors, setTutor, true)}</Row>
+            <Row cols="1fr">{sel("Centre", centre, centres, setCentre, true)}</Row>
+
+            <Row cols="1fr">
+              <span>
+                <Label required>Subjects</Label>
+                <select
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value && !subs.includes(e.target.value)) setSubs((x) => [...x, e.target.value]);
+                  }}
+                  className="field"
+                  style={{ width: "100%", height: 44, boxSizing: "border-box" }}
+                  aria-label="Add a subject"
+                >
+                  <option value="">Add a subject</option>
+                  {subjects.filter((x) => !subs.includes(x)).map((x) => (
+                    <option key={x} value={x}>{x}</option>
+                  ))}
+                </select>
+                {subs.length > 0 && (
+                  <span style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                    {subs.map((x) => (
+                      <Chip key={x} label={x} tone="subject" onRemove={() => setSubs((v) => v.filter((y) => y !== x))} />
+                    ))}
+                  </span>
+                )}
+              </span>
+            </Row>
+
+            <Row cols="1fr">
+              <span>
+                <Label required>Session dates</Label>
+                <span style={{ display: "flex", gap: 8 }}>
+                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label="Pick a session date" className="field" style={{ flex: 1, minWidth: 0, height: 44, boxSizing: "border-box" }} />
+                  <button onClick={addDate} disabled={!date} className="btn-soft press ev-tap-h" style={{ height: 44, padding: "0 14px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, flex: "none", opacity: date ? 1 : 0.5 }}>
+                    <Icon path={IC3.plus} size={13} />
+                  </button>
+                </span>
+                {dates.length > 0 && (
+                  <span style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                    {dates.map((x) => (
+                      <Chip key={x} label={x} tone="date" onRemove={() => setDates((v) => v.filter((y) => y !== x))} />
+                    ))}
+                  </span>
+                )}
+              </span>
+            </Row>
+
+            <label style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14, cursor: "pointer" }}>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={active}
+                aria-label="Active"
+                onClick={() => setActive((v) => !v)}
+                className="press"
+                style={{ width: 46, height: 27, borderRadius: 980, border: "none", cursor: "pointer", flex: "none", padding: 3, background: active ? "var(--accent-teal)" : "rgba(0,32,63,.18)", transition: "background .2s ease" }}
+              >
+                <span style={{ display: "block", width: 21, height: 21, borderRadius: "50%", background: "#fff", transform: active ? "translateX(19px)" : "translateX(0)", transition: "transform .2s cubic-bezier(.16,1,.3,1)" }} />
+              </button>
+              <span style={{ fontSize: 12.5, fontWeight: 600 }}>Active</span>
+            </label>
+
+            <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
+              <button onClick={addSelection} disabled={!canAdd} className="btn-primary press ev-tap-h" style={{ height: 42, padding: "0 16px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 7, opacity: canAdd ? 1 : 0.5 }}>
+                <Icon path={IC3.plus} size={13} />
+                {editingAt === null ? "Add selection" : "Update selection"}
+              </button>
+              <button onClick={reset} className="btn-ghost press ev-tap-h" style={{ height: 42, padding: "0 16px", borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: "var(--fg2)" }}>
+                Reset
+              </button>
+            </div>
+          </div>
+
+          {/* ---- what has been built ---- */}
+          <div style={{ minWidth: 0, borderLeft: "1px solid rgba(0,32,63,.08)", paddingLeft: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 12.5, fontWeight: 800 }}>Selections</span>
+              <span style={{ fontSize: 10.5, fontWeight: 800, color: "#fff", background: "var(--brand-500)", borderRadius: 980, padding: "2px 8px" }}>{built.length}</span>
+            </div>
+
+            {built.length === 0 && <div style={{ fontSize: 12, color: "var(--fg4)", lineHeight: 1.55 }}>Nothing added yet. Build one on the left.</div>}
+
+            {built.map((b, i) => (
+              <div key={i} style={{ border: "1px solid rgba(0,32,63,.08)", borderRadius: 14, background: "rgba(255,255,255,.66)", padding: "12px 13px", marginBottom: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: "block", fontSize: 12.5, fontWeight: 800 }}>Selection {i + 1}</span>
+                    <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 2 }}>{b.tutor} · {b.centre}</span>
+                  </span>
+                  <button onClick={() => loadForEdit(i)} aria-label={"Edit selection " + (i + 1)} className="btn-ghost press" style={{ width: 30, height: 30, borderRadius: 9, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, color: "var(--fg2)", flex: "none" }}>
+                    <Icon path={IC3.edit} size={13} />
+                  </button>
+                  {/* The row being edited is the reason this modal is open, so it
+                      cannot be removed from inside it - delete it from the table. */}
+                  {i > 0 && (
+                    <button onClick={() => setBuilt((v) => v.filter((_, j) => j !== i))} aria-label={"Remove selection " + (i + 1)} className="btn-ghost press" style={{ width: 30, height: 30, borderRadius: 9, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, color: "var(--danger-500)", flex: "none" }}>
+                      <Icon path={IC3.bin} size={13} />
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, fontSize: 10, fontWeight: 700, letterSpacing: 0.6, color: "var(--fg4)" }}>
+                  <Icon path={IC3.cal} size={12} />
+                  DATES
+                  <span style={{ fontWeight: 800, color: "var(--brand-600)" }}>{b.dates.length}</span>
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                  {b.dates.map((d) => (
+                    <Chip key={d} label={d} tone="date" />
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(0,32,63,.06)", fontSize: 10, fontWeight: 700, letterSpacing: 0.6, color: "var(--fg4)" }}>
+                  <Icon path={IC3.book} size={12} />
+                  SUBJECTS
+                  <span style={{ fontWeight: 800, color: "var(--accent-purple)" }}>{b.subjects.length}</span>
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                  {b.subjects.map((x) => (
+                    <Chip key={x} label={x} tone="subject" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Actions valid={valid} why="Add at least one selection." onSave={save} onClose={onClose} />
+      </div>
+    </Modal>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+const TERM_STATES = ["ongoing", "upcoming", "finished"];
+const SUBJECT_AREAS = ["Mathematics", "English", "Science", "Humanities"];
+const YEARS = ["Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
+
+export function EditTermModal({ term, onClose, onSave }: { term: Term; onClose: () => void; onSave: (id: string, patch: Partial<Term>) => void }) {
+  const [name, setName] = useState(term.name);
+  const [start, setStart] = useState(term.start);
+  const [end, setEnd] = useState(term.end);
+  const [weeks, setWeeks] = useState(term.weeks);
+  const [state, setState] = useState<string>(term.state);
+
+  const valid = name.trim().length > 0 && start.trim().length > 0 && end.trim().length > 0 && weeks > 0;
+  const save = () => valid && onSave(term.id, { name: name.trim(), start: start.trim(), end: end.trim(), weeks, state: state as Term["state"] });
+
+  return (
+    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(620px, calc(100vw - 32px))", maxHeight: "min(88vh, 760px)", overflowY: "auto" }}>
+      <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
+        <Head title="Edit term" sub="The dates everything else is planned against." onClose={onClose} />
+        <Row cols="1fr">
+          <span>
+            <Label required>Term name</Label>
+            <input value={name} onChange={(e) => setName(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} autoFocus />
+          </span>
+        </Row>
+        <Row>
+          <span>
+            <Label required>Starts</Label>
+            <input value={start} onChange={(e) => setStart(e.target.value)} placeholder="e.g. 20 Jul 2026" aria-label="Term start" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
+          </span>
+          <span>
+            <Label required>Ends</Label>
+            <input value={end} onChange={(e) => setEnd(e.target.value)} placeholder="e.g. 25 Sep 2026" aria-label="Term end" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
+          </span>
+        </Row>
+        <Row>
+          <span>
+            <Label required>Weeks</Label>
+            <input type="number" min={1} max={20} value={weeks} onChange={(e) => setWeeks(Number(e.target.value))} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
+          </span>
+          {sel("State", state, TERM_STATES, setState)}
+        </Row>
+        <Actions valid={valid} why="A term needs a name, both dates and a length." onSave={save} onClose={onClose} />
+      </div>
+    </Modal>
+  );
+}
+
+export function EditYearGroupModal({ group, onClose, onSave }: { group: YearGroup; onClose: () => void; onSave: (id: string, patch: Partial<YearGroup>) => void }) {
+  const [name, setName] = useState(group.name);
+  const [year, setYear] = useState(group.year);
+  const [status, setStatus] = useState(group.active ? "Active" : "Inactive");
+
+  const valid = name.trim().length > 0;
+  const save = () => valid && onSave(group.id, { name: name.trim(), year, active: status === "Active" });
+
+  return (
+    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(560px, calc(100vw - 32px))", maxHeight: "min(88vh, 620px)", overflowY: "auto" }}>
+      <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
+        <Head title="Edit year group" sub="A cohort, and the year level it sits at." onClose={onClose} />
+        <Row cols="1fr">
+          <span>
+            <Label required>Name</Label>
+            <input value={name} onChange={(e) => setName(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} autoFocus />
+          </span>
+        </Row>
+        <Row>
+          {sel("Year level", year, YEARS, setYear, true)}
+          {sel("Status", status, STATUS, setStatus)}
+        </Row>
+        <Actions valid={valid} why="A year group needs a name." onSave={save} onClose={onClose} />
+      </div>
+    </Modal>
+  );
+}
+
+/**
+ * One form for a subject, whether it is being created or corrected. Two forms
+ * for one record is how the two drift apart, and a subject has three fields.
+ */
+export function SubjectModal({
+  subject,
+  onClose,
+  onSave,
+}: {
+  /** Absent when adding a new one. */
+  subject?: SubjectRow;
+  onClose: () => void;
+  onSave: (id: string, patch: Record<string, unknown>) => void;
+}) {
+  const [name, setName] = useState(subject?.name ?? "");
+  const [year, setYear] = useState(subject?.year ?? YEARS[1]);
+  const [area, setArea] = useState<string>(subject?.area ?? SUBJECT_AREAS[0]);
+  const [status, setStatus] = useState(subject ? (subject.active ? "Active" : "Inactive") : "Active");
+
+  const valid = name.trim().length > 0;
+  const save = () =>
+    valid &&
+    onSave(subject?.id ?? "sb-" + Date.now().toString(36), {
+      name: name.trim(),
+      year,
+      area,
+      active: status === "Active",
+    });
+
+  return (
+    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(600px, calc(100vw - 32px))", maxHeight: "min(88vh, 660px)", overflowY: "auto" }}>
+      <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
+        <Head
+          title={subject ? "Edit subject" : "Add a subject"}
+          sub="What it is called, the year it belongs to and the area it sits in."
+          onClose={onClose}
+        />
+        <Row cols="1fr">
+          <span>
+            <Label required>Subject name</Label>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="For example: Year 9 Science" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} autoFocus />
+          </span>
+        </Row>
+        <Row>
+          {sel("Year level", year, YEARS, setYear, true)}
+          {sel("Area", area, SUBJECT_AREAS, setArea, true)}
+        </Row>
+        <Row cols="1fr">{sel("Status", status, STATUS, setStatus)}</Row>
+        <Actions valid={valid} why="A subject needs a name." onSave={save} onClose={onClose} />
+      </div>
+    </Modal>
+  );
+}
+
+export function EditCourseCategoryModal({ category, onClose, onSave }: { category: CourseCategory; onClose: () => void; onSave: (id: string, patch: Partial<CourseCategory>) => void }) {
+  const [name, setName] = useState(category.name);
+  const [status, setStatus] = useState(category.active ? "Active" : "Inactive");
+
+  const valid = name.trim().length > 0;
+  const save = () => valid && onSave(category.id, { name: name.trim(), active: status === "Active" });
+
+  return (
+    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(560px, calc(100vw - 32px))", maxHeight: "min(88vh, 560px)", overflowY: "auto" }}>
+      <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
+        <Head title="Edit course category" sub="How the catalogue is grouped for tutors and parents." onClose={onClose} />
+        <Row cols="1fr">
+          <span>
+            <Label required>Category name</Label>
+            <input value={name} onChange={(e) => setName(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} autoFocus />
+          </span>
+        </Row>
+        <Row cols="1fr">{sel("Status", status, STATUS, setStatus)}</Row>
+        <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 8, lineHeight: 1.5 }}>
+          How many courses sit in a category follows from the courses themselves, so it is not set here.
+        </div>
+        <Actions valid={valid} why="A category needs a name." onSave={save} onClose={onClose} />
       </div>
     </Modal>
   );
