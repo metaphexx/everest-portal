@@ -39,6 +39,13 @@ const OFFICE_KEY = "evr-admin-requests";
  */
 export type ClassPatch = Partial<AdminClass> & { studentNames?: string[]; link?: string };
 
+/**
+ * Edits to a master record - a centre, a printer, a printer mapping. Keyed by
+ * the record's own id, which is unique across the master tables, so one store
+ * serves every tab rather than one per record type.
+ */
+export type MasterPatch = Record<string, unknown>;
+
 /** The office ledger as last edited, or freshly generated on a clean demo. */
 function readOfficeRequests(): BookletRequest[] {
   try {
@@ -90,6 +97,8 @@ interface AdminApi extends AdminState {
   patchClass: (id: string, patch: ClassPatch) => void;
   sessionPatches: Record<string, SessionPatch>;
   patchSession: (id: string, patch: SessionPatch) => void;
+  masterPatches: Record<string, MasterPatch>;
+  patchMaster: (id: string, patch: MasterPatch, label?: string) => void;
 }
 
 const Ctx = createContext<AdminApi | null>(null);
@@ -211,6 +220,29 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   // Edits to a single dated session, which is a different thing from editing
   // the class: moving next Thursday's lesson an hour later does not move every
   // Thursday. Persisted the same way, and overlaid wherever sessions are read.
+  // Edits to the master records, persisted like the others: an office that
+  // corrects a centre's email expects the correction to still be there tomorrow.
+  const [masterPatches, setMasterPatches] = useState<Record<string, MasterPatch>>(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-masters") : null;
+      return raw ? (JSON.parse(raw) as Record<string, MasterPatch>) : {};
+    } catch {
+      return {};
+    }
+  });
+  const patchMaster = useCallback((id: string, patch: MasterPatch, label = "Record") => {
+    setMasterPatches((m) => {
+      const next = { ...m, [id]: { ...m[id], ...patch } };
+      try {
+        window.localStorage.setItem("evr-admin-masters", JSON.stringify(next));
+      } catch {
+        /* storage full - the edit still applies for this session */
+      }
+      return next;
+    });
+    showToast(label + " updated");
+  }, [showToast]);
+
   const [sessionPatches, setSessionPatches] = useState<Record<string, SessionPatch>>(() => {
     try {
       const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-sessions") : null;
@@ -280,6 +312,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     patchClass,
     sessionPatches,
     patchSession,
+    masterPatches,
+    patchMaster,
     sharedFiles,
   };
 

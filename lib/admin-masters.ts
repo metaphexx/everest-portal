@@ -9,21 +9,24 @@
 // staging database ("new printer", "sdda", "hfrhtrjtyjt"), so the layout is
 // judged on real content lengths.
 
+import { PrintFormat } from "./tutor-data";
+
 export interface Centre {
   id: string;
   name: string;
   location: string;
-  rooms: number;
+  /** Who the office writes to about this centre. */
+  adminEmail: string;
   active: boolean;
 }
 
 export const CENTRES_M: Centre[] = [
-  { id: "c1", name: "Harrisdale SHS", location: "Harrisdale, Western Australia", rooms: 3, active: true },
-  { id: "c2", name: "Piara Waters", location: "Piara Waters, Western Australia", rooms: 2, active: true },
-  { id: "c3", name: "Willetton", location: "Willetton, Western Australia", rooms: 4, active: true },
-  { id: "c4", name: "Perth Modern", location: "Subiaco, Western Australia", rooms: 2, active: true },
-  { id: "c5", name: "Head office", location: "Willetton, Western Australia", rooms: 1, active: true },
-  { id: "c6", name: "Canning Vale", location: "Canning Vale, Western Australia", rooms: 2, active: false },
+  { id: "c1", name: "Harrisdale SHS", location: "Harrisdale, Western Australia", adminEmail: "harrisdale@everesttutoring.com.au", active: true },
+  { id: "c2", name: "Piara Waters", location: "Piara Waters, Western Australia", adminEmail: "piarawaters@everesttutoring.com.au", active: true },
+  { id: "c3", name: "Willetton", location: "Willetton, Western Australia", adminEmail: "willetton@everesttutoring.com.au", active: true },
+  { id: "c4", name: "Perth Modern", location: "Subiaco, Western Australia", adminEmail: "perthmodern@everesttutoring.com.au", active: true },
+  { id: "c5", name: "Head office", location: "Willetton, Western Australia", adminEmail: "info@everesttutoring.com.au", active: true },
+  { id: "c6", name: "Canning Vale", location: "Canning Vale, Western Australia", adminEmail: "canningvale@everesttutoring.com.au", active: false },
 ];
 
 export interface Printer {
@@ -31,17 +34,20 @@ export interface Printer {
   name: string;
   model: string;
   centre: string;
-  colour: boolean;
+  /** Whether this printer has a stapler fitted at all. */
+  stapler: boolean;
+  /** What a job sent here uses unless the request overrides it. */
+  defaults: PrintFormat;
   active: boolean;
 }
 
 export const PRINTERS_M: Printer[] = [
-  { id: "p1", name: "Harrisdale print room", model: "Kyocera TASKalfa 4053ci", centre: "Harrisdale SHS", colour: true, active: true },
-  { id: "p2", name: "Harrisdale back office", model: "Kyocera ECOSYS P3260dn", centre: "Harrisdale SHS", colour: false, active: true },
-  { id: "p3", name: "Piara Waters office", model: "Kyocera TASKalfa 3253ci", centre: "Piara Waters", colour: true, active: true },
-  { id: "p4", name: "Willetton front desk", model: "Canon imageRUNNER 2630i", centre: "Willetton", colour: false, active: true },
-  { id: "p5", name: "Head office", model: "Kyocera TASKalfa 4053ci", centre: "Head office", colour: true, active: true },
-  { id: "p6", name: "Perth Modern spare", model: "Brother HL-L6400DW", centre: "Perth Modern", colour: false, active: false },
+  { id: "p1", name: "Harrisdale print room", model: "Kyocera TASKalfa 4053ci", centre: "Harrisdale SHS", stapler: true, defaults: { paper: "A4", sides: "Double sided", colour: "Black and white", orientation: "Portrait", staple: "Top left staple", scale: "100%", perSheet: "2 per page" }, active: true },
+  { id: "p2", name: "Harrisdale back office", model: "Kyocera ECOSYS P3260dn", centre: "Harrisdale SHS", stapler: false, defaults: { paper: "A4", sides: "Double sided", colour: "Black and white", orientation: "Portrait", staple: "No staple", scale: "100%", perSheet: "1 per page" }, active: true },
+  { id: "p3", name: "Piara Waters office", model: "Kyocera TASKalfa 3253ci", centre: "Piara Waters", stapler: true, defaults: { paper: "A4", sides: "Double sided", colour: "Black and white", orientation: "Portrait", staple: "Top left staple", scale: "100%", perSheet: "2 per page" }, active: true },
+  { id: "p4", name: "Willetton front desk", model: "Canon imageRUNNER 2630i", centre: "Willetton", stapler: false, defaults: { paper: "A4", sides: "Single sided", colour: "Black and white", orientation: "Portrait", staple: "No staple", scale: "Fit to width", perSheet: "1 per page" }, active: true },
+  { id: "p5", name: "Head office", model: "Kyocera TASKalfa 4053ci", centre: "Head office", stapler: true, defaults: { paper: "A4", sides: "Double sided", colour: "Colour", orientation: "Portrait", staple: "Top left staple", scale: "100%", perSheet: "2 per page" }, active: true },
+  { id: "p6", name: "Perth Modern spare", model: "Brother HL-L6400DW", centre: "Perth Modern", stapler: false, defaults: { paper: "A4", sides: "Single sided", colour: "Black and white", orientation: "Portrait", staple: "No staple", scale: "100%", perSheet: "1 per page" }, active: false },
 ];
 
 export interface CentrePrinter {
@@ -49,15 +55,17 @@ export interface CentrePrinter {
   centre: string;
   printers: string[];
   defaultPrinter: string;
+  /** Tutors who may send to this centre's printers. Empty means everyone at it. */
+  tutors: string[];
   active: boolean;
 }
 
 export const CENTRE_PRINTERS: CentrePrinter[] = [
-  { id: "cp1", centre: "Harrisdale SHS", printers: ["Harrisdale print room", "Harrisdale back office"], defaultPrinter: "Harrisdale print room", active: true },
-  { id: "cp2", centre: "Piara Waters", printers: ["Piara Waters office"], defaultPrinter: "Piara Waters office", active: true },
-  { id: "cp3", centre: "Willetton", printers: ["Willetton front desk", "Head office"], defaultPrinter: "Willetton front desk", active: true },
-  { id: "cp4", centre: "Perth Modern", printers: ["Perth Modern spare"], defaultPrinter: "Perth Modern spare", active: false },
-  { id: "cp5", centre: "Head office", printers: ["Head office"], defaultPrinter: "Head office", active: true },
+  { id: "cp1", centre: "Harrisdale SHS", printers: ["Harrisdale print room", "Harrisdale back office"], defaultPrinter: "Harrisdale print room", tutors: ["Priya Rao", "Tobi Okafor"], active: true },
+  { id: "cp2", centre: "Piara Waters", printers: ["Piara Waters office"], defaultPrinter: "Piara Waters office", tutors: ["Priya Rao"], active: true },
+  { id: "cp3", centre: "Willetton", printers: ["Willetton front desk", "Head office"], defaultPrinter: "Willetton front desk", tutors: ["Grace Lin"], active: true },
+  { id: "cp4", centre: "Perth Modern", printers: ["Perth Modern spare"], defaultPrinter: "Perth Modern spare", tutors: [], active: false },
+  { id: "cp5", centre: "Head office", printers: ["Head office"], defaultPrinter: "Head office", tutors: [], active: true },
 ];
 
 export interface SystemRow {

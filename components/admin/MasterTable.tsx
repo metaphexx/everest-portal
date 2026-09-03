@@ -53,6 +53,8 @@ export interface MasterTableProps<T> {
   statusOf?: (row: T) => { label: string; color: string; bg: string };
   /** Placeholder for the search box, phrased for this data. */
   searchHint: string;
+  /** A running total shown at the left of the toolbar, e.g. "33 students". */
+  countNoun?: string;
   /** Label for the primary create action. Omit for read-only maps. */
   addLabel?: string;
   onAdd?: () => void;
@@ -71,6 +73,7 @@ export function MasterTable<T>({
   idOf,
   statusOf,
   searchHint,
+  countNoun,
   addLabel,
   onAdd,
   onEdit,
@@ -103,6 +106,14 @@ export function MasterTable<T>({
     <div className="glass-card" style={{ gridColumn: "span 12", padding: "16px 18px 12px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
       {/* ---- toolbar ---- */}
       <div className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        {/* How many there are, before the search narrows it - the office asks
+            "how many students do we have" far more often than it searches. */}
+        {countNoun && (
+          <span style={{ flex: "none", display: "inline-flex", alignItems: "baseline", gap: 6, paddingRight: 4 }}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: "var(--fg1)", lineHeight: 1 }}>{rows.length}</span>
+            <span style={{ fontSize: 11.5, color: "var(--fg4)", fontWeight: 600 }}>{countNoun}</span>
+          </span>
+        )}
         <span className="ev-wrap-main glass-control" style={{ flex: "1 0 auto", minWidth: 0, display: "flex", alignItems: "center", gap: 8, borderRadius: 12, padding: "0 13px", height: 44 }}>
           <Icon path={IC.search} size={15} style={{ color: "var(--fg4)", flex: "none" }} />
           <input

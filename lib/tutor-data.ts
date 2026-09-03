@@ -405,6 +405,19 @@ export interface PrintFormat {
   perSheet?: string; // pages per sheet; absent -> "1 per page"
 }
 
+/**
+ * Every value each print setting can take. Shared, because the office picks
+ * these in two places - a printer's defaults and a single request - and two
+ * lists would drift into two vocabularies for one setting.
+ */
+export const PAPER_OPTIONS = ["A4", "A3", "Letter"];
+export const SIDES_OPTIONS = ["Double sided", "Single sided"];
+export const COLOUR_OPTIONS = ["Black and white", "Colour"];
+export const ORIENT_OPTIONS = ["Portrait", "Landscape"];
+export const SCALE_OPTIONS = ["100%", "Fit to width", "Fit to page"];
+export const STAPLE_OPTIONS = ["Top left staple", "Top right staple", "Left edge staple", "No staple"];
+export const PER_SHEET_OPTIONS = ["1 per page", "2 per page", "4 per page"];
+
 export const DEFAULT_FORMAT: PrintFormat = {
   paper: "A4",
   sides: "Double sided",

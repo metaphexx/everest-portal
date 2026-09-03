@@ -12,7 +12,22 @@
 import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
-import { BOOKLET_META, BookletRequest, DEFAULT_FORMAT, PRINTERS, PrintFormat, PrintingStatus, bookletStatusFromRequest } from "@/lib/tutor-data";
+import {
+  BOOKLET_META,
+  BookletRequest,
+  COLOUR_OPTIONS,
+  DEFAULT_FORMAT,
+  ORIENT_OPTIONS,
+  PAPER_OPTIONS,
+  PER_SHEET_OPTIONS,
+  PRINTERS,
+  PrintFormat,
+  PrintingStatus,
+  SCALE_OPTIONS,
+  SIDES_OPTIONS,
+  STAPLE_OPTIONS,
+  bookletStatusFromRequest,
+} from "@/lib/tutor-data";
 import { centreStyle } from "@/lib/admin-schedule";
 import { centreOfPrinter } from "@/lib/tutor-data";
 
@@ -21,13 +36,13 @@ const IC = {
   file: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm-1 7V3.5L18.5 9H13Z",
 };
 
-const PAPER = ["A4", "A3", "Letter"];
-const SIDES = ["Double sided", "Single sided"];
-const COLOUR = ["Black and white", "Colour"];
-const ORIENT = ["Portrait", "Landscape"];
-const SCALE = ["100%", "Fit to width", "Fit to page"];
-const STAPLE = ["Top left staple", "Top right staple", "Left edge staple", "No staple"];
-const PER_SHEET = ["1 per page", "2 per page", "4 per page"];
+const PAPER = PAPER_OPTIONS;
+const SIDES = SIDES_OPTIONS;
+const COLOUR = COLOUR_OPTIONS;
+const ORIENT = ORIENT_OPTIONS;
+const SCALE = SCALE_OPTIONS;
+const STAPLE = STAPLE_OPTIONS;
+const PER_SHEET = PER_SHEET_OPTIONS;
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

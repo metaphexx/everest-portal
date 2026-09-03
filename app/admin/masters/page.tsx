@@ -9,14 +9,15 @@
 // If the developers prefer to keep separate routes, every tab below is a
 // self-contained <MasterTable> config and lifts out unchanged.
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter, useSearchParams } from "@/lib/router";
 import { useAdmin } from "@/lib/admin-store";
 import { Column, MasterTable, PILL } from "@/components/admin/MasterTable";
 import {
   BOOKLET_DRIVE,
+  Centre,
+  CentrePrinter,
   CENTRES_M,
-  CLASSROOM_MAP,
   CURRICULUM,
   CENTRE_PRINTERS,
   CLASS_SELECTIONS,
@@ -24,16 +25,22 @@ import {
   COURSE_CATEGORIES,
   COURSE_TUTORS,
   DRIVE_DATA,
+  Printer,
   PRINTERS_M,
-  ROOMS,
   SUBJECTS,
   SUBJECT_DRIVE,
-  SYSTEMS,
   TERMS,
   TOPICS,
   YEAR_GROUPS,
 } from "@/lib/admin-masters";
-import { STAFF, allStudents } from "@/lib/admin-data";
+import { AdminStudent, STAFF, StaffMember, allStudents } from "@/lib/admin-data";
+import {
+  EditCentreModal,
+  EditCentrePrinterModal,
+  EditPrinterModal,
+  EditStudentModal,
+  EditTutorModal,
+} from "@/components/admin/MasterEditModals";
 
 /** A short grey line, used wherever a cell is a list of other records. */
 function List({ items, empty = "None" }: { items: string[]; empty?: string }) {
@@ -55,12 +62,9 @@ const TABS = [
   { id: "centres", label: "Centres", group: "Places" },
   { id: "printers", label: "Printers", group: "Places" },
   { id: "centre-printers", label: "Centre printers", group: "Places" },
-  { id: "systems", label: "Systems", group: "Places" },
   { id: "tutors", label: "Tutors", group: "People" },
-  { id: "students", label: "Students", group: "People" },
+  { id: "students", label: "Online students", group: "People" },
   { id: "class-selection", label: "Class selection", group: "People" },
-  { id: "rooms", label: "Rooms", group: "Places" },
-  { id: "classroom-map", label: "Classroom map", group: "Places" },
   { id: "terms", label: "Terms", group: "Teaching" },
   { id: "year-groups", label: "Year groups", group: "Teaching" },
   { id: "subjects", label: "Subjects", group: "Teaching" },
@@ -74,11 +78,26 @@ const TABS = [
   { id: "drive-data", label: "Drive access", group: "Drive" },
 ];
 
+type EditTarget =
+  | { kind: "centre"; row: Centre }
+  | { kind: "printer"; row: Printer }
+  | { kind: "centre-printer"; row: CentrePrinter }
+  | { kind: "tutor"; row: StaffMember }
+  | { kind: "student"; row: AdminStudent };
+
 export default function AdminMasters() {
   const params = useSearchParams();
   const router = useRouter();
-  const { notWired } = useAdmin();
+  const { notWired, masterPatches, patchMaster } = useAdmin();
   const tab = params.get("tab") ?? "centres";
+  const [editing, setEditing] = useState<EditTarget | null>(null);
+
+  /** Office edits sit over the seeded master records wherever they are read. */
+  const patched = <T extends { id: string }>(rows: T[]): T[] => rows.map((r) => ({ ...r, ...(masterPatches[r.id] as Partial<T>) }));
+  const save = (label: string) => (id: string, patch: Record<string, unknown>) => {
+    patchMaster(id, patch, label);
+    setEditing(null);
+  };
 
   const go = (id: string) => router.push("/admin/masters?tab=" + id);
   const add = (what: string) => notWired("Add a " + what);
@@ -95,18 +114,17 @@ export default function AdminMasters() {
           { key: "n", label: "Printer", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
           { key: "m", label: "Model", render: (r) => r.model, text: (r) => r.model },
           { key: "c", label: "Centre", render: (r) => r.centre, text: (r) => r.centre },
-          { key: "col", label: "Colour", render: (r) => (r.colour ? "Colour and mono" : "Mono only"), text: (r) => (r.colour ? "colour" : "mono"), minor: true },
         ];
         return (
           <MasterTable
-            rows={PRINTERS_M}
+            rows={patched(PRINTERS_M)}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
             searchHint="Search printers by name, model or centre"
             addLabel="Add a printer"
             onAdd={() => add("printer")}
-            onEdit={() => edit("printer")}
+            onEdit={(r) => setEditing({ kind: "printer", row: r })}
             onDelete={() => del("printer")}
             onExport={exp}
             emptyTitle="No printers yet"
@@ -122,42 +140,18 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={CENTRE_PRINTERS}
+            rows={patched(CENTRE_PRINTERS)}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
             searchHint="Search by centre or printer"
             addLabel="Map a printer"
             onAdd={() => add("mapping")}
-            onEdit={() => edit("mapping")}
+            onEdit={(r) => setEditing({ kind: "centre-printer", row: r })}
             onDelete={() => del("mapping")}
             onExport={exp}
             emptyTitle="Nothing mapped yet"
             emptyBody="A centre with no printer cannot receive a print request, so map at least one to each."
-          />
-        );
-      }
-      case "systems": {
-        const cols: Column<(typeof SYSTEMS)[number]>[] = [
-          { key: "h", label: "System", render: (r) => (<><strong style={{ fontWeight: 700 }}>{r.label}</strong><span style={{ display: "block", fontSize: 11, color: "var(--fg4)" }}>{r.hostname}</span></>), text: (r) => r.label + " " + r.hostname },
-          { key: "c", label: "Centre", render: (r) => (r.centre ?? <span style={{ color: "var(--warn-700)" }}>Not mapped</span>), text: (r) => r.centre ?? "not mapped" },
-          { key: "p", label: "Printers", render: (r) => <List items={r.printers} empty="None yet" />, text: (r) => r.printers.join(" "), width: 260 },
-          { key: "os", label: "Machine", render: (r) => (<><span>{r.os}</span><span style={{ display: "block", fontSize: 11, color: "var(--fg4)" }}>{r.mac}</span></>), text: (r) => r.os + " " + r.mac, minor: true },
-        ];
-        return (
-          <MasterTable
-            rows={SYSTEMS}
-            columns={cols}
-            idOf={(r) => r.id}
-            statusOf={(r) => (r.status === "active" ? PILL.active : { label: "Waiting to pair", color: "var(--warn-700)", bg: "rgba(245,166,35,.16)" })}
-            searchHint="Search by system, centre or address"
-            addLabel="Pair a system"
-            onAdd={() => add("system")}
-            onEdit={() => edit("system")}
-            onDelete={() => del("system")}
-            onExport={exp}
-            emptyTitle="No systems paired"
-            emptyBody="Pair the front desk machine at each centre so print jobs reach the right printer."
           />
         );
       }
@@ -166,19 +160,17 @@ export default function AdminMasters() {
           { key: "n", label: "Tutor", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
           { key: "e", label: "Email", render: (r) => r.email, text: (r) => r.email, width: 240 },
           { key: "p", label: "Phone", render: (r) => r.phone, text: (r) => r.phone },
-          { key: "d", label: "Duties", render: (r) => (r.duties === "both" ? "In person and online" : r.duties === "online" ? "Online only" : "In person only"), text: (r) => r.duties },
-          { key: "c", label: "Centres", render: (r) => <List items={r.centres} />, text: (r) => r.centres.join(" "), minor: true },
         ];
         return (
           <MasterTable
-            rows={STAFF}
+            rows={patched(STAFF)}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={(r) => (r.status === "active" ? PILL.active : { label: "On leave", color: "var(--warn-700)", bg: "rgba(245,166,35,.16)" })}
             searchHint="Search tutors by name, email or centre"
             addLabel="Add a tutor"
             onAdd={() => add("tutor")}
-            onEdit={() => edit("tutor")}
+            onEdit={(r) => setEditing({ kind: "tutor", row: r })}
             onDelete={() => del("tutor")}
             onExport={exp}
             emptyTitle="No tutors yet"
@@ -201,10 +193,11 @@ export default function AdminMasters() {
             columns={cols}
             idOf={(r) => r.name}
             statusOf={(r) => (r.status === "trial" ? PILL.pending : r.status === "active" ? PILL.active : PILL.inactive)}
+            countNoun="online students"
             searchHint="Search students by name, parent or class"
             addLabel="Enrol a student"
             onAdd={() => add("student")}
-            onEdit={() => edit("student")}
+            onEdit={(r) => setEditing({ kind: "student", row: r })}
             onExport={exp}
             emptyTitle="No students enrolled"
             emptyBody="Enrol students and put them in a class to give them a portal login."
@@ -240,53 +233,6 @@ export default function AdminMasters() {
             onExport={exp}
             emptyTitle="No class selections"
             emptyBody="A class selection is which subjects a tutor covers at a centre, and on which dates."
-          />
-        );
-      }
-      case "rooms": {
-        const cols: Column<(typeof ROOMS)[number]>[] = [
-          { key: "n", label: "Room", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
-          { key: "c", label: "Centre", render: (r) => r.centre, text: (r) => r.centre },
-          { key: "cap", label: "Seats", render: (r) => r.capacity + " students", text: (r) => String(r.capacity) },
-          { key: "no", label: "Notes", render: (r) => (r.notes ? r.notes : <span style={{ color: "var(--fg4)" }}>None</span>), text: (r) => r.notes, width: 260, minor: true },
-        ];
-        return (
-          <MasterTable
-            rows={ROOMS}
-            columns={cols}
-            idOf={(r) => r.id}
-            statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
-            searchHint="Search rooms by name or centre"
-            addLabel="Add a room"
-            onAdd={() => add("room")}
-            onEdit={() => edit("room")}
-            onDelete={() => del("room")}
-            emptyTitle="No rooms set up"
-            emptyBody="A room needs a centre and a seat count before a class can be timetabled into it."
-          />
-        );
-      }
-      case "classroom-map": {
-        const cols: Column<(typeof CLASSROOM_MAP)[number]>[] = [
-          { key: "y", label: "Year", render: (r) => <strong style={{ fontWeight: 700 }}>{r.year}</strong>, text: (r) => r.year },
-          { key: "s", label: "Subject", render: (r) => r.subject, text: (r) => r.subject, width: 220 },
-          // The live Classroom Map prints the record id here. A mapping is only
-          // useful if you can read what it maps, so this names the rooms.
-          { key: "r", label: "Rooms it can use", render: (r) => <List items={r.rooms} empty="No room mapped" />, text: (r) => r.rooms.join(" "), width: 280 },
-        ];
-        return (
-          <MasterTable
-            rows={CLASSROOM_MAP}
-            columns={cols}
-            idOf={(r) => r.id}
-            statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
-            searchHint="Search by year, subject or room"
-            addLabel="Add a mapping"
-            onAdd={() => add("classroom mapping")}
-            onEdit={() => edit("classroom mapping")}
-            onDelete={() => del("classroom mapping")}
-            emptyTitle="Nothing mapped to a room yet"
-            emptyBody="Mapping a subject to its rooms is what stops two classes being put in the same room."
           />
         );
       }
@@ -535,18 +481,17 @@ export default function AdminMasters() {
         const cols: Column<(typeof CENTRES_M)[number]>[] = [
           { key: "n", label: "Centre", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
           { key: "l", label: "Location", render: (r) => r.location, text: (r) => r.location, width: 280 },
-          { key: "r", label: "Rooms", render: (r) => r.rooms, text: (r) => String(r.rooms) },
         ];
         return (
           <MasterTable
-            rows={CENTRES_M}
+            rows={patched(CENTRES_M)}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
             searchHint="Search centres by name or suburb"
             addLabel="Add a centre"
             onAdd={() => add("centre")}
-            onEdit={() => edit("centre")}
+            onEdit={(r) => setEditing({ kind: "centre", row: r })}
             onDelete={() => del("centre")}
             onExport={exp}
             emptyTitle="No centres yet"
@@ -603,6 +548,22 @@ export default function AdminMasters() {
       </div>
 
       {table()}
+
+      {editing?.kind === "centre" && (
+        <EditCentreModal centre={editing.row} onClose={() => setEditing(null)} onSave={save("Centre")} />
+      )}
+      {editing?.kind === "printer" && (
+        <EditPrinterModal printer={editing.row} centres={CENTRES_M.map((c) => c.name)} onClose={() => setEditing(null)} onSave={save("Printer")} />
+      )}
+      {editing?.kind === "centre-printer" && (
+        <EditCentrePrinterModal mapping={editing.row} centres={CENTRES_M.map((c) => c.name)} printers={patched(PRINTERS_M)} onClose={() => setEditing(null)} onSave={save("Mapping")} />
+      )}
+      {editing?.kind === "tutor" && (
+        <EditTutorModal tutor={editing.row} onClose={() => setEditing(null)} onSave={save("Tutor")} />
+      )}
+      {editing?.kind === "student" && (
+        <EditStudentModal student={editing.row} onClose={() => setEditing(null)} onSave={save("Student")} />
+      )}
     </div>
   );
 }
