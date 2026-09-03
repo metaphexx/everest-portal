@@ -15,7 +15,7 @@ import {
 } from "@/lib/data";
 import { monthGrid, monthLabel, todayKey } from "@/lib/calendar";
 import { Icon } from "@/components/ui/Icon";
-import { Loader } from "@/components/ui/Loader";
+import { SkeletonRows } from "@/components/ui/PageSkeleton";
 import { ImageSlot } from "@/components/ui/ImageSlot";
 import { AssessmentTable, AverageChip } from "@/components/portal/AssessmentTable";
 import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
@@ -278,10 +278,10 @@ export default function CoursePage() {
             )}
 
             {outline && outline.status === "pending" && (
-              <div style={{ textAlign: "center", padding: "22px 10px" }}>
-                <Loader size={60} label={"Scanning " + outline.fileName} style={{ margin: "0 auto 10px" }} />
+              <div style={{ padding: "6px 0 4px" }}>
                 <div style={{ fontSize: 13, fontWeight: 700 }}>Scanning {outline.fileName}</div>
-                <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 3 }}>Pulling out your assessments and weekly topics</div>
+                <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 3, marginBottom: 4 }}>Pulling out your assessments and weekly topics</div>
+                <SkeletonRows rows={3} label={"Scanning " + outline.fileName} />
               </div>
             )}
 

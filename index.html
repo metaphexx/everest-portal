@@ -12,9 +12,122 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap"
       rel="stylesheet"
     />
+    <!--
+      BOOT WIREFRAME.
+
+      #root is empty until the bundle downloads, parses and mounts, and on a
+      cold load that is the one moment the app cannot style away: a blank page.
+      So the shell is drawn here, in the document, with its own inline CSS - no
+      stylesheet, no script, nothing to wait for. It paints on the first byte
+      and React clears it when it mounts, because createRoot empties its
+      container on the first render.
+
+      It is deliberately the same shapes as components/ui/PageSkeleton, so the
+      hand-off from this to the route skeleton to the real page is one thing
+      filling in rather than three different screens.
+    -->
+    <style>
+      html, body { margin: 0; background: #FFF8F2; }
+      #ev-boot {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+      }
+      #ev-boot .b {
+        border-radius: 6px;
+        background: linear-gradient(90deg, rgba(0,32,63,.07) 25%, rgba(0,32,63,.13) 50%, rgba(0,32,63,.07) 75%);
+        background-size: 200% 100%;
+        animation: evboot 1.4s ease-in-out infinite;
+      }
+      #ev-boot .side {
+        width: 232px;
+        flex: none;
+        box-sizing: border-box;
+        padding: 24px 14px;
+        background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.4));
+        border-right: 1px solid rgba(255,255,255,.75);
+      }
+      #ev-boot .main { flex: 1; min-width: 0; padding: 26px 22px; box-sizing: border-box; }
+      #ev-boot .card {
+        background: rgba(255,255,255,.6);
+        border: 1px solid rgba(255,255,255,.78);
+        border-radius: 20px;
+        padding: 20px 22px;
+        box-sizing: border-box;
+        box-shadow: 0 14px 32px -16px rgba(0,32,63,.24);
+      }
+      #ev-boot .row { display: flex; gap: 16px; margin-top: 16px; }
+      #ev-boot .row > * { flex: 1; min-width: 0; }
+      @keyframes evboot {
+        from { background-position: 200% 0; }
+        to { background-position: -200% 0; }
+      }
+      /* The real layout turns the sidebar into a drawer here, so the wireframe
+         must too or the first paint promises a column that never arrives. */
+      @media (max-width: 1024px) {
+        #ev-boot .side { display: none; }
+      }
+      /* Multi-column grids collapse at 720 in the real layout, so two cards
+         side by side here would promise a row the page never renders. */
+      @media (max-width: 720px) {
+        #ev-boot .row { flex-direction: column; }
+        #ev-boot .main { padding: 20px 16px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #ev-boot .b { animation: none; }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="ev-boot" role="status" aria-label="Loading the portal">
+        <div class="side" aria-hidden="true">
+          <div class="b" style="width: 132px; height: 30px"></div>
+          <div class="b" style="width: 78px; height: 8px; margin-top: 10px"></div>
+          <div style="height: 26px"></div>
+          <div class="b" style="width: 100%; height: 34px; margin-bottom: 8px"></div>
+          <div class="b" style="width: 100%; height: 34px; margin-bottom: 8px"></div>
+          <div class="b" style="width: 100%; height: 34px; margin-bottom: 22px"></div>
+          <div class="b" style="width: 62px; height: 8px; margin-bottom: 10px"></div>
+          <div class="b" style="width: 100%; height: 34px; margin-bottom: 8px"></div>
+          <div class="b" style="width: 100%; height: 34px"></div>
+        </div>
+        <div class="main" aria-hidden="true">
+          <div class="b" style="width: 150px; height: 10px"></div>
+          <div class="b" style="width: 230px; height: 24px; margin-top: 12px"></div>
+          <div class="b" style="width: 320px; height: 10px; margin-top: 10px"></div>
+          <div style="height: 22px"></div>
+          <div class="card">
+            <div class="b" style="width: 34%; height: 16px"></div>
+            <div style="height: 14px"></div>
+            <div class="b" style="width: 90%; height: 10px"></div>
+            <div style="height: 8px"></div>
+            <div class="b" style="width: 72%; height: 10px"></div>
+          </div>
+          <div class="row">
+            <div class="card">
+              <div class="b" style="width: 46%; height: 14px"></div>
+              <div style="height: 12px"></div>
+              <div class="b" style="width: 100%; height: 10px"></div>
+              <div style="height: 8px"></div>
+              <div class="b" style="width: 84%; height: 10px"></div>
+              <div style="height: 8px"></div>
+              <div class="b" style="width: 61%; height: 10px"></div>
+            </div>
+            <div class="card">
+              <div class="b" style="width: 52%; height: 14px"></div>
+              <div style="height: 12px"></div>
+              <div class="b" style="width: 100%; height: 10px"></div>
+              <div style="height: 8px"></div>
+              <div class="b" style="width: 77%; height: 10px"></div>
+              <div style="height: 8px"></div>
+              <div class="b" style="width: 68%; height: 10px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

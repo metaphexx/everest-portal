@@ -3,7 +3,7 @@ import Link from "@/components/ui/Link";
 import { usePortal } from "@/lib/store";
 import { OUTLINE_SUBJECTS, outlineAverage } from "@/lib/features";
 import { Icon } from "@/components/ui/Icon";
-import { Loader } from "@/components/ui/Loader";
+import { SkeletonRows } from "@/components/ui/PageSkeleton";
 import { AssessmentTable, AverageChip } from "@/components/portal/AssessmentTable";
 
 const TERMS = ["Term 1", "Term 2", "Term 3", "Term 4"];
@@ -177,10 +177,11 @@ export default function OutlinePage() {
         )}
 
         {selected && selected.status === "pending" && (
-          <div className="glass-card" style={{ padding: "40px 22px", textAlign: "center" }}>
-            <Loader size={72} label="Scanning your outline" style={{ margin: "0 auto 14px" }} />
+          <div className="glass-card" style={{ padding: "22px" }}>
             <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Scanning your outline</div>
-            <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 4 }}>Elliot is reading {selected.fileName} for assessments and weekly topics.</div>
+            <div style={{ fontSize: 12.5, color: "var(--fg3)", margin: "4px 0 6px" }}>Elliot is reading {selected.fileName} for assessments and weekly topics.</div>
+            {/* The shape of what is coming, filling in - not a mark that spins. */}
+            <SkeletonRows rows={4} label="Scanning your outline" />
           </div>
         )}
 

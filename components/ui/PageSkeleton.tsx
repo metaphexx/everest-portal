@@ -55,3 +55,29 @@ export function PageSkeleton() {
     </div>
   );
 }
+
+/**
+ * A wireframe for a LIST that is being built - rows of the shape the result
+ * will take. Use it wherever the app is waiting on work that produces rows,
+ * instead of a mark that spins: the wait then shows what is coming, and the
+ * swap to real content is a fill-in rather than a different screen.
+ */
+export function SkeletonRows({ rows = 3, label }: { rows?: number; label?: string }) {
+  return (
+    <div role="status" aria-label={label ?? "Loading"}>
+      <div aria-hidden="true">
+        {Array.from({ length: rows }, (_, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderTop: i === 0 ? "none" : "1px solid rgba(0,32,63,.06)" }}>
+            <div className="ev-skel-bar" style={{ width: 32, height: 32, borderRadius: 9, flex: "none" }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Bar w={["68%", "54%", "76%", "61%"][i % 4]} h={11} />
+              <div style={{ height: 7 }} />
+              <Bar w={["40%", "48%", "35%", "44%"][i % 4]} h={9} />
+            </div>
+            <div className="ev-skel-bar" style={{ width: 54, height: 20, borderRadius: 980, flex: "none" }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
