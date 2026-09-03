@@ -50,8 +50,63 @@ const BLOCKS: Record<string, BlockSession[]> = {
 };
 
 /** Slots for a block course, in running order. Empty for a single-subject course. */
+const ENROL_KEY = "evr-block-enrolment";
+
+function readEnrolPatches(): Record<string, string[]> {
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(ENROL_KEY) : null;
+    return raw ? (JSON.parse(raw) as Record<string, string[]>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeEnrolPatches(next: Record<string, string[]>) {
+  try {
+    if (typeof window !== "undefined") window.localStorage.setItem(ENROL_KEY, JSON.stringify(next));
+  } catch {
+    /* a full quota should not stop the ticks applying for this session */
+  }
+}
+
+function initialsOf(name: string): string {
+  return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+}
+
+/**
+ * An office edit to who is on ONE SLOT's roster, keyed by the slot id rather
+ * than the subject name (which is not guaranteed unique across blocks).
+ *
+ * Applied inside slotsFor() itself, not by each caller, which is what makes it
+ * visible everywhere a roster is read from one edit: the office's own
+ * enrolment grid, a tutor's handover panel and Meet reconciliation, a
+ * student's /block page. Patching only the office's copy would have left
+ * tutors and students reading the old roster - the exact "two truths" bug
+ * this file's own header warns against for the class-level roster.
+ */
+export function patchSlotRoster(slotId: string, studentNames: string[]) {
+  writeEnrolPatches({ ...readEnrolPatches(), [slotId]: studentNames });
+  // The office and the tutor/student portals are separate localStorage
+  // origins in this demo, so this only reaches other tabs of the SAME
+  // portal - same reach as the other evr-sync patches already in the app.
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("evr-sync"));
+}
+
 export function slotsFor(courseId: string): BlockSession[] {
-  return BLOCKS[courseId] ?? [];
+  const base = BLOCKS[courseId] ?? [];
+  if (base.length === 0) return base;
+  const patches = readEnrolPatches();
+  if (Object.keys(patches).length === 0) return base;
+  // The pool a slot can draw from is the whole block's roster - enrolling
+  // someone in a subject they were never near the block for is not a thing
+  // this grid can do, so every patched name resolves against it.
+  const pool = new Map<string, { name: string; init: string }>();
+  for (const s of base) for (const st of s.students) if (!pool.has(st.name)) pool.set(st.name, st);
+  return base.map((s) => {
+    const patch = patches[s.id];
+    if (!patch) return s;
+    return { ...s, students: patch.map((name) => pool.get(name) ?? { name, init: initialsOf(name) }) };
+  });
 }
 
 export function isBlock(courseId: string): boolean {

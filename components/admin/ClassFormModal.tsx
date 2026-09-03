@@ -51,6 +51,8 @@ export interface ClassFormValues {
   students: string[];
   link: string;
   notes: string;
+  /** Present only when "This runs as a block" is ticked - one row per subject. */
+  slots?: { subject: string; start: string; end: string; tutor: string }[];
 }
 
 export interface ClassFormInitial extends Partial<Omit<ClassFormValues, "tutors" | "students">> {
@@ -147,9 +149,11 @@ export function ClassFormModal({
   const [link, setLink] = useState(initial?.link ?? "");
   const [notes, setNotes] = useState(initial?.notes ?? "");
   // A course with more than one subject can run as a block: one room, one link,
-  // consecutive slots each with its own subject, tutor and roster.
-  const [asBlock, setAsBlock] = useState(false);
-  const [slotRows, setSlotRows] = useState<{ subject: string; start: string; end: string; tutor: string }[]>([]);
+  // consecutive slots each with its own subject, tutor and roster. Rolling a
+  // block over to next term arrives here pre-filled, so the office reviews the
+  // carried-over structure rather than rebuilding it from an empty form.
+  const [asBlock, setAsBlock] = useState((initial?.slots?.length ?? 0) > 0);
+  const [slotRows, setSlotRows] = useState<{ subject: string; start: string; end: string; tutor: string }[]>(initial?.slots ?? []);
 
   const courseDef = useMemo(() => COURSES.find((c) => c.name === course), [course]);
 
@@ -215,7 +219,11 @@ export function ClassFormModal({
   // the seeded classes predate the link field, so requiring it on edit would
   // block changing a time until someone made a room they may not want.
   const needsLink = mode === "create";
-  const valid = title.trim().length > 0 && tutors.length > 0 && mins > 0 && (!needsLink || link.trim().length > 0);
+  // Every block slot needs a subject and a tutor, or it is a class with a
+  // gap nobody is teaching. Times are seeded consecutively and cannot be
+  // typed into an invalid state, so they are not re-checked here.
+  const blockRowsValid = !asBlock || (slotRows.length > 0 && slotRows.every((r) => r.subject.trim() && r.tutor));
+  const valid = title.trim().length > 0 && tutors.length > 0 && mins > 0 && (!needsLink || link.trim().length > 0) && blockRowsValid;
 
   const why = !title.trim()
     ? "Give the class a title."
@@ -225,11 +233,32 @@ export function ClassFormModal({
         ? "Check the start and end times."
         : needsLink && !link.trim()
           ? "Create a Meet link for the class."
-          : "";
+          : !blockRowsValid
+            ? "Every block slot needs a subject and a tutor."
+            : "";
 
   const submit = () => {
     if (!valid) return;
-    onSubmit({ title: title.trim(), course, subject, day, start, end, durationMins: mins, repeat, weeks, tutors, students, link: link.trim(), notes: notes.trim() });
+    onSubmit({
+      title: title.trim(),
+      course,
+      subject,
+      day,
+      start,
+      end,
+      durationMins: mins,
+      repeat,
+      weeks,
+      tutors,
+      students,
+      link: link.trim(),
+      notes: notes.trim(),
+      // Only sent when the block section is actually on screen and ticked -
+      // this was previously built in slotRows and then silently dropped, so
+      // ticking the box and filling in three subjects created one ordinary
+      // single-subject class.
+      ...(asBlock ? { slots: slotRows } : {}),
+    });
     onClose();
   };
 

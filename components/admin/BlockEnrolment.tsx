@@ -9,7 +9,7 @@
 import React, { useMemo, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { useAdmin } from "@/lib/admin-store";
-import { blockRoster, slotsFor } from "@/lib/block";
+import { blockRoster, patchSlotRoster, slotsFor } from "@/lib/block";
 
 const IC = {
   tick: "M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z",
@@ -48,7 +48,12 @@ export function BlockEnrolment({ courseId, onClose }: { courseId: string; onClos
   const countIn = (slotId: string) => roster.filter((st) => grid[st.name]?.has(slotId)).length;
   const noSubjects = roster.filter((st) => (grid[st.name]?.size ?? 0) === 0);
 
+  // One slot at a time: patchSlotRoster overwrites a slot's whole roster, and
+  // that write is what a tutor's handover panel and a student's /block page
+  // read too - the grid closing with only a toast was the reason ticks never
+  // actually stuck.
   const save = () => {
+    for (const s of slots) patchSlotRoster(s.id, roster.filter((st) => grid[st.name]?.has(s.id)).map((st) => st.name));
     showToast("Enrolment saved");
     onClose?.();
   };
