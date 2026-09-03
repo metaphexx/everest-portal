@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
 import { PeoplePicker, PickerOption } from "@/components/admin/PeoplePicker";
-import { Centre, CentrePrinter, CourseCategory, Printer, SubjectRow, Term, YearGroup } from "@/lib/admin-masters";
+import { BookletDriveMap, Centre, CentrePrinter, CourseCategory, CourseTutorMap, DriveMap, Printer, SubjectRow, Term, YearGroup } from "@/lib/admin-masters";
 import { AdminStudent, STAFF, StaffMember } from "@/lib/admin-data";
 import {
   COLOUR_OPTIONS,
@@ -61,11 +61,11 @@ function Head({ title, sub, onClose }: { title: string; sub: string; onClose: ()
   );
 }
 
-function Actions({ valid, why, onSave, onClose }: { valid: boolean; why: string; onSave: () => void; onClose: () => void }) {
+function Actions({ valid, why, onSave, onClose, label = "Save changes" }: { valid: boolean; why: string; onSave: () => void; onClose: () => void; label?: string }) {
   return (
     <div style={{ display: "flex", gap: 8, marginTop: 18, flexWrap: "wrap", alignItems: "center" }}>
       <button onClick={onSave} disabled={!valid} className="btn-primary press ev-tap-h" style={{ height: 44, padding: "0 20px", borderRadius: 12, fontSize: 13, fontWeight: 700, opacity: valid ? 1 : 0.5, cursor: valid ? "pointer" : "not-allowed" }}>
-        Save changes
+        {label}
       </button>
       <button onClick={onClose} className="btn-ghost press ev-tap-h" style={{ height: 44, padding: "0 18px", borderRadius: 12, fontSize: 13, fontWeight: 600, color: "var(--fg2)" }}>
         Cancel
@@ -859,34 +859,313 @@ export function SubjectModal({
           {sel("Area", area, SUBJECT_AREAS, setArea, true)}
         </Row>
         <Row cols="1fr">{sel("Status", status, STATUS, setStatus)}</Row>
-        <Actions valid={valid} why="A subject needs a name." onSave={save} onClose={onClose} />
+        <Actions valid={valid} why="A subject needs a name." onSave={save} onClose={onClose} label={subject ? "Save changes" : "Add subject"} />
       </div>
     </Modal>
   );
 }
 
-export function EditCourseCategoryModal({ category, onClose, onSave }: { category: CourseCategory; onClose: () => void; onSave: (id: string, patch: Partial<CourseCategory>) => void }) {
-  const [name, setName] = useState(category.name);
-  const [status, setStatus] = useState(category.active ? "Active" : "Inactive");
+/**
+ * A course category, whether it is being created or corrected. The description
+ * is what makes a category mean something: "Upper school (Years 10 to 12)" is
+ * a label, and a parent still has to be told what is in it.
+ */
+export function CourseCategoryModal({
+  category,
+  onClose,
+  onSave,
+}: {
+  /** Absent when adding a new one. */
+  category?: CourseCategory;
+  onClose: () => void;
+  onSave: (id: string, patch: Record<string, unknown>) => void;
+}) {
+  const [name, setName] = useState(category?.name ?? "");
+  const [description, setDescription] = useState(category?.description ?? "");
+  const [status, setStatus] = useState(category ? (category.active ? "Active" : "Inactive") : "Active");
 
-  const valid = name.trim().length > 0;
-  const save = () => valid && onSave(category.id, { name: name.trim(), active: status === "Active" });
+  const valid = name.trim().length > 0 && description.trim().length > 0;
+  const save = () =>
+    valid &&
+    onSave(category?.id ?? "cc-" + Date.now().toString(36), {
+      name: name.trim(),
+      description: description.trim(),
+      active: status === "Active",
+      // Nothing is in a brand new category until a course names it.
+      ...(category ? {} : { courses: 0 }),
+    });
 
   return (
-    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(560px, calc(100vw - 32px))", maxHeight: "min(88vh, 560px)", overflowY: "auto" }}>
+    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(600px, calc(100vw - 32px))", maxHeight: "min(88vh, 640px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title="Edit course category" sub="How the catalogue is grouped for tutors and parents." onClose={onClose} />
+        <Head
+          title={category ? "Edit course category" : "Add a course category"}
+          sub="How the catalogue is grouped for tutors and parents."
+          onClose={onClose}
+        />
         <Row cols="1fr">
           <span>
             <Label required>Category name</Label>
-            <input value={name} onChange={(e) => setName(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} autoFocus />
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="For example: Upper school (Years 10 to 12)" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} autoFocus />
+          </span>
+        </Row>
+        <Row cols="1fr">
+          <span>
+            <Label required>Description</Label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What belongs in this category"
+              aria-label="Description"
+              className="field"
+              style={{ width: "100%", minHeight: 66, boxSizing: "border-box", padding: "10px 12px", resize: "vertical" }}
+            />
+          </span>
+        </Row>
+        <Row cols="1fr">{sel("Status", status, STATUS, setStatus, true)}</Row>
+        {category && (
+          <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 8, lineHeight: 1.5 }}>
+            How many courses sit in a category follows from the courses themselves, so it is not set here.
+          </div>
+        )}
+        <Actions valid={valid} why="A category needs a name and a description." onSave={save} onClose={onClose} label={category ? "Save changes" : "Add category"} />
+      </div>
+    </Modal>
+  );
+}
+
+/**
+ * Which tutors teach a course. The course itself is fixed: this row IS that
+ * course's mapping, so changing it here would silently rewrite a different
+ * course's staffing rather than move this one.
+ */
+export function EditCourseTutorModal({
+  mapping,
+  tutors,
+  onClose,
+  onSave,
+}: {
+  mapping: CourseTutorMap;
+  tutors: string[];
+  onClose: () => void;
+  onSave: (id: string, patch: Partial<CourseTutorMap>) => void;
+}) {
+  const [chosen, setChosen] = useState<string[]>(mapping.tutors);
+  const [status, setStatus] = useState(mapping.active ? "Active" : "Inactive");
+
+  const options: PickerOption[] = tutors.map((t) => {
+    const member = STAFF.find((s) => s.name === t);
+    return {
+      id: t,
+      label: t,
+      meta: member ? (member.status === "on_leave" ? "On leave" : member.centres.join(", ")) : undefined,
+      initials: member ? member.initials : t.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase(),
+      colour: member?.colour,
+    };
+  });
+
+  const save = () => onSave(mapping.id, { tutors: chosen, active: status === "Active" });
+
+  return (
+    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(600px, calc(100vw - 32px))", maxHeight: "min(88vh, 700px)", overflowY: "auto" }}>
+      <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
+        <Head title="Edit course tutors" sub="Who teaches this course, and whether the mapping is live." onClose={onClose} />
+
+        <Row cols="1fr">
+          <span>
+            <Label>Course</Label>
+            <div className="glass-control" style={{ display: "flex", alignItems: "center", height: 44, borderRadius: 12, padding: "0 13px", background: "rgba(0,32,63,.04)", color: "var(--fg3)", fontSize: 13, fontWeight: 600 }}>
+              {mapping.course}
+            </div>
+            <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 4 }}>
+              This row is that course. To staff a different one, edit its own row.
+            </span>
+          </span>
+        </Row>
+
+        <Row cols="1fr">
+          <PeoplePicker
+            label="Tutors"
+            options={options}
+            value={chosen}
+            onChange={setChosen}
+            placeholder="Nobody assigned"
+            emptyHint="A course with no tutor does not appear in anyone's portal."
+          />
+        </Row>
+
+        <Row cols="1fr">{sel("Status", status, STATUS, setStatus, true)}</Row>
+
+        <Actions valid why="" onSave={save} onClose={onClose} />
+      </div>
+    </Modal>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+const IC4 = {
+  bin: "M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12ZM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4Z",
+  tick: "M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z",
+};
+
+/** A subject and the Drive folder its in-person materials live in. */
+export function SubjectDriveModal({
+  map,
+  subjects,
+  onClose,
+  onSave,
+}: {
+  /** Absent when mapping a new folder. */
+  map?: DriveMap;
+  subjects: string[];
+  onClose: () => void;
+  onSave: (id: string, patch: Record<string, unknown>) => void;
+}) {
+  const [label, setLabel] = useState(map?.label ?? "");
+  const [folder, setFolder] = useState(map?.folder ?? "");
+  const [status, setStatus] = useState(map ? (map.active ? "Active" : "Inactive") : "Active");
+
+  const valid = label.trim().length > 0 && folder.trim().length > 0;
+  const save = () => valid && onSave(map?.id ?? "sd-" + Date.now().toString(36), { label, folder: folder.trim(), active: status === "Active" });
+
+  return (
+    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(660px, calc(100vw - 32px))", maxHeight: "min(88vh, 620px)", overflowY: "auto" }}>
+      <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
+        <Head
+          title={map ? "Edit subject Drive map" : "Map a folder to a subject"}
+          sub="Where a subject's in-person materials live, so tutors see the right files."
+          onClose={onClose}
+        />
+        <Row>
+          <span>
+            <Label required>Subject</Label>
+            <select value={label} onChange={(e) => setLabel(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} aria-label="Subject">
+              <option value="">Choose a subject</option>
+              {[...new Set([...(label ? [label] : []), ...subjects])].map((x) => (
+                <option key={x} value={x}>{x}</option>
+              ))}
+            </select>
+          </span>
+          <span>
+            <Label required>Drive folder link</Label>
+            <input value={folder} onChange={(e) => setFolder(e.target.value)} placeholder="https://drive.google.com/drive/folders/..." aria-label="Drive folder link" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} />
           </span>
         </Row>
         <Row cols="1fr">{sel("Status", status, STATUS, setStatus)}</Row>
-        <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 8, lineHeight: 1.5 }}>
-          How many courses sit in a category follows from the courses themselves, so it is not set here.
-        </div>
-        <Actions valid={valid} why="A category needs a name." onSave={save} onClose={onClose} />
+        <Actions valid={valid} why="Pick a subject and paste its folder link." onSave={save} onClose={onClose} label={map ? "Save changes" : "Map the folder"} />
+      </div>
+    </Modal>
+  );
+}
+
+/**
+ * A booklet folder and the tutors it is shared with.
+ *
+ * The per-tutor "allow all students" flag is the part that matters: it decides
+ * whether a tutor may hand the whole folder to a class or only individual files
+ * from it, and it is set per person, so it belongs in a row per person rather
+ * than as one switch on the folder.
+ */
+export function BookletDriveModal({
+  map,
+  tutors,
+  onClose,
+  onSave,
+}: {
+  /** Absent when mapping a new folder. */
+  map?: BookletDriveMap;
+  tutors: { name: string; email: string; initials: string; colour?: string }[];
+  onClose: () => void;
+  onSave: (id: string, patch: Record<string, unknown>) => void;
+}) {
+  const [folder, setFolder] = useState(map?.folder ?? "");
+  const [status, setStatus] = useState(map ? (map.active ? "Active" : "Inactive") : "Active");
+  const [rows, setRows] = useState<BookletDriveMap["tutors"]>(map?.tutors ?? []);
+
+  const chosen = rows.map((r) => r.name);
+  const options: PickerOption[] = tutors.map((t) => ({ id: t.name, label: t.name, meta: t.email, initials: t.initials, colour: t.colour }));
+
+  // Picking in the chip field and the rows below are the same list, so adding a
+  // tutor gives them a row and removing one takes their permission with it.
+  const setChosen = (next: string[]) =>
+    setRows((prev) =>
+      next.map((name) => prev.find((r) => r.name === name) ?? { name, email: tutors.find((t) => t.name === name)?.email ?? "", allowAllStudents: true })
+    );
+
+  const valid = folder.trim().length > 0 && rows.length > 0;
+  const save = () => valid && onSave(map?.id ?? "bd-" + Date.now().toString(36), { folder: folder.trim(), tutors: rows, active: status === "Active" });
+
+  return (
+    <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(720px, calc(100vw - 32px))", maxHeight: "min(90vh, 860px)", overflowY: "auto" }}>
+      <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
+        <Head
+          title={map ? "Edit booklet Drive map" : "Map a booklet folder"}
+          sub="A Drive folder of booklets, and who may take from it."
+          onClose={onClose}
+        />
+        <Row>
+          <span>
+            <Label required>Drive link</Label>
+            <input value={folder} onChange={(e) => setFolder(e.target.value)} placeholder="https://drive.google.com/drive/folders/..." aria-label="Drive link" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} autoFocus />
+          </span>
+          {sel("Status", status, STATUS, setStatus)}
+        </Row>
+
+        <Row cols="1fr">
+          <PeoplePicker
+            label="Tutors"
+            required
+            options={options}
+            value={chosen}
+            onChange={setChosen}
+            placeholder="Choose who may take booklets from this folder"
+            emptyHint="A folder shared with nobody is not shared."
+          />
+        </Row>
+
+        {rows.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 800, fontFamily: "var(--font-display)", marginBottom: 8 }}>What each of them may do</div>
+            <div style={{ border: "1px solid rgba(0,32,63,.08)", borderRadius: 14, background: "rgba(255,255,255,.66)", padding: "6px 14px 10px" }}>
+              {rows.map((r) => (
+                <div key={r.name} style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 0", borderTop: "1px solid rgba(0,32,63,.06)" }}>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: "block", fontSize: 12.5, fontWeight: 700 }}>{r.name}</span>
+                    <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.email}</span>
+                  </span>
+                  <label style={{ display: "inline-flex", alignItems: "center", gap: 8, flex: "none", cursor: "pointer", fontSize: 11.5, color: "var(--fg3)" }}>
+                    <button
+                      type="button"
+                      role="checkbox"
+                      aria-checked={r.allowAllStudents}
+                      aria-label={"Let " + r.name + " give this folder to all their students"}
+                      onClick={() => setRows((v) => v.map((x) => (x.name === r.name ? { ...x, allowAllStudents: !x.allowAllStudents } : x)))}
+                      className="press"
+                      style={{ width: 22, height: 22, borderRadius: 6, flex: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", border: r.allowAllStudents ? "none" : "1.5px solid rgba(0,32,63,.18)", background: r.allowAllStudents ? "var(--brand-500)" : "transparent", color: "#fff" }}
+                    >
+                      {r.allowAllStudents && <Icon path={IC4.tick} size={13} />}
+                    </button>
+                    <span className="ev-only-desktop">All their students</span>
+                  </label>
+                  <button
+                    onClick={() => setRows((v) => v.filter((x) => x.name !== r.name))}
+                    aria-label={"Remove " + r.name}
+                    className="btn-ghost press"
+                    style={{ width: 32, height: 32, borderRadius: 9, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, color: "var(--danger-500)", flex: "none" }}
+                  >
+                    <Icon path={IC4.bin} size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 7, lineHeight: 1.5 }}>
+              Ticked, a tutor can give the whole folder to a class. Unticked, they hand out single booklets from it.
+            </div>
+          </div>
+        )}
+
+        <Actions valid={valid} why="Paste the folder link and share it with at least one tutor." onSave={save} onClose={onClose} label={map ? "Save changes" : "Map the folder"} />
       </div>
     </Modal>
   );

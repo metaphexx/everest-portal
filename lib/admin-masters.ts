@@ -105,16 +105,18 @@ export const TERMS: Term[] = [
 export interface CourseCategory {
   id: string;
   name: string;
+  /** What belongs in it, so the catalogue groups mean something to a parent. */
+  description: string;
   courses: number;
   active: boolean;
 }
 
 export const COURSE_CATEGORIES: CourseCategory[] = [
-  { id: "cc1", name: "GATE and ASET preparation", courses: 4, active: true },
-  { id: "cc2", name: "Lower school (Years 7 to 9)", courses: 6, active: true },
-  { id: "cc3", name: "Upper school (Years 10 to 12)", courses: 5, active: true },
-  { id: "cc4", name: "Holiday intensives", courses: 3, active: true },
-  { id: "cc5", name: "Recorded courses", courses: 2, active: false },
+  { id: "cc1", name: "GATE and ASET preparation", description: "Selective entry and scholarship preparation for Years 4 to 7.", courses: 4, active: true },
+  { id: "cc2", name: "Lower school (Years 7 to 9)", description: "Core subjects for Years 7 to 9, taught weekly at a centre or online.", courses: 6, active: true },
+  { id: "cc3", name: "Upper school (Years 10 to 12)", description: "ATAR and pre-ATAR courses for Years 10 to 12.", courses: 5, active: true },
+  { id: "cc4", name: "Holiday intensives", description: "Short intensive courses that run through the school holidays.", courses: 3, active: true },
+  { id: "cc5", name: "Recorded courses", description: "Self-paced courses a student works through on their own.", courses: 2, active: false },
 ];
 
 export interface CourseRow {
@@ -159,27 +161,64 @@ export interface DriveMap {
   id: string;
   label: string;
   folder: string;
-  owner: string;
+  active: boolean;
+}
+
+/**
+ * A booklet folder is shared with PEOPLE, not with a subject: the office points
+ * a Drive folder at the tutors who may take booklets from it, and says for each
+ * whether they can pass the whole folder to their students or only hand out
+ * individual files.
+ */
+export interface BookletDriveMap {
+  id: string;
+  folder: string;
+  tutors: { name: string; email: string; allowAllStudents: boolean }[];
   active: boolean;
 }
 
 const DRIVE = "https://drive.google.com/drive/folders/";
 
 export const SUBJECT_DRIVE: DriveMap[] = [
-  { id: "sd1", label: "Year 11 Chemistry", folder: DRIVE + "1LfSj1G63g3IwiFtKD1xZQZWrm3eZBbQQ", owner: "Everest office", active: true },
-  { id: "sd2", label: "Year 9 Science", folder: DRIVE + "19KwNmGuI9_Tu2-2qL5b1uZRYVQVbAalc", owner: "Everest office", active: true },
-  { id: "sd3", label: "Year 8 English", folder: DRIVE + "12pAiUPKD-Z0vNn1gRAUNMuA65coYwTf0", owner: "Everest office", active: true },
-  { id: "sd4", label: "Year 8 Science", folder: DRIVE + "1Y4phIAmaGpZ7TbKzc_Z04-MC55skJ5GE", owner: "Everest office", active: true },
-  { id: "sd5", label: "Year 9 Mathematics", folder: DRIVE + "1c9Wq2sLp0zTn4RvB7mYh6XdEa8FgHjKl", owner: "Everest office", active: true },
-  { id: "sd6", label: "Year 7 English", folder: DRIVE + "1QpR3tYuI5oP7aS9dF2gH4jK6lZ8xC0vB", owner: "Everest office", active: false },
+  { id: "sd1", label: "Year 11 Chemistry", folder: DRIVE + "1LfSj1G63g3IwiFtKD1xZQZWrm3eZBbQQ", active: true },
+  { id: "sd2", label: "Year 9 Science", folder: DRIVE + "19KwNmGuI9_Tu2-2qL5b1uZRYVQVbAalc", active: true },
+  { id: "sd3", label: "Year 8 English", folder: DRIVE + "12pAiUPKD-Z0vNn1gRAUNMuA65coYwTf0", active: true },
+  { id: "sd4", label: "Year 8 Science", folder: DRIVE + "1Y4phIAmaGpZ7TbKzc_Z04-MC55skJ5GE", active: true },
+  { id: "sd5", label: "Year 9 Mathematics", folder: DRIVE + "1c9Wq2sLp0zTn4RvB7mYh6XdEa8FgHjKl", active: true },
+  { id: "sd6", label: "Year 7 English", folder: DRIVE + "1QpR3tYuI5oP7aS9dF2gH4jK6lZ8xC0vB", active: false },
 ];
 
-export const BOOKLET_DRIVE: DriveMap[] = [
-  { id: "bd1", label: "Organic pathways booklet.pdf", folder: DRIVE + "1LfSj1G63g3IwiFtKD1xZQZWrm3eZBbQQ", owner: "Year 11 Chemistry", active: true },
-  { id: "bd2", label: "Equilibrium practice set.pdf", folder: DRIVE + "1LfSj1G63g3IwiFtKD1xZQZWrm3eZBbQQ", owner: "Year 11 Chemistry", active: true },
-  { id: "bd3", label: "Forces and motion problem set.pdf", folder: DRIVE + "19KwNmGuI9_Tu2-2qL5b1uZRYVQVbAalc", owner: "Year 9 Science", active: true },
-  { id: "bd4", label: "Ecosystems practical workbook.pdf", folder: DRIVE + "19KwNmGuI9_Tu2-2qL5b1uZRYVQVbAalc", owner: "Year 9 Science", active: true },
-  { id: "bd5", label: "Algebra consolidation pack.pdf", folder: DRIVE + "1c9Wq2sLp0zTn4RvB7mYh6XdEa8FgHjKl", owner: "Year 9 Mathematics", active: true },
+export const BOOKLET_DRIVE: BookletDriveMap[] = [
+  {
+    id: "bd1",
+    folder: DRIVE + "1LfSj1G63g3IwiFtKD1xZQZWrm3eZBbQQ",
+    tutors: [
+      { name: "Priya Rao", email: "p.rao@everesttutoring.com.au", allowAllStudents: true },
+      { name: "Grace Lin", email: "g.lin@everesttutoring.com.au", allowAllStudents: true },
+    ],
+    active: true,
+  },
+  {
+    id: "bd2",
+    folder: DRIVE + "19KwNmGuI9_Tu2-2qL5b1uZRYVQVbAalc",
+    tutors: [
+      { name: "Priya Rao", email: "p.rao@everesttutoring.com.au", allowAllStudents: true },
+      { name: "Tobi Okafor", email: "t.okafor@everesttutoring.com.au", allowAllStudents: false },
+    ],
+    active: true,
+  },
+  {
+    id: "bd3",
+    folder: DRIVE + "1c9Wq2sLp0zTn4RvB7mYh6XdEa8FgHjKl",
+    tutors: [{ name: "David Chen", email: "d.chen@everesttutoring.com.au", allowAllStudents: true }],
+    active: true,
+  },
+  {
+    id: "bd4",
+    folder: DRIVE + "1QpR3tYuI5oP7aS9dF2gH4jK6lZ8xC0vB",
+    tutors: [],
+    active: false,
+  },
 ];
 
 export interface DriveDataMap {

@@ -14,6 +14,7 @@ import { useRouter, useSearchParams } from "@/lib/router";
 import { useAdmin } from "@/lib/admin-store";
 import { Column, MasterTable, PILL } from "@/components/admin/MasterTable";
 import {
+  BookletDriveMap,
   BOOKLET_DRIVE,
   Centre,
   CentrePrinter,
@@ -24,7 +25,9 @@ import {
   COURSES,
   CourseCategory,
   COURSE_CATEGORIES,
+  CourseTutorMap,
   COURSE_TUTORS,
+  DriveMap,
   DRIVE_DATA,
   Printer,
   PRINTERS_M,
@@ -41,7 +44,10 @@ import {
   EditCentreModal,
   EditCentrePrinterModal,
   EditClassSelectionModal,
-  EditCourseCategoryModal,
+  BookletDriveModal,
+  CourseCategoryModal,
+  SubjectDriveModal,
+  EditCourseTutorModal,
   EditTermModal,
   EditYearGroupModal,
   SubjectModal,
@@ -79,7 +85,7 @@ const TABS = [
   { id: "courses", label: "Courses", group: "Teaching" },
   { id: "categories", label: "Course categories", group: "Teaching" },
   { id: "course-tutors", label: "Course tutors", group: "Teaching" },
-  { id: "subject-drive", label: "Subject Drive map", group: "Drive" },
+  { id: "subject-drive", label: "(In person) Subject Drive map", group: "Drive" },
   { id: "booklet-drive", label: "Booklet Drive map", group: "Drive" },
   { id: "drive-data", label: "Drive access", group: "Drive" },
 ];
@@ -94,7 +100,10 @@ type EditTarget =
   | { kind: "term"; row: Term }
   | { kind: "year-group"; row: YearGroup }
   | { kind: "subject"; row: SubjectRow }
-  | { kind: "category"; row: CourseCategory };
+  | { kind: "category"; row: CourseCategory }
+  | { kind: "course-tutor"; row: CourseTutorMap }
+  | { kind: "subject-drive"; row: DriveMap }
+  | { kind: "booklet-drive"; row: BookletDriveMap };
 
 export default function AdminMasters() {
   const params = useSearchParams();
@@ -102,7 +111,9 @@ export default function AdminMasters() {
   const { notWired, masterPatches, patchMaster, masterAdds, addMaster } = useAdmin();
   const tab = params.get("tab") ?? "centres";
   const [editing, setEditing] = useState<EditTarget | null>(null);
-  const [adding, setAdding] = useState<"subject" | null>(null);
+  const [adding, setAdding] = useState<"subject" | "category" | "subject-drive" | "booklet-drive" | null>(null);
+  /** Tutors as the Drive panels need them: a name, an address and initials. */
+  const driveTutors = STAFF.map((t) => ({ name: t.name, email: t.email, initials: t.initials, colour: t.colour }));
 
   /** Office edits sit over the seeded master records wherever they are read. */
   const patched = <T extends { id: string }>(rows: T[]): T[] => rows.map((r) => ({ ...r, ...(masterPatches[r.id] as Partial<T>) }));
@@ -346,18 +357,19 @@ export default function AdminMasters() {
       }
       case "categories": {
         const cols: Column<(typeof COURSE_CATEGORIES)[number]>[] = [
-          { key: "n", label: "Category", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
+          { key: "n", label: "Category", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name, width: 240 },
+          { key: "d", label: "Description", render: (r) => r.description, text: (r) => r.description, width: 360 },
           { key: "c", label: "Courses in it", render: (r) => r.courses, text: (r) => String(r.courses) },
         ];
         return (
           <MasterTable
-            rows={patched(COURSE_CATEGORIES)}
+            rows={[...patched(COURSE_CATEGORIES), ...((masterAdds.categories ?? []) as unknown as CourseCategory[])]}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
             searchHint="Search categories"
             addLabel="Add a category"
-            onAdd={() => add("category")}
+            onAdd={() => setAdding("category")}
             onEdit={(r) => setEditing({ kind: "category", row: r })}
             onDelete={() => del("category")}
             emptyTitle="No categories yet"
@@ -372,39 +384,77 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={COURSE_TUTORS}
+            rows={patched(COURSE_TUTORS)}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
+            numbered
             searchHint="Search by course or tutor"
-            onEdit={() => edit("mapping")}
+            onEdit={(r) => setEditing({ kind: "course-tutor", row: r })}
             onExport={exp}
             emptyTitle="Nothing assigned"
             emptyBody="Assign a tutor to a course so the course appears in their portal."
           />
         );
       }
-      case "subject-drive":
-      case "booklet-drive": {
-        const rows = tab === "subject-drive" ? SUBJECT_DRIVE : BOOKLET_DRIVE;
-        const cols: Column<(typeof rows)[number]>[] = [
-          { key: "l", label: tab === "subject-drive" ? "Subject" : "Booklet", render: (r) => <strong style={{ fontWeight: 700 }}>{r.label}</strong>, text: (r) => r.label },
-          { key: "o", label: tab === "subject-drive" ? "Owner" : "Subject", render: (r) => r.owner, text: (r) => r.owner },
-          { key: "f", label: "Drive folder", render: (r) => <DriveLink url={r.folder} />, text: (r) => r.folder, width: 200 },
+      case "subject-drive": {
+        const cols: Column<(typeof SUBJECT_DRIVE)[number]>[] = [
+          { key: "l", label: "Subject", render: (r) => <strong style={{ fontWeight: 700 }}>{r.label}</strong>, text: (r) => r.label, width: 220 },
+          { key: "f", label: "Drive link", render: (r) => <DriveLink url={r.folder} />, text: (r) => r.folder, width: 240 },
         ];
         return (
           <MasterTable
-            rows={rows}
+            rows={[...patched(SUBJECT_DRIVE), ...((masterAdds["subject-drive"] ?? []) as unknown as DriveMap[])]}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
-            searchHint="Search by name or folder"
+            numbered
+            searchHint="Search by subject or folder"
             addLabel="Map a folder"
-            onAdd={() => add("mapping")}
-            onEdit={() => edit("mapping")}
+            onAdd={() => setAdding("subject-drive")}
+            onEdit={(r) => setEditing({ kind: "subject-drive", row: r })}
             onDelete={() => del("mapping")}
             emptyTitle="Nothing mapped"
-            emptyBody="Point each subject at the Drive folder its booklets live in, so tutors see the right files."
+            emptyBody="Point each subject at the Drive folder its materials live in, so tutors see the right files."
+          />
+        );
+      }
+      case "booklet-drive": {
+        const cols: Column<(typeof BOOKLET_DRIVE)[number]>[] = [
+          { key: "f", label: "Drive link", render: (r) => <DriveLink url={r.folder} />, text: (r) => r.folder, width: 260 },
+          {
+            key: "t",
+            label: "Tutors",
+            render: (r) =>
+              r.tutors.length === 0 ? (
+                <span style={{ color: "var(--warn-700)" }}>Shared with nobody</span>
+              ) : (
+                <span style={{ display: "inline-flex", gap: 6, flexWrap: "nowrap" }}>
+                  {r.tutors.map((t) => (
+                    <span key={t.name} style={{ fontSize: 11, fontWeight: 700, color: "var(--brand-700)", background: "rgba(0,157,255,.1)", padding: "3px 9px", borderRadius: 980, flex: "none" }}>
+                      {t.name}
+                    </span>
+                  ))}
+                </span>
+              ),
+            text: (r) => r.tutors.map((t) => t.name).join(" "),
+            width: 340,
+          },
+        ];
+        return (
+          <MasterTable
+            rows={[...patched(BOOKLET_DRIVE), ...((masterAdds["booklet-drive"] ?? []) as unknown as BookletDriveMap[])]}
+            columns={cols}
+            idOf={(r) => r.id}
+            statusOf={onOff}
+            numbered
+            searchHint="Search by folder or tutor"
+            addLabel="Map a folder"
+            onAdd={() => setAdding("booklet-drive")}
+            onEdit={(r) => setEditing({ kind: "booklet-drive", row: r })}
+            onDelete={() => del("mapping")}
+            emptyTitle="Nothing mapped"
+            emptyBody="Point a Drive folder of booklets at the tutors who may take from it."
           />
         );
       }
@@ -519,7 +569,45 @@ export default function AdminMasters() {
       )}
       {editing?.kind === "term" && <EditTermModal term={editing.row} onClose={() => setEditing(null)} onSave={save("Term")} />}
       {editing?.kind === "year-group" && <EditYearGroupModal group={editing.row} onClose={() => setEditing(null)} onSave={save("Year group")} />}
-      {editing?.kind === "category" && <EditCourseCategoryModal category={editing.row} onClose={() => setEditing(null)} onSave={save("Category")} />}
+      {editing?.kind === "category" && <CourseCategoryModal category={editing.row} onClose={() => setEditing(null)} onSave={save("Category")} />}
+      {adding === "category" && (
+        <CourseCategoryModal
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("categories", { id, ...patch }, "Category");
+            setAdding(null);
+          }}
+        />
+      )}
+      {editing?.kind === "subject-drive" && (
+        <SubjectDriveModal map={editing.row} subjects={SUBJECTS.map((x) => x.name)} onClose={() => setEditing(null)} onSave={save("Drive map")} />
+      )}
+      {adding === "subject-drive" && (
+        <SubjectDriveModal
+          subjects={SUBJECTS.map((x) => x.name)}
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("subject-drive", { id, ...patch }, "Drive map");
+            setAdding(null);
+          }}
+        />
+      )}
+      {editing?.kind === "booklet-drive" && (
+        <BookletDriveModal map={editing.row} tutors={driveTutors} onClose={() => setEditing(null)} onSave={save("Drive map")} />
+      )}
+      {adding === "booklet-drive" && (
+        <BookletDriveModal
+          tutors={driveTutors}
+          onClose={() => setAdding(null)}
+          onSave={(id, patch) => {
+            addMaster("booklet-drive", { id, ...patch }, "Drive map");
+            setAdding(null);
+          }}
+        />
+      )}
+      {editing?.kind === "course-tutor" && (
+        <EditCourseTutorModal mapping={editing.row} tutors={STAFF.map((t) => t.name)} onClose={() => setEditing(null)} onSave={save("Course tutors")} />
+      )}
       {editing?.kind === "subject" && <SubjectModal subject={editing.row} onClose={() => setEditing(null)} onSave={save("Subject")} />}
       {adding === "subject" && (
         <SubjectModal
