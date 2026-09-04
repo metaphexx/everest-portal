@@ -309,6 +309,7 @@ export default function AdminMasters() {
             onAdd={() => setAdding("year-group")}
             onEdit={(r) => setEditing({ kind: "year-group", row: r })}
             onDelete={(r) => deleteMaster("year-groups", r.id, "Year group")}
+            exportName="year-groups"
             emptyTitle="No year groups"
             emptyBody="A year group is what a subject and a class both hang off, so set these up first."
           />
@@ -333,6 +334,7 @@ export default function AdminMasters() {
             onAdd={() => setAdding("subject")}
             onEdit={(r) => setEditing({ kind: "subject", row: r })}
             onDelete={(r) => deleteMaster("subjects", r.id, "Subject")}
+            exportName="subjects"
             emptyTitle="No subjects defined"
             emptyBody="A subject is the unit a class, a booklet and a curriculum outline all point at."
           />
@@ -356,6 +358,7 @@ export default function AdminMasters() {
             onAdd={() => setAdding("term")}
             onEdit={(r) => setEditing({ kind: "term", row: r })}
             onDelete={(r) => deleteMaster("terms", r.id, "Term")}
+            exportName="terms"
             emptyTitle="No terms set up"
             emptyBody="Terms drive the timetable and the booklet tracker, so add the current one first."
           />
@@ -403,6 +406,7 @@ export default function AdminMasters() {
             onAdd={() => setAdding("category")}
             onEdit={(r) => setEditing({ kind: "category", row: r })}
             onDelete={(r) => deleteMaster("categories", r.id, "Category")}
+            exportName="course-categories"
             emptyTitle="No categories yet"
             emptyBody="Categories group courses on the enrolment pages."
           />
@@ -449,6 +453,7 @@ export default function AdminMasters() {
             onAdd={() => setAdding("subject-drive")}
             onEdit={(r) => setEditing({ kind: "subject-drive", row: r })}
             onDelete={(r) => deleteMaster("subject-drive", r.id, "Drive map")}
+            exportName="subject-drive-map"
             emptyTitle="Nothing mapped"
             emptyBody="Point each subject at the Drive folder its materials live in. In-person requests print from it, and online tutors send from it."
           />
@@ -489,6 +494,7 @@ export default function AdminMasters() {
             onAdd={() => setAdding("booklet-drive")}
             onEdit={(r) => setEditing({ kind: "booklet-drive", row: r })}
             onDelete={(r) => deleteMaster("booklet-drive", r.id, "Drive map")}
+            exportName="booklet-drive-map"
             emptyTitle="Nothing mapped"
             emptyBody="Share a folder of extra booklets with online tutors, beyond what their subject already gives them."
           />

@@ -51,6 +51,8 @@ export interface ClassFormValues {
   students: string[];
   link: string;
   notes: string;
+  /** Seats the class holds. The office decides this, not the delivery mode. */
+  capacity: number;
   /** Present only when "This runs as a block" is ticked - one row per subject. */
   slots?: { subject: string; start: string; end: string; tutor: string }[];
 }
@@ -148,6 +150,7 @@ export function ClassFormModal({
   const [weeks, setWeeks] = useState(initial?.weeks ?? 8);
   const [link, setLink] = useState(initial?.link ?? "");
   const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [capacity, setCapacity] = useState(initial?.capacity ?? 12);
   // A course with more than one subject can run as a block: one room, one link,
   // consecutive slots each with its own subject, tutor and roster. Rolling a
   // block over to next term arrives here pre-filled, so the office reviews the
@@ -241,6 +244,7 @@ export function ClassFormModal({
     if (!valid) return;
     onSubmit({
       title: title.trim(),
+      capacity,
       course,
       subject,
       day,
@@ -471,6 +475,25 @@ export function ClassFormModal({
             )}
           </div>
         )}
+
+        <Row>
+          <span>
+            <Label>Seats</Label>
+            <input
+              type="number"
+              min={1}
+              max={40}
+              value={capacity}
+              onChange={(e) => setCapacity(Math.max(1, Number(e.target.value)))}
+              aria-label="Seats"
+              className="field"
+              style={{ width: "100%", height: 44, boxSizing: "border-box" }}
+            />
+            <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 5 }}>
+              What the room or the call can take. The roll is measured against it.
+            </span>
+          </span>
+        </Row>
 
         <Row cols="1fr">
           <span>

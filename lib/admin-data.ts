@@ -149,6 +149,15 @@ export interface AdminClass {
  * tutor portal renders, so the office and the tutor can never disagree about
  * them; everyone else's come from STAFF.extraClasses.
  */
+/**
+ * Seats a class holds unless the office has set its own. Online is capped by
+ * what a tutor can actually keep track of on a call; a room is capped by the
+ * room. Both are only a starting point - the cap is editable per class.
+ */
+export function defaultCapacity(delivery: DeliveryMode): number {
+  return delivery === "online" ? 12 : 16;
+}
+
 export function allClasses(): AdminClass[] {
   const out: AdminClass[] = [];
   for (const s of STAFF) {
@@ -165,7 +174,7 @@ export function allClasses(): AdminClass[] {
         tutorName: s.name,
         colour: c.color,
         students: c.students.length,
-        capacity: c.delivery === "online" ? 12 : 16,
+        capacity: defaultCapacity(c.delivery),
       });
     }
     (s.extraClasses ?? []).forEach((e, i) => {
@@ -180,7 +189,7 @@ export function allClasses(): AdminClass[] {
         tutorName: s.name,
         colour: s.colour,
         students: e.students,
-        capacity: e.delivery === "online" ? 12 : 16,
+        capacity: defaultCapacity(e.delivery),
       });
     });
   }

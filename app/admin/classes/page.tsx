@@ -12,7 +12,7 @@ import { useRole } from "@/lib/admin-role";
 import { Modal } from "@/components/ui/Modal";
 import { ClassFormModal, WEEKDAYS, to24, toDisplay } from "@/components/admin/ClassFormModal";
 import { Icon } from "@/components/ui/Icon";
-import { AdminClass, CENTRES, allClasses, allStudents } from "@/lib/admin-data";
+import { AdminClass, CENTRES, allClasses, allStudents, defaultCapacity } from "@/lib/admin-data";
 import { DELIVERY_META } from "@/lib/tutor-data";
 import { TERMS } from "@/lib/admin-masters";
 import { centreStyle } from "@/lib/admin-schedule";
@@ -134,7 +134,7 @@ export default function AdminClasses() {
         tutorName: s.tutor,
         colour: "var(--brand-600)",
         students: s.students,
-        capacity: s.delivery === "online" ? 12 : 16,
+        capacity: defaultCapacity(s.delivery),
       });
     }
     return [...seeded, ...[...byClass.values()].map((c) => ({ ...c, ...classPatches[c.id] }))];
@@ -190,7 +190,9 @@ export default function AdminClasses() {
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 16 }}>
       <div className="glass-card" style={{ gridColumn: "span 12", padding: "16px 18px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
         <div className="ev-wrap-row" style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by class, tutor or year" aria-label="Search classes" className="field ev-wrap-main" style={{ flex: "1 0 auto", minWidth: 0, height: 44, boxSizing: "border-box" }} />
+          {/* The search must be allowed to SHRINK, or it holds its full width
+              and pushes the button out through the side of the card. */}
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by class, tutor or year" aria-label="Search classes" className="field ev-wrap-main" style={{ flex: "1 1 auto", minWidth: 0, height: 44, boxSizing: "border-box" }} />
           {canEdit && (
             <button onClick={() => setBuildingBlock(true)} className="btn-primary press ev-tap-h ev-wrap-cta" style={{ height: 44, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, flex: "none" }}>
               New core block
@@ -339,6 +341,7 @@ export default function AdminClasses() {
             tutors: editing.tutorName.split(",").map((t) => t.trim()).filter(Boolean),
             students: classPatches[editing.id]?.studentNames ?? rollNames(editing),
             link: classPatches[editing.id]?.link ?? "",
+            capacity: editing.capacity,
           }}
           onClose={() => setEditing(null)}
           onSubmit={(v) =>
@@ -348,6 +351,7 @@ export default function AdminClasses() {
               tutorName: v.tutors.join(", "),
               studentNames: v.students,
               students: v.students.length,
+              capacity: v.capacity,
               link: v.link || undefined,
             })
           }
