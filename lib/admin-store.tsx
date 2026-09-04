@@ -88,8 +88,9 @@ interface AdminApi extends AdminState {
   notWired: (label: string) => void;
   /** Queue counts, so the sidebar and the dashboard cannot disagree. */
   pendingCount: number;
-  toPrintCount: number;
   setApproval: (id: string, approval: ApprovalStatus, note?: string) => void;
+  /** Approves a whole day's requests in one write. */
+  approveAll: (ids: string[]) => void;
   setPrinting: (id: string, printing: PrintingStatus) => void;
   /** Corrects the printer or the print format a tutor chose, before approving. */
   updateRequest: (id: string, patch: { printer?: string; format?: PrintFormat }) => void;
@@ -199,14 +200,39 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const setApproval = useCallback(
     (id: string, approval: ApprovalStatus, note?: string) => {
-      const next = state.requests.map((r) => (r.id === id ? { ...r, approval, note: note ?? r.note } : r));
+      // Approving IS printing. The office approves a job at the printer it is
+      // about to run it on, so a second "yes, it really did print" step was a
+      // queue that only ever held things nobody had ticked twice.
+      const next = state.requests.map((r) =>
+        r.id === id ? { ...r, approval, note: note ?? r.note, printing: approval === "approved" ? ("completed" as const) : r.printing } : r
+      );
       writeRequests(next);
       const r = state.requests.find((x) => x.id === id);
       showToast(
         approval === "approved"
-          ? (r ? r.ref : "Request") + " approved and sent to printing"
+          ? (r ? r.ref : "Request") + " approved and printed"
           : (r ? r.ref : "Request") + " rejected. The tutor sees your reason."
       );
+    },
+    [state.requests, writeRequests, showToast]
+  );
+
+  /**
+   * Approves several at once, in ONE write.
+   *
+   * Not a loop over setApproval: that closes over the request list as it was
+   * when the handler was made, so five calls each rewrite the same snapshot
+   * and all but one of the decisions is lost. Approving a day's booklets is a
+   * single action, so it is a single write.
+   */
+  const approveAll = useCallback(
+    (ids: string[]) => {
+      if (ids.length === 0) return;
+      const set = new Set(ids);
+      writeRequests(
+        state.requests.map((r) => (set.has(r.id) ? { ...r, approval: "approved" as const, printing: "completed" as const } : r))
+      );
+      showToast(ids.length + " request" + (ids.length === 1 ? "" : "s") + " approved and printed");
     },
     [state.requests, writeRequests, showToast]
   );
@@ -214,7 +240,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const setPrinting = useCallback(
     (id: string, printing: PrintingStatus) => {
       writeRequests(state.requests.map((r) => (r.id === id ? { ...r, printing } : r)));
-      showToast(printing === "completed" ? "Marked as printed" : printing === "failed" ? "Marked as failed. The tutor is told." : "Moved back to the print queue");
+      showToast("Sent to the printer again");
     },
     [state.requests, writeRequests, showToast]
   );
@@ -479,10 +505,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   // needed approval and must not sit in the office's queue.
   const printJobs = useMemo(() => state.requests.filter((r) => (r.delivery ?? "print") === "print"), [state.requests]);
   const pendingCount = useMemo(() => printJobs.filter((r) => r.approval === "pending").length, [printJobs]);
-  const toPrintCount = useMemo(
-    () => printJobs.filter((r) => r.approval === "approved" && r.printing === "not_started").length,
-    [printJobs]
-  );
+
 
   // Live assignments become file-ledger rows, so anything a tutor sends during
   // the demo appears in the office's oversight list within the second.
@@ -583,8 +606,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     showToast,
     notWired,
     pendingCount,
-    toPrintCount,
     setApproval,
+    approveAll,
     setPrinting,
     updateRequest,
     scheduled,

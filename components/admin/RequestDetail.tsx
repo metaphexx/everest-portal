@@ -252,31 +252,13 @@ export function RequestDetail({
         {(readOnly || r.approval !== "pending") && (
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap", alignItems: "center" }}>
             <span style={{ fontSize: 11.5, color: "var(--fg4)", flex: 1, minWidth: 0 }}>
-              {r.approval === "approved"
-                ? r.printing === "completed"
-                  ? "Printed. It is in Print History."
-                  : r.printing === "failed"
-                    ? "Failed at the printer. The tutor has been told."
-                    : "Approved and in the print queue."
-                : r.approval === "rejected"
-                  ? "Rejected. The tutor has been told."
-                  : ""}
+              {r.approval === "approved" ? "Printed. It is in Print History." : r.approval === "rejected" ? "The tutor has been told." : ""}
             </span>
-            {/* The printing step, once approved. Marking a job printed is what
-                moves it into Print History. */}
-            {!readOnly && onPrint && r.approval === "approved" && r.printing === "not_started" && (
-              <>
-                <button onClick={() => onPrint(r.id, "completed")} className="btn-primary press ev-tap-h" style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 700 }}>
-                  Mark as printed
-                </button>
-                <button onClick={() => onPrint(r.id, "failed")} className="btn-ghost press ev-tap-h" style={{ height: 42, padding: "0 16px", borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: "var(--danger-500)" }}>
-                  Print failed
-                </button>
-              </>
-            )}
-            {!readOnly && onPrint && r.approval === "approved" && r.printing === "failed" && (
-              <button onClick={() => onPrint(r.id, "not_started")} className="btn-soft press ev-tap-h" style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 700 }}>
-                Back to the print queue
+            {/* Approving printed it, so the only print action left is running
+                the same job again. */}
+            {!readOnly && onPrint && r.approval === "approved" && (
+              <button onClick={() => onPrint(r.id, "completed")} className="btn-soft press ev-tap-h" style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 700 }}>
+                Reprint
               </button>
             )}
             <button onClick={onClose} className="btn-ghost press ev-tap-h" style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: "var(--fg2)" }}>

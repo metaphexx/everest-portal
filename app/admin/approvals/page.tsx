@@ -17,7 +17,7 @@ import { useAdmin } from "@/lib/admin-store";
 import { useRole } from "@/lib/admin-role";
 import { Icon } from "@/components/ui/Icon";
 import { APPROVAL_META, BOOKLET_META, BookletRequest, DEFAULT_FORMAT, bookletStatusFromRequest, centreOfPrinter, isCustomRequest, requestTutor } from "@/lib/tutor-data";
-import { allSessions, centreStyle, needsRequest } from "@/lib/admin-schedule";
+import { OFFICE_NOW, allSessions, centreStyle, needsRequest } from "@/lib/admin-schedule";
 import { DayList, MonthCalendar } from "@/components/admin/MonthCalendar";
 import { RequestDetail } from "@/components/admin/RequestDetail";
 import { Column, MasterTable } from "@/components/admin/MasterTable";
@@ -42,14 +42,16 @@ const FILTERS: { id: Filter; label: string; colour: string }[] = [
 ];
 
 export default function AdminApprovals() {
-  const { requests, setApproval, setPrinting, updateRequest, scheduled, notWired } = useAdmin();
+  const { requests, setApproval, approveAll, setPrinting, updateRequest, scheduled, notWired } = useAdmin();
   const isPrint = useRole() === "print";
   // The Admin role approves AND prints, so its queue opens on everything
   // actionable rather than on the pending slice alone.
   const [filter, setFilter] = useState<Filter>(isPrint ? "all" : "pending");
   const [centre, setCentre] = useState("All");
   const [view, setView] = useState<"cards" | "table">("cards");
-  const [day, setDay] = useState<string | null>(null);
+  // Opens on today. The office works a day at a time, and landing on every
+  // request Everest has ever raised means filtering before you can start.
+  const [day, setDay] = useState<string | null>(OFFICE_NOW.k);
   const [open, setOpen] = useState<BookletRequest | null>(null);
 
   const sessions = useMemo(() => allSessions(scheduled, requests), [scheduled, requests]);
@@ -72,6 +74,9 @@ export default function AdminApprovals() {
       }),
     [jobs, filter, centre, day, sessions]
   );
+
+  /** Everything on screen that is still waiting on a decision. */
+  const approvable = useMemo(() => shown.filter((r) => r.approval === "pending"), [shown]);
 
   const count = (f: Filter) => (f === "all" ? jobs.length : jobs.filter((r) => r.approval === f).length);
   const total = jobs.length || 1;
@@ -198,6 +203,18 @@ export default function AdminApprovals() {
               Clear {new Date(day + "T12:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
             </button>
           )}
+          {/* A day's booklets are usually approved in one sitting, at the
+              printer, in one go. Doing that one card at a time is the same
+              decision taken six times. */}
+          {approvable.length > 1 && (
+            <button
+              onClick={() => approveAll(approvable.map((r) => r.id))}
+              className="btn-primary press ev-tap-h"
+              style={{ height: 42, padding: "0 16px", borderRadius: 11, fontSize: 12, fontWeight: 700 }}
+            >
+              Approve all {approvable.length}
+            </button>
+          )}
         </span>
         <span className="ev-wrap-cta glass-control" style={{ display: "flex", gap: 2, padding: 4, borderRadius: 12, height: 42, boxSizing: "border-box", flex: "none" }}>
           {([
@@ -313,7 +330,7 @@ export default function AdminApprovals() {
                 {r.remark && <div style={{ fontSize: 11.5, color: "var(--fg3)", marginTop: 9, fontStyle: "italic", lineHeight: 1.5 }}>&ldquo;{r.remark}&rdquo;</div>}
 
                 {/* The next action for this job, whichever stage it is at: a
-                    decision while pending, then the printing itself. */}
+                    decision while pending, and reopening it after. */}
                 <div style={{ display: "flex", gap: 8, marginTop: "auto", paddingTop: 14, flexWrap: "wrap" }}>
                   {r.approval === "pending" ? (
                     <>
@@ -324,22 +341,13 @@ export default function AdminApprovals() {
                         Open and edit
                       </button>
                     </>
-                  ) : r.approval === "approved" && r.printing === "not_started" ? (
+                  ) : r.approval === "approved" ? (
                     <>
-                      <button onClick={() => setPrinting(r.id, "completed")} className="btn-primary press ev-tap-h" style={{ height: 38, padding: "0 16px", borderRadius: 11, fontSize: 12, fontWeight: 700 }}>
-                        Mark as printed
-                      </button>
-                      <button onClick={() => setOpen(r)} className="btn-ghost press ev-tap-h" style={{ height: 38, padding: "0 14px", borderRadius: 11, fontSize: 12, fontWeight: 600, color: "var(--fg2)" }}>
+                      <button onClick={() => setOpen(r)} className="btn-soft press ev-tap-h" style={{ height: 38, padding: "0 16px", borderRadius: 11, fontSize: 12, fontWeight: 700 }}>
                         Open
                       </button>
-                    </>
-                  ) : r.approval === "approved" && r.printing === "failed" ? (
-                    <>
-                      <button onClick={() => setPrinting(r.id, "not_started")} className="btn-soft press ev-tap-h" style={{ height: 38, padding: "0 16px", borderRadius: 11, fontSize: 12, fontWeight: 700 }}>
-                        Back to the print queue
-                      </button>
-                      <button onClick={() => setOpen(r)} className="btn-ghost press ev-tap-h" style={{ height: 38, padding: "0 14px", borderRadius: 11, fontSize: 12, fontWeight: 600, color: "var(--fg2)" }}>
-                        Open
+                      <button onClick={() => setPrinting(r.id, "completed")} className="btn-ghost press ev-tap-h" style={{ height: 38, padding: "0 14px", borderRadius: 11, fontSize: 12, fontWeight: 600, color: "var(--fg2)" }}>
+                        Reprint
                       </button>
                     </>
                   ) : (

@@ -71,14 +71,13 @@ export function AdminSidebar() {
   const role = useRole();
   const base = useBase();
   const meta = ROLE_META[role];
-  const { pendingCount, toPrintCount } = useAdmin();
+  const { pendingCount } = useAdmin();
   const openFlags = SAFEGUARDING.filter((f) => f.status === "open").length;
   const isPrint = role === "print";
 
   const MAIN: NavItem[] = [{ href: base, label: "Dashboard", icon: ICON.grid }];
-  // The Admin role both approves and prints, so its badge counts both jobs.
   const QUEUES: NavItem[] = [
-    { href: base + "/approvals", label: "Booklet Requests", icon: ICON.clipboard, badge: isPrint ? pendingCount + toPrintCount : pendingCount },
+    { href: base + "/approvals", label: "Booklet Requests", icon: ICON.clipboard, badge: pendingCount },
     { href: base + "/history", label: "Print History", icon: ICON.play },
   ];
   const RECORDS: NavItem[] = isPrint

@@ -9,9 +9,9 @@
 // carry the same numbers and can be read across a room.
 //
 // Two roles read this page. The Manager gets all of it. The Admin (print) role
-// gets the parts that end at a printer - what is running, what is upcoming,
-// what is to print - and none of the oversight: no safeguarding, no staff or
-// student counts, no stock planning.
+// gets the parts that end at a printer - what is running and what is upcoming -
+// and none of the oversight: no safeguarding, no staff or student counts, no
+// stock planning.
 
 import React, { useMemo, useState } from "react";
 import Link from "@/components/ui/Link";
@@ -45,7 +45,7 @@ function Bar({ label, n, max, colour, note }: { label: string; n: number; max: n
 }
 
 export default function AdminDashboard() {
-  const { requests, pendingCount, toPrintCount, setApproval, setPrinting, updateRequest, scheduled } = useAdmin();
+  const { requests, pendingCount, setApproval, updateRequest, scheduled } = useAdmin();
   const role = useRole();
   const base = useBase();
   const isManager = role === "office";
@@ -59,8 +59,6 @@ export default function AdminDashboard() {
 
   const printJobs = requests.filter((r) => (r.delivery ?? "print") === "print");
   const pending = printJobs.filter((r) => r.approval === "pending");
-  const toPrint = printJobs.filter((r) => r.approval === "approved" && r.printing === "not_started");
-  const failed = printJobs.filter((r) => r.approval === "approved" && r.printing === "failed");
   const printed = printJobs.filter((r) => r.printing === "completed");
 
   // What is in a room (or on a call) at the demo clock, and what starts next.
@@ -80,8 +78,8 @@ export default function AdminDashboard() {
     : [
         { label: "CLASSES", value: classes.length, sub: "across all centres and online", color: "var(--fg1)" },
         { label: "TO APPROVE", value: pendingCount, sub: "requests from tutors", color: pendingCount ? "var(--warn-700)" : "var(--fg1)" },
-        { label: "TO PRINT", value: toPrintCount, sub: failed.length ? failed.length + " failed at the printer" : "approved, not yet printed", color: toPrintCount ? "var(--brand-600)" : "var(--fg1)" },
-        { label: "PRINTED", value: printed.length, sub: "jobs this term", color: "var(--fg1)" },
+        { label: "PRINTED", value: printed.length, sub: "approved and printed", color: "var(--fg1)" },
+        { label: "REJECTED", value: printJobs.filter((r) => r.approval === "rejected").length, sub: "sent back to the tutor", color: "var(--fg1)" },
       ];
 
   // Copies requested per subject, biggest first. Derived from the live requests,
@@ -96,9 +94,7 @@ export default function AdminDashboard() {
   // the counts are both readable.
   const pipeline = [
     { label: "Waiting on approval", n: printJobs.filter((r) => r.approval === "pending").length, colour: "var(--warn-500)" },
-    { label: "Approved, not printed", n: toPrintCount, colour: "var(--brand-500)" },
-    { label: "Printed", n: printJobs.filter((r) => r.printing === "completed").length, colour: "var(--success-500)" },
-    { label: "Failed at the printer", n: printJobs.filter((r) => r.printing === "failed").length, colour: "var(--danger-500)" },
+    { label: "Printed", n: printed.length, colour: "var(--success-500)" },
     { label: "Rejected", n: printJobs.filter((r) => r.approval === "rejected").length, colour: "var(--fg5-decorative)" },
   ];
   const total = pipeline.reduce((n, p) => n + p.n, 0);
@@ -168,47 +164,8 @@ export default function AdminDashboard() {
         </div>
       ))}
 
-      {/* ---- TO PRINT ---- the print desk's actual work list */}
-      <div className="glass-card" style={{ gridColumn: "span 7", alignSelf: "start", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .22s backwards" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
-          <h2 className="portal-section-title" style={{ fontSize: 15, margin: 0 }}>To print</h2>
-          <span className="ev-spacer-flex" style={{ flex: 1 }} />
-          <Link href={base + "/history"} style={{ fontSize: 12, fontWeight: 700, color: "var(--accent-teal)", textDecoration: "none" }} className="ev-tap-link">
-            Open print history
-          </Link>
-        </div>
-        {toPrint.length === 0 && <div style={{ padding: "20px 4px", textAlign: "center", fontSize: 12.5, color: "var(--fg4)" }}>Nothing to print.</div>}
-        {toPrint.map((r) => {
-          const cs = centreStyle(r.printer.startsWith("Harrisdale") ? "Harrisdale SHS" : r.printer.startsWith("Piara") ? "Piara Waters" : "Head office");
-          return (
-            <div key={r.id} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 0", borderTop: "1px solid rgba(0,32,63,.07)" }}>
-              <span style={{ flex: "none", width: 4, alignSelf: "stretch", borderRadius: 2, background: cs.colour }} />
-              <span className="ev-wrap-main" style={{ flex: "1 0 auto", minWidth: 0 }}>
-                <span style={{ display: "block", fontSize: 12.5, fontWeight: 700 }}>{r.classText}</span>
-                <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 3 }}>
-                  {r.items.reduce((n, i) => n + i.qty, 0)} copies · {r.printer} · for {r.date}
-                </span>
-              </span>
-              <span className="ev-wrap-cta" style={{ display: "flex", gap: 8, flex: "none" }}>
-                <button onClick={() => setOpen(r)} className="btn-ghost press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
-                  Open
-                </button>
-                <button onClick={() => setPrinting(r.id, "completed")} className="btn-primary press ev-tap-h" style={{ height: 34, padding: "0 14px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
-                  Mark as printed
-                </button>
-              </span>
-            </div>
-          );
-        })}
-        {failed.length > 0 && (
-          <div style={{ marginTop: 10, borderRadius: 10, background: "rgba(224,65,65,.07)", padding: "9px 12px", fontSize: 11.5, color: "var(--danger-500)", lineHeight: 1.5 }}>
-            {failed.length} job{failed.length === 1 ? "" : "s"} failed at the printer: {failed.map((r) => r.classText).join(", ")}. Open Booklet Requests to send {failed.length === 1 ? "it" : "them"} back to the queue.
-          </div>
-        )}
-      </div>
-
       {/* ---- RUNNING NOW ---- what is in a room or on a call at this minute */}
-      <div className="glass-card" style={{ gridColumn: "span 5", alignSelf: "start", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .25s backwards" }}>
+      <div className="glass-card" style={{ gridColumn: "span 7", alignSelf: "start", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .25s backwards" }}>
         <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 4px" }}>Running now</h2>
         <p style={{ margin: "0 0 10px", fontSize: 11.5, color: "var(--fg3)" }}></p>
         {live.length === 0 && <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "8px 0" }}>No class is running right now.</div>}
@@ -305,10 +262,6 @@ export default function AdminDashboard() {
         }}
         onReject={(id, reason) => {
           setApproval(id, "rejected", reason);
-          setOpen(null);
-        }}
-        onPrint={(id, printing) => {
-          setPrinting(id, printing);
           setOpen(null);
         }}
         onUpdate={updateRequest}

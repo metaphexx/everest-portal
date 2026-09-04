@@ -65,10 +65,12 @@ export const BOOKLET_META: Record<BookletStatus, { label: string; color: string;
  * "requested". Returns null when the request carries no usable state.
  */
 export function bookletStatusFromRequest(req: BookletRequest): BookletStatus {
-  if (req.printing === "completed") return "print_completed";
-  if (req.printing === "failed") return "print_failed";
+  // Approved means printed. The two used to be separate states with a queue
+  // between them, so a row seeded as approved-but-not-printed still exists -
+  // it reads as printed here rather than stranding in a queue that is gone.
   if (req.approval === "rejected") return "rejected";
-  if (req.approval === "approved") return "approved";
+  if (req.approval === "approved") return "print_completed";
+  if (req.printing === "completed") return "print_completed";
   return "requested";
 }
 

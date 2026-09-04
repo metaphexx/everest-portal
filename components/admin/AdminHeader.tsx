@@ -17,19 +17,14 @@ const IC = {
   out: "M17 7l-1.4 1.4L18.2 11H8v2h10.2l-2.6 2.6L17 17l5-5-5-5ZM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5Z",
 };
 
-function pageMeta(pathname: string, pending: number, toPrint: number, isPrint: boolean): { t: string; s: string } {
+function pageMeta(pathname: string, pending: number, isPrint: boolean): { t: string; s: string } {
   if (pathname === "/admin" || pathname === "/staff")
     return {
       t: "Dashboard",
-      s:
-        pending === 0 && toPrint === 0
-          ? "Nothing is waiting on you right now."
-          : [pending ? pending + " request" + (pending === 1 ? "" : "s") + " to approve" : "", toPrint ? toPrint + " job" + (toPrint === 1 ? "" : "s") + " to print" : ""]
-              .filter(Boolean)
-              .join(" and ") + ".",
+      s: pending === 0 ? "Nothing is waiting on you right now." : pending + " request" + (pending === 1 ? "" : "s") + " to approve.",
     };
   if (pathname.includes("/approvals"))
-    return { t: "Booklet Requests", s: isPrint ? "Approve what tutors have asked for, then mark each job printed or failed." : "Print requests from tutors, by centre, with the day they are for." };
+    return { t: "Booklet Requests", s: isPrint ? "Approve what tutors have asked for. Approving prints it." : "Print requests from tutors, by centre, with the day they are for." };
 
   if (pathname.includes("/classes")) return { t: "Classes", s: "Every class Everest runs, across all centres and online." };
   if (pathname.includes("/masters")) return { t: "Master Records", s: "Centres, printers, people, terms, subjects, courses and Drive folders." };
@@ -48,13 +43,13 @@ function pageMeta(pathname: string, pending: number, toPrint: number, isPrint: b
 export function AdminHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const { requests, pendingCount, toPrintCount, notWired } = useAdmin();
+  const { requests, pendingCount, notWired } = useAdmin();
   const role = useRole();
   const base = useBase();
   const who = ROLE_META[role];
   const [q, setQ] = useState("");
 
-  const meta = pageMeta(pathname, pendingCount, toPrintCount, role === "print");
+  const meta = pageMeta(pathname, pendingCount, role === "print");
   const dateLabel = new Date("2026-07-02T19:00:00").toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   const ql = useDebouncedValue(q.trim().toLowerCase(), 200);
