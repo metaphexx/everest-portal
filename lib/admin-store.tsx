@@ -16,6 +16,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { patchTutorState, readClassroomState, readMessagingState, readPortalState, readTutorState, writeSharedStore } from "./live-sync";
 import {
   ApprovalStatus,
+  AttendanceStatus,
   BookletRequest,
   MaterialAssignment,
   PrintFormat,
@@ -24,6 +25,7 @@ import {
   TUTOR,
   TUTOR_COURSES,
   SEED_ASSIGNMENTS,
+  seedAttendance,
   seedRequests,
   seedSubmissions,
 } from "./tutor-data";
@@ -75,6 +77,8 @@ interface AdminState {
   requests: BookletRequest[];
   assignments: MaterialAssignment[];
   submissions: Submission[];
+  /** "<sessionId>:<yyyy-mm-dd>" -> student name -> status, as the tutor marked it. */
+  attendance: Record<string, Record<string, AttendanceStatus>>;
   /** Rejection reasons and print notes the office has typed this session. */
   hydrated: boolean;
 }
@@ -134,6 +138,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     requests: seedRequests(),
     assignments: [],
     submissions: [],
+    attendance: {},
     hydrated: false,
   });
   const toastTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -156,6 +161,10 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         requests: [...(t && Array.isArray(t.requests) ? t.requests : seedRequests()), ...readOfficeRequests()],
         assignments: t && Array.isArray(t.assignments) ? t.assignments : SEED_ASSIGNMENTS,
         submissions: t && Array.isArray(t.submissions) ? t.submissions : seedSubmissions(),
+        // The marks the tutor actually took. The office never read these, so
+        // the only attendance it could show was a percentage with nothing
+        // behind it.
+        attendance: t && t.attendance ? t.attendance : seedAttendance(),
       }));
       setShared({ classroom: readClassroomState(), messaging: readMessagingState() });
     };

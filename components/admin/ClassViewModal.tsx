@@ -19,7 +19,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
 import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
 import { AdminSession, centreStyle } from "@/lib/admin-schedule";
-import { allStudents } from "@/lib/admin-data";
+import { AdminStudent, allStudents } from "@/lib/admin-data";
 import {
   BOOKLET_META,
   BookletRequest,
@@ -88,6 +88,8 @@ export function ClassViewModal({
   assignments,
   onClose,
   onEdit,
+  onOpenStudent,
+  pctFor,
 }: {
   session: AdminSession;
   /** The print request against this class, if one has been raised. */
@@ -95,6 +97,10 @@ export function ClassViewModal({
   assignments: MaterialAssignment[];
   onClose: () => void;
   onEdit: () => void;
+  /** Opens the student's full record. Omitted where there is nothing to open into. */
+  onOpenStudent?: (s: AdminStudent) => void;
+  /** The attendance figure derived from the student's own history. */
+  pctFor?: (name: string) => number;
 }) {
   const [tab, setTab] = useState<"library" | "participations">("library");
   const [kind, setKind] = useState<"all" | MaterialKind>("all");
@@ -324,11 +330,18 @@ export function ClassViewModal({
                   <span style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(14,156,142,.14)", color: "var(--accent-teal)", fontSize: 11.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
                     {st.initials}
                   </span>
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: "block", fontSize: 12.5, fontWeight: 700 }}>{st.name}</span>
+                  <button
+                    onClick={() => onOpenStudent?.(st)}
+                    disabled={!onOpenStudent}
+                    className="press"
+                    style={{ flex: 1, minWidth: 0, textAlign: "left", border: "none", background: "none", padding: 0, font: "inherit", cursor: onOpenStudent ? "pointer" : "default" }}
+                  >
+                    <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: onOpenStudent ? "var(--brand-600)" : "var(--fg1)" }}>{st.name}</span>
                     <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 2 }}>{st.year}</span>
+                  </button>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: (pctFor ? pctFor(st.name) : st.attendance) < 80 ? "var(--warn-700)" : "var(--fg3)", flex: "none" }}>
+                    {pctFor ? pctFor(st.name) : st.attendance}%
                   </span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: st.attendance < 80 ? "var(--warn-700)" : "var(--fg3)", flex: "none" }}>{st.attendance}%</span>
                 </div>
               ))}
             </div>

@@ -14,7 +14,10 @@ import { ClassFormModal, ClassFormValues, WEEKDAYS, to24, toDisplay } from "@/co
 import { ClassViewModal } from "@/components/admin/ClassViewModal";
 import { AdminSession, allSessions, applySessionPatches, centreStyle, needsRequest } from "@/lib/admin-schedule";
 import { BOOKLET_META } from "@/lib/tutor-data";
-import { addBlock } from "@/lib/block";
+import { addBlock, slotsFor } from "@/lib/block";
+import { AdminStudent, allClasses, allStudents } from "@/lib/admin-data";
+import { ExpectedSession, attendanceHistory, summarise } from "@/lib/attendance-history";
+import { StudentDetailModal } from "@/components/admin/StudentDetailModal";
 import { TERMS } from "@/lib/admin-masters";
 
 const IC = {
@@ -22,12 +25,13 @@ const IC = {
 };
 
 export default function AdminSchedule() {
-  const { scheduled, addScheduledClass, requests, assignments, sessionPatches, patchSession } = useAdmin();
+  const { scheduled, addScheduledClass, requests, assignments, sessionPatches, patchSession, attendance } = useAdmin();
   const router = useRouter();
   const [day, setDay] = useState<string | null>("2026-07-02");
   const [adding, setAdding] = useState(false);
   const [viewing, setViewing] = useState<AdminSession | null>(null);
   const [editing, setEditing] = useState<AdminSession | null>(null);
+  const [viewingStudent, setViewingStudent] = useState<AdminStudent | null>(null);
 
   const sessions = useMemo(
     () => applySessionPatches(allSessions(scheduled, requests), sessionPatches),
@@ -50,6 +54,29 @@ export default function AdminSchedule() {
     router.push("/admin/masters?tab=class-selection");
   };
   const upcoming = useMemo(() => sessions.filter((s) => s.k >= "2026-07-02").slice(0, 24), [sessions]);
+
+  /**
+   * A student's attendance, from the sessions they were expected at. Shown
+   * beside their name here and broken down when the name is opened, so the
+   * figure and the list behind it are the same calculation.
+   */
+  const historyFor = (st: AdminStudent) => {
+    const inClass = allClasses().filter((c) => st.classNames.includes(c.name));
+    const ids = new Set(inClass.map((c) => c.id));
+    const expected: ExpectedSession[] = [];
+    for (const sess of sessions) {
+      if (!ids.has(sess.courseId) || sess.k > "2026-07-02") continue;
+      const cls = inClass.find((c) => c.id === sess.courseId)!;
+      const slots = slotsFor(sess.courseId).filter((sl) => sl.students.some((x) => x.name === st.name));
+      if (slots.length > 0) for (const sl of slots) expected.push({ date: sess.k, className: cls.name, subject: sl.subject, key: sl.id + ":" + sess.k });
+      else expected.push({ date: sess.k, className: cls.name, key: sess.courseId + ":" + sess.k });
+    }
+    return attendanceHistory(st.name, st.attendance, expected, attendance);
+  };
+  const pctFor = (name: string) => {
+    const st = allStudents().find((x) => x.name === name);
+    return st ? summarise(historyFor(st)).pct : 100;
+  };
 
   return (
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 16 }}>
@@ -170,6 +197,10 @@ export default function AdminSchedule() {
         />
       )}
 
+      {viewingStudent && (
+        <StudentDetailModal student={viewingStudent} rows={historyFor(viewingStudent)} onClose={() => setViewingStudent(null)} />
+      )}
+
       {viewing && (
         <ClassViewModal
           session={viewing}
@@ -180,6 +211,8 @@ export default function AdminSchedule() {
           assignments={assignments.filter((a) => a.courseId === viewing.courseId)}
           onClose={() => setViewing(null)}
           onEdit={() => editSession(viewing)}
+          onOpenStudent={setViewingStudent}
+          pctFor={pctFor}
         />
       )}
 

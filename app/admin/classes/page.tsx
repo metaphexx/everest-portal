@@ -12,15 +12,17 @@ import { useRole } from "@/lib/admin-role";
 import { Modal } from "@/components/ui/Modal";
 import { ClassFormModal, WEEKDAYS, to24, toDisplay } from "@/components/admin/ClassFormModal";
 import { Icon } from "@/components/ui/Icon";
-import { AdminClass, CENTRES, allClasses, allStudents, defaultCapacity } from "@/lib/admin-data";
+import { AdminClass, AdminStudent, CENTRES, allClasses, allStudents, defaultCapacity } from "@/lib/admin-data";
 import { DELIVERY_META } from "@/lib/tutor-data";
 import { TERMS } from "@/lib/admin-masters";
-import { centreStyle } from "@/lib/admin-schedule";
+import { allSessions, centreStyle } from "@/lib/admin-schedule";
+import { ExpectedSession, attendanceHistory, summarise } from "@/lib/attendance-history";
+import { StudentDetailModal } from "@/components/admin/StudentDetailModal";
 import { BlockEnrolment } from "@/components/admin/BlockEnrolment";
 import { addBlock, blockMeta, isBlock, rollBlock, slotsFor } from "@/lib/block";
 import { NewBlockModal } from "@/components/admin/NewBlockModal";
 import { RollOverModal } from "@/components/admin/RollOverModal";
-import { addRelief, cancelRelief, displayDate, pendingCatchUps, recordLeavers, reliefFor, restoreLeaver, setCatchUpStatus } from "@/lib/class-changes";
+import { addRelief, cancelRelief, displayDate, leaversFor, pendingCatchUps, recordLeavers, reliefFor, restoreLeaver, setCatchUpStatus } from "@/lib/class-changes";
 import { ReliefModal } from "@/components/admin/ReliefModal";
 
 /** Terms a class can be started in: anything not already finished. */
@@ -37,7 +39,7 @@ export function rollNames(cls: AdminClass): string[] {
   return allStudents().filter((s) => s.classNames.includes(cls.name)).map((s) => s.name);
 }
 
-function Roll({ cls, names, onClose, onEdit }: { cls: AdminClass; names?: string[]; onClose: () => void; onEdit: () => void }) {
+function Roll({ cls, names, onClose, onEdit, onOpenStudent, pctFor }: { cls: AdminClass; names?: string[]; onClose: () => void; onEdit: () => void; onOpenStudent: (s: AdminStudent) => void; pctFor: (name: string) => number }) {
   // Once the office has picked the students, THAT is the roll - not whichever
   // records happen to name this class.
   const roll = useMemo(() => {
@@ -79,13 +81,20 @@ function Roll({ cls, names, onClose, onEdit }: { cls: AdminClass; names?: string
             <span style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(14,156,142,.14)", color: "var(--accent-teal)", fontSize: 11.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
               {s.initials}
             </span>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: "block", fontSize: 12.5, fontWeight: 700 }}>{s.name}</span>
+            <button
+              onClick={() => onOpenStudent(s)}
+              className="press"
+              style={{ flex: 1, minWidth: 0, textAlign: "left", border: "none", background: "none", padding: 0, font: "inherit", cursor: "pointer" }}
+            >
+              <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "var(--brand-600)" }}>{s.name}</span>
               <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 2 }}>
                 {s.parent} · {s.parentPhone}
               </span>
-            </span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: s.attendance < 80 ? "var(--warn-700)" : "var(--fg3)", flex: "none" }}>{s.attendance}%</span>
+            </button>
+            {/* The same figure the detail view breaks down, not a second one:
+                a roll saying 99% beside a list that adds up to 100% is a bug
+                the office would have to reconcile by hand. */}
+            <span style={{ fontSize: 12, fontWeight: 700, color: pctFor(s.name) < 80 ? "var(--warn-700)" : "var(--fg3)", flex: "none" }}>{pctFor(s.name)}%</span>
           </div>
         ))}
 
@@ -103,7 +112,7 @@ function Roll({ cls, names, onClose, onEdit }: { cls: AdminClass; names?: string
 }
 
 export default function AdminClasses() {
-  const { notWired, showToast, classPatches, patchClass, addScheduledClass, scheduled } = useAdmin();
+  const { notWired, showToast, classPatches, patchClass, addScheduledClass, scheduled, attendance, requests } = useAdmin();
   const router = useRouter();
   // The Admin (print) role reads this page for copy counts. The roll carries
   // parent phone numbers and Edit changes enrolments - neither is its job.
@@ -154,6 +163,7 @@ export default function AdminClasses() {
   // to review before confirming, not silently repeated.
   const [rollingOver, setRollingOver] = useState<AdminClass | null>(null);
   const [buildingBlock, setBuildingBlock] = useState(false);
+  const [viewingStudent, setViewingStudent] = useState<AdminStudent | null>(null);
   const [relieving, setRelieving] = useState<AdminClass | null>(null);
   // Bumped after a relief change so the cards re-read the shared store.
   const [reliefTick, setReliefTick] = useState(0);
@@ -187,6 +197,35 @@ export default function AdminClasses() {
   const termOf = (cls: AdminClass) => {
     const id = blockMeta(cls.id)?.termId ?? scheduled.find((s) => s.courseId === cls.id && s.termId)?.termId;
     return TERMS.find((t) => t.id === id) ?? null;
+  };
+
+  /**
+   * Every session a student was expected at, which is what their attendance is
+   * measured against. A block splits its hour three ways and marks each slot
+   * separately, so a block date becomes one row per subject the student takes.
+   */
+  const everySession = useMemo(() => allSessions(scheduled, requests), [scheduled, requests]);
+  const sessionsForStudent = (name: string): ExpectedSession[] => {
+    const inClass = classes.filter((c) => (classPatches[c.id]?.studentNames ?? rollNames(c)).includes(name));
+    const ids = new Set(inClass.map((c) => c.id));
+    const out: ExpectedSession[] = [];
+    for (const sess of everySession) {
+      if (!ids.has(sess.courseId) || sess.k > "2026-07-02") continue;
+      const cls = inClass.find((c) => c.id === sess.courseId)!;
+      const slots = slotsFor(sess.courseId).filter((sl) => sl.students.some((st) => st.name === name));
+      if (slots.length > 0) {
+        for (const sl of slots) out.push({ date: sess.k, className: cls.name, subject: sl.subject, key: sl.id + ":" + sess.k });
+      } else {
+        out.push({ date: sess.k, className: cls.name, key: sess.courseId + ":" + sess.k });
+      }
+    }
+    return out;
+  };
+
+  const historyFor = (st: AdminStudent) => attendanceHistory(st.name, st.attendance, sessionsForStudent(st.name), attendance);
+  const pctFor = (name: string) => {
+    const st = allStudents().find((x) => x.name === name);
+    return st ? summarise(historyFor(st)).pct : 100;
   };
 
   const centres = ["All", "Online", ...CENTRES];
@@ -440,6 +479,15 @@ export default function AdminClasses() {
         />
       )}
 
+      {viewingStudent && (
+        <StudentDetailModal
+          student={viewingStudent}
+          rows={historyFor(viewingStudent)}
+          left={roll ? leaversFor(roll.id).find((l) => l.name === viewingStudent.name) : undefined}
+          onClose={() => setViewingStudent(null)}
+        />
+      )}
+
       {relieving && (
         <ReliefModal
           cls={relieving}
@@ -498,6 +546,8 @@ export default function AdminClasses() {
           names={classPatches[roll.id]?.studentNames}
           onClose={() => setRoll(null)}
           onEdit={() => editClass(roll)}
+          onOpenStudent={setViewingStudent}
+          pctFor={pctFor}
         />
       )}
     </div>
