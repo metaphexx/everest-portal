@@ -121,6 +121,23 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* Classes running soon with nothing requested. This is the line that
+          stops a Tuesday class turning up to no booklets. */}
+      {gaps.length > 0 && (
+        <div className="glass-card ev-wrap-row" style={{ gridColumn: "span 12", padding: "14px 20px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 14, border: "1px solid rgba(245,166,35,.4)", background: "rgba(245,166,35,.07)", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .02s backwards" }}>
+          <span className="ev-wrap-main" style={{ flex: "1 0 auto", minWidth: 0, fontSize: 12.5, fontWeight: 700 }}>
+            {gaps.length} in-person class{gaps.length === 1 ? " has" : "es have"} no booklet request in the next fortnight
+            <span style={{ display: "block", fontSize: 11.5, fontWeight: 500, color: "var(--fg3)", marginTop: 2 }}>
+              {gaps.slice(0, 3).map((g) => g.className + " on " + new Date(g.k + "T12:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" })).join(", ")}
+              {gaps.length > 3 ? " and " + (gaps.length - 3) + " more" : ""}
+            </span>
+          </span>
+          <Link href={base + "/approvals"} className="btn-ghost press ev-tap-h ev-wrap-cta" style={{ height: 36, padding: "0 15px", borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", color: "var(--fg2)" }}>
+            Remind the tutors
+          </Link>
+        </div>
+      )}
+
       {/* ---- CALENDAR FIRST ---- */}
       <div className="glass-card" style={{ gridColumn: "span 7", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .04s backwards" }}>
         <MonthCalendar sessions={sessions} selected={day} onSelect={setDay} />
@@ -139,35 +156,9 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* Classes running soon with nothing requested. This is the line that
-          stops a Tuesday class turning up to no booklets. */}
-      {gaps.length > 0 && (
-        <div className="glass-card ev-wrap-row" style={{ gridColumn: "span 12", padding: "14px 20px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 14, border: "1px solid rgba(245,166,35,.4)", background: "rgba(245,166,35,.07)", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .1s backwards" }}>
-          <span className="ev-wrap-main" style={{ flex: "1 0 auto", minWidth: 0, fontSize: 12.5, fontWeight: 700 }}>
-            {gaps.length} in-person class{gaps.length === 1 ? " has" : "es have"} no booklet request in the next fortnight
-            <span style={{ display: "block", fontSize: 11.5, fontWeight: 500, color: "var(--fg3)", marginTop: 2 }}>
-              {gaps.slice(0, 3).map((g) => g.className + " on " + new Date(g.k + "T12:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" })).join(", ")}
-              {gaps.length > 3 ? " and " + (gaps.length - 3) + " more" : ""}
-            </span>
-          </span>
-          <Link href={base + "/approvals"} className="btn-ghost press ev-tap-h ev-wrap-cta" style={{ height: 36, padding: "0 15px", borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", color: "var(--fg2)" }}>
-            Remind the tutors
-          </Link>
-        </div>
-      )}
-
-      {stats.map((s, i) => (
-        <div key={s.label} className="glass-stat" style={{ gridColumn: "span 3", animation: `evrise .55s cubic-bezier(.16,1,.3,1) ${0.12 + i * 0.04}s backwards` }}>
-          <div className="glass-stat-label">{s.label}</div>
-          <div className="glass-stat-value" style={{ color: s.color }}>{s.value}</div>
-          <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 3 }}>{s.sub}</div>
-        </div>
-      ))}
-
       {/* ---- RUNNING NOW ---- what is in a room or on a call at this minute */}
-      <div className="glass-card" style={{ gridColumn: "span 7", alignSelf: "start", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .25s backwards" }}>
+      <div className="glass-card" style={{ gridColumn: "span 12", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .12s backwards" }}>
         <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 4px" }}>Running now</h2>
-        <p style={{ margin: "0 0 10px", fontSize: 11.5, color: "var(--fg3)" }}></p>
         {live.length === 0 && <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "8px 0" }}>No class is running right now.</div>}
         {live.map((s) => {
           const cs = centreStyle(s.centre);
@@ -187,6 +178,14 @@ export default function AdminDashboard() {
           {next ? "Next today: " + next.className + " at " + next.time + " · " + next.centre : "Nothing more today."}
         </div>
       </div>
+
+      {stats.map((s, i) => (
+        <div key={s.label} className="glass-stat" style={{ gridColumn: "span 3", animation: `evrise .55s cubic-bezier(.16,1,.3,1) ${0.16 + i * 0.04}s backwards` }}>
+          <div className="glass-stat-label">{s.label}</div>
+          <div className="glass-stat-value" style={{ color: s.color }}>{s.value}</div>
+          <div style={{ fontSize: 11.5, color: "var(--fg4)", marginTop: 3 }}>{s.sub}</div>
+        </div>
+      ))}
 
       {/* ---- WAITING ON APPROVAL ---- */}
       <div className="glass-card" style={{ gridColumn: "span 7", alignSelf: "start", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .28s backwards" }}>
