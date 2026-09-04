@@ -140,7 +140,7 @@ export default function LibraryPage() {
               <Icon path={ICON.library} size={30} style={{ color: "var(--fg5-decorative)", display: "block", margin: "0 auto" }} />
               <div style={{ fontSize: 13.5, fontWeight: 600, marginTop: 8, color: "var(--fg3)" }}>Nothing selected yet</div>
               <div style={{ fontSize: 12.5, marginTop: 3, lineHeight: 1.5, maxWidth: 300, marginInline: "auto" }}>
-                Pick a class, or a dotted day on the calendar, to browse its study materials, worksheets, booklets and recordings.
+                Pick a class or a day to see its materials.
               </div>
             </div>
           )}

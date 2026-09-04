@@ -42,7 +42,7 @@ export function MeetLinkField({ value, onChange, required = true }: { value: str
             Create a Google Meet link
           </button>
           <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 5, lineHeight: 1.45 }}>
-            The room is made now and stays with the class, so every week uses the same link.
+            The same link is used every week.
           </div>
         </>
       ) : (
@@ -51,7 +51,6 @@ export function MeetLinkField({ value, onChange, required = true }: { value: str
             <Icon path={IC.video} size={15} />
           </span>
           <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: 0.4, color: "var(--accent-teal)" }}>MEET ROOM READY</span>
             <span style={{ display: "block", fontSize: 12, color: "var(--fg2)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</span>
           </span>
           <button

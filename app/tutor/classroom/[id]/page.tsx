@@ -111,7 +111,7 @@ export default function ClassroomPage() {
           />
           {/* Roster */}
           <div className="glass-card" style={{ padding: "18px 20px" }}>
-            <h2 className="portal-section-title" style={{ fontSize: 14, marginBottom: 10 }}>Classmates</h2>
+            <h2 className="portal-section-title" style={{ fontSize: 14, marginBottom: 10 }}>Students</h2>
             {roster.map((s, i) => (
               <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0", borderBottom: i < roster.length - 1 ? "1px solid rgba(0,32,63,.05)" : "none" }}>
                 <span style={{ width: 28, height: 28, borderRadius: "50%", background: room.bg, color: room.color, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9.5, fontWeight: 700, flex: "none" }}>{s.init}</span>
@@ -119,7 +119,7 @@ export default function ClassroomPage() {
               </div>
             ))}
             <div style={{ fontSize: 10.5, color: "var(--fg4)", marginTop: 10, lineHeight: 1.5 }}>
-              Students see this stream in their own classroom - post announcements, share files and reply to questions here.
+              
             </div>
           </div>
         </div>

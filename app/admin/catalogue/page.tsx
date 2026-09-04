@@ -8,6 +8,7 @@ import React, { useMemo, useState } from "react";
 import Link from "@/components/ui/Link";
 import { useAdmin } from "@/lib/admin-store";
 import { Icon } from "@/components/ui/Icon";
+import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
 import { CAT_SUBJECTS, CATALOGUE, YEAR_GROUPS } from "@/lib/tutor-data";
 
 const IC = {
@@ -16,6 +17,7 @@ const IC = {
 
 export default function AdminCatalogue() {
   const { notWired } = useAdmin();
+  const [preview, setPreview] = useState<(typeof CATALOGUE)[number] | null>(null);
   const [q, setQ] = useState("");
   const [subject, setSubject] = useState("All");
   const [year, setYear] = useState("All");
@@ -96,7 +98,7 @@ export default function AdminCatalogue() {
             </span>
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-            <button onClick={() => notWired("Booklet preview")} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
+            <button onClick={() => setPreview(c)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
               Preview
             </button>
             <button onClick={() => notWired("Replace booklet")} className="btn-ghost press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
@@ -105,6 +107,15 @@ export default function AdminCatalogue() {
           </div>
         </div>
       ))}
+
+      <PdfPreviewModal
+        open={!!preview}
+        onClose={() => setPreview(null)}
+        fileName={preview?.name ?? ""}
+        meta={preview ? preview.year + " " + preview.subject + " · " + preview.topic + " · " + preview.pages + " pages" : ""}
+        pages={preview?.pages}
+        annotate={false}
+      />
     </div>
   );
 }

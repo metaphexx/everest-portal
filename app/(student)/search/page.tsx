@@ -51,7 +51,6 @@ function SearchInner() {
             autoFocus
             style={{ flex: 1, border: "none", background: "transparent", fontFamily: "inherit", fontSize: 15, color: "var(--fg1)", minWidth: 0 }}
           />
-          <span title="AI search: understands questions and everyday words" aria-hidden="true" style={{ fontSize: 9, fontWeight: 800, letterSpacing: 0.5, color: "var(--accent-violet)", background: "rgba(122,90,248,.12)", padding: "3px 7px", borderRadius: 980, flex: "none" }}>AI</span>
         </div>
         {q && (
           <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 12 }}>

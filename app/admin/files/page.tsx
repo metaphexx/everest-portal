@@ -12,6 +12,7 @@
 import React, { useState } from "react";
 import { useAdmin } from "@/lib/admin-store";
 import { Icon } from "@/components/ui/Icon";
+import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
 
 const IC = {
   eye: "M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z",
@@ -29,6 +30,7 @@ export default function AdminFiles() {
   const { sharedFiles, notWired, fileActions, recallFile } = useAdmin();
   const [q, setQ] = useState("");
   const [kind, setKind] = useState<string>("all");
+  const [preview, setPreview] = useState<(typeof sharedFiles)[number] | null>(null);
 
   const shown = sharedFiles.filter((f) => {
     if (kind === "own") {
@@ -59,10 +61,7 @@ export default function AdminFiles() {
       >
         <Icon path={IC.eye} size={17} style={{ color: "var(--brand-600)", flex: "none", marginTop: 2 }} />
         <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: "var(--fg2)", lineHeight: 1.6 }}>
-          <strong style={{ fontWeight: 700 }}>Tutors know you can see this.</strong> Every tutor is shown a notice on My Drive, in the classroom composer and
-          in message threads saying the office can see every file they upload, assign or share, along with who sent it and when.
-          On their own material, <strong style={{ fontWeight: 700 }}>Recall</strong> withdraws something that should not have gone out, and{" "}
-          <strong style={{ fontWeight: 700 }}>Block</strong> does the same for something that looks inappropriate.
+          <strong style={{ fontWeight: 700 }}>Tutors know you can see this.</strong> Every tutor is told the office can see every file they upload, assign or share.
         </span>
       </div>
 
@@ -141,7 +140,7 @@ export default function AdminFiles() {
                   </span>
                 ) : (
                   <>
-                    <button onClick={() => notWired("File preview")} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
+                    <button onClick={() => setPreview(f)} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
                       Preview
                     </button>
                     {f.source === "tutor" && (
@@ -165,6 +164,14 @@ export default function AdminFiles() {
           Everest folder.
         </div>
       </div>
+
+      <PdfPreviewModal
+        open={!!preview}
+        onClose={() => setPreview(null)}
+        fileName={preview?.file ?? ""}
+        meta={preview ? preview.from + " to " + preview.to + " · " + preview.context + " · " + preview.when : ""}
+        annotate={false}
+      />
     </div>
   );
 }

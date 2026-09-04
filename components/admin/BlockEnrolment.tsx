@@ -74,8 +74,7 @@ export function BlockEnrolment({ courseId, onClose }: { courseId: string; onClos
         </span>
       </div>
       <p style={{ margin: "0 0 14px", fontSize: 11.5, color: "var(--fg3)", lineHeight: 1.55 }}>
-        Tick a subject to enrol. A student can take one, two or all three - the block is just the room they share.
-        The column totals are the numbers a booklet request has to match.
+        Tick a subject to enrol. Column totals are what a booklet request has to match.
       </p>
 
       <div className="ev-scroll-x">

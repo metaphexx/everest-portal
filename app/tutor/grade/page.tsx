@@ -202,7 +202,7 @@ export default function GradePage() {
                   <textarea
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
-                    placeholder="Feedback for the student. What was strong, and the one thing to fix next."
+                    placeholder="Feedback for the student"
                     rows={3}
                     maxLength={400}
                     style={{ width: "100%", boxSizing: "border-box", borderRadius: 12, border: "1px solid rgba(0,32,63,.12)", background: "rgba(255,255,255,.85)", padding: "11px 13px", fontFamily: "inherit", fontSize: 13, color: "var(--fg1)", resize: "vertical" }}

@@ -306,7 +306,7 @@ export default function StudentOutlinesPage() {
       <div className="glass-card" style={{ padding: "16px 22px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 12, animation: "evrise .55s cubic-bezier(.16,1,.3,1) .3s backwards" }}>
         <Icon path={ICON.clipboard} size={18} style={{ color: "var(--fg4)", flexShrink: 0 }} />
         <span style={{ fontSize: 12.5, color: "var(--fg3)" }}>
-          Students upload outlines from their own portal under Assessment Tracker. New uploads are scanned automatically and appear here - open a submitted outline to preview the original file. Year 7-10 students are reminded until they submit.
+          Year 7-10 students are reminded until they submit.
         </span>
       </div>
 

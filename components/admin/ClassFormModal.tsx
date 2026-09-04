@@ -335,7 +335,7 @@ export function ClassFormModal({
               ))}
             </select>
             <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 4 }}>
-              {asBlock ? "A block carries a subject per slot, set below." : "The subjects this course covers."}
+              {asBlock ? "A block carries a subject per slot, set below." : ""}
             </span>
           </span>
         </Row>
@@ -396,7 +396,7 @@ export function ClassFormModal({
             value={tutors}
             onChange={setTutors}
             placeholder="Choose who takes this class"
-            emptyHint="Only tutors granted online duties are listed. More than one can take a class."
+            emptyHint="Only tutors granted online duties are listed."
           />
         </Row>
 
@@ -409,7 +409,7 @@ export function ClassFormModal({
             value={students}
             onChange={setStudents}
             placeholder="Add the students in this class"
-            emptyHint="Add them here and the roll, the class size and the seats left all follow from it."
+            emptyHint=""
           />
         </Row>
 

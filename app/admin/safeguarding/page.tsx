@@ -36,8 +36,7 @@ export default function AdminSafeguarding() {
         <Icon path={IC.shield} size={18} style={{ color: "var(--accent-teal)", flex: "none", marginTop: 2 }} />
         <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: "var(--fg2)", lineHeight: 1.65 }}>
           Messages are scanned for wellbeing concerns, off-platform contact details and payment requests. A flagged message is still
-          delivered to the tutor - a student who reaches out and hears nothing back is the worse outcome - and it is escalated here at
-          the same time. Nothing on this page closes itself.
+          delivered to the tutor, and escalated here at the same time.
         </span>
       </div>
 

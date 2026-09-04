@@ -199,7 +199,7 @@ export function AssessmentTable({
       </div>
       </div>
       <div style={{ fontSize: 11.5, color: "var(--fg4)", padding: "8px 10px 0" }}>
-        Tick assessments off as you sit them, and tap a weight or score to edit. Your tutor sees the same progress.
+        Tick assessments off as you sit them.
       </div>
     </div>
   );
@@ -209,7 +209,7 @@ export function AssessmentTable({
 export function UpcomingAssessments({ outline, limit = 4 }: { outline: Outline; limit?: number }) {
   const upcoming = outline.assessments.filter((a) => !a.done).slice(0, limit);
   if (upcoming.length === 0) {
-    return <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "6px 0" }}>Everything in this outline is done. Well earned break.</div>;
+    return <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "6px 0" }}>Nothing outstanding.</div>;
   }
   return (
     <div>

@@ -52,7 +52,7 @@ function Head({ title, sub, onClose }: { title: string; sub: string; onClose: ()
     <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
       <span style={{ flex: 1, minWidth: 0 }}>
         <span id="masteredit-title" style={{ display: "block", fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 800 }}>{title}</span>
-        <span style={{ display: "block", fontSize: 12, color: "var(--fg3)", marginTop: 3 }}>{sub}</span>
+        {sub && <span style={{ display: "block", fontSize: 12, color: "var(--fg3)", marginTop: 3 }}>{sub}</span>}
       </span>
       <button onClick={onClose} aria-label="Close" className="btn-ghost press" style={{ width: 34, height: 34, borderRadius: 10, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, color: "var(--fg3)", flex: "none" }}>
         <Icon path={IC.close} size={14} />
@@ -102,7 +102,8 @@ export function EditCentreModal({ centre, onClose, onSave }: { /** Absent when a
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(600px, calc(100vw - 32px))", maxHeight: "min(88vh, 720px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title={centre ? "Edit centre" : "Add a centre"} sub="Where classes run, and who the office writes to about them." onClose={onClose} />
+        <Head title={centre ? "Edit centre" : "Add a centre"}
+          sub="" onClose={onClose} />
         <Row>
           <span>
             <Label required>Centre name</Label>
@@ -158,7 +159,8 @@ export function EditPrinterModal({ printer, centres, onClose, onSave }: { /** Ab
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(780px, calc(100vw - 32px))", maxHeight: "min(90vh, 900px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title={printer ? "Edit printer" : "Add a printer"} sub="What it is, and what a job sent to it uses unless the request says otherwise." onClose={onClose} />
+        <Head title={printer ? "Edit printer" : "Add a printer"}
+          sub="" onClose={onClose} />
 
         <div className="ev-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginTop: 14 }}>
           <div style={{ minWidth: 0 }}>
@@ -168,7 +170,7 @@ export function EditPrinterModal({ printer, centres, onClose, onSave }: { /** Ab
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: "block", fontSize: 12.5, fontWeight: 800 }}>The printer</span>
-                <span style={{ display: "block", fontSize: 11, color: "var(--fg4)" }}>Identity and where it sits</span>
+                <span style={{ display: "block", fontSize: 11, color: "var(--fg4)" }}></span>
               </span>
             </div>
             <Row cols="1fr">
@@ -194,7 +196,7 @@ export function EditPrinterModal({ printer, centres, onClose, onSave }: { /** Ab
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: "block", fontSize: 12.5, fontWeight: 800 }}>Print defaults</span>
-                <span style={{ display: "block", fontSize: 11, color: "var(--fg4)" }}>What a job uses unless changed</span>
+                <span style={{ display: "block", fontSize: 11, color: "var(--fg4)" }}></span>
               </span>
             </div>
             <Row cols="1fr">{sel("Stapler fitted", stapler, ["Yes", "No"], setStapler)}</Row>
@@ -252,7 +254,8 @@ export function EditCentrePrinterModal({
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(680px, calc(100vw - 32px))", maxHeight: "min(90vh, 880px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title={mapping ? "Edit centre printers" : "Map a centre's printers"} sub="Which printers a centre can send to. Any tutor may send to any printer mapped here." onClose={onClose} />
+        <Head title={mapping ? "Edit centre printers" : "Map a centre's printers"}
+          sub="" onClose={onClose} />
 
         <Row>
           {sel("Centre", centre, centres, setCentre, true)}
@@ -366,7 +369,8 @@ export function EditTutorModal({ tutor, onClose, onSave }: { /** Absent when add
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(620px, calc(100vw - 32px))", maxHeight: "min(90vh, 820px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title={tutor ? "Edit tutor" : "Add a tutor"} sub="Their details and whether they can sign in." onClose={onClose} />
+        <Head title={tutor ? "Edit tutor" : "Add a tutor"}
+          sub="" onClose={onClose} />
         <Row>
           <span>
             <Label required>Name</Label>
@@ -449,7 +453,8 @@ export function EditStudentModal({
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(620px, calc(100vw - 32px))", maxHeight: "min(90vh, 900px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title={student ? "Edit student" : "Enrol a student"} sub="Their details and who the office rings about them." onClose={onClose} />
+        <Head title={student ? "Edit student" : "Enrol a student"}
+          sub="" onClose={onClose} />
         <Row>
           <span>
             <Label required>Student name</Label>
@@ -688,7 +693,8 @@ export function EditClassSelectionModal({
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(880px, calc(100vw - 32px))", maxHeight: "min(90vh, 900px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title={selection ? "Edit class selection" : "Add a class selection"} sub="Which subjects a tutor covers at a centre, and on which dates." onClose={onClose} />
+        <Head title={selection ? "Edit class selection" : "Add a class selection"}
+          sub="" onClose={onClose} />
 
         <div className="ev-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 16 }}>
           {/* ---- the form ---- */}
@@ -731,7 +737,7 @@ export function EditClassSelectionModal({
             <Row cols="1fr">
               <span>
                 <Label required>Session dates</Label>
-                <span style={{ fontSize: 11, color: "var(--fg4)", display: "block", marginBottom: 8 }}>Click every date this runs on - a term is usually several at once.</span>
+                <span style={{ fontSize: 11, color: "var(--fg4)", display: "block", marginBottom: 8 }}>Click every date this runs on.</span>
                 {/* Re-keyed per selection so loading one for editing re-opens the calendar on its own month. */}
                 <SessionCalendar key={editingAt ?? "new"} selected={dates} onToggle={toggleDate} />
                 {dates.length > 0 && (
@@ -849,7 +855,8 @@ export function EditTermModal({ term, onClose, onSave }: { /** Absent when addin
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(620px, calc(100vw - 32px))", maxHeight: "min(88vh, 760px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title={term ? "Edit term" : "Add a term"} sub="The dates everything else is planned against." onClose={onClose} />
+        <Head title={term ? "Edit term" : "Add a term"}
+          sub="" onClose={onClose} />
         <Row cols="1fr">
           <span>
             <Label required>Term name</Label>
@@ -925,7 +932,8 @@ export function EditYearGroupModal({
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(600px, calc(100vw - 32px))", maxHeight: "min(88vh, 760px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title={group ? "Edit year group" : "Add a year group"} sub="A cohort, the year level it sits at, and which subjects belong to it." onClose={onClose} />
+        <Head title={group ? "Edit year group" : "Add a year group"}
+          sub="" onClose={onClose} />
         <Row cols="1fr">
           <span>
             <Label required>Name</Label>
@@ -1015,7 +1023,7 @@ export function SubjectModal({
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
         <Head
           title={subject ? "Edit subject" : "Add a subject"}
-          sub="What it is called, the year it belongs to and the area it sits in."
+          sub=""
           onClose={onClose}
         />
         <Row cols="1fr">
@@ -1070,7 +1078,7 @@ export function CourseCategoryModal({
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
         <Head
           title={category ? "Edit course category" : "Add a course category"}
-          sub="How the catalogue is grouped for tutors and parents."
+          sub=""
           onClose={onClose}
         />
         <Row cols="1fr">
@@ -1095,7 +1103,7 @@ export function CourseCategoryModal({
         <Row cols="1fr">{sel("Status", status, STATUS, setStatus, true)}</Row>
         {category && (
           <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 8, lineHeight: 1.5 }}>
-            How many courses sit in a category follows from the courses themselves, so it is not set here.
+            
           </div>
         )}
         <Actions valid={valid} why="A category needs a name and a description." onSave={save} onClose={onClose} label={category ? "Save changes" : "Add category"} />
@@ -1148,7 +1156,8 @@ export function EditCourseModal({
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(680px, calc(100vw - 32px))", maxHeight: "min(90vh, 880px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title={course ? "Edit course" : "Add a course"} sub="What a student enrols in. Classes are the sessions that run it." onClose={onClose} />
+        <Head title={course ? "Edit course" : "Add a course"}
+          sub="" onClose={onClose} />
         <Row>
           <span>
             <Label required>Course name</Label>
@@ -1248,7 +1257,8 @@ export function EditCourseTutorModal({
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(600px, calc(100vw - 32px))", maxHeight: "min(88vh, 700px)", overflowY: "auto" }}>
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-        <Head title={mapping ? "Edit course tutors" : "Staff a course"} sub="Who teaches this course, and whether the mapping is live." onClose={onClose} />
+        <Head title={mapping ? "Edit course tutors" : "Staff a course"}
+          sub="" onClose={onClose} />
 
         <Row cols="1fr">
           {mapping ? (
@@ -1258,7 +1268,7 @@ export function EditCourseTutorModal({
                 {mapping.course}
               </div>
               <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 4 }}>
-                This row is that course. To staff a different one, edit its own row.
+                
               </span>
             </span>
           ) : (
@@ -1321,7 +1331,7 @@ export function SubjectDriveModal({
       <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
         <Head
           title={map ? "Edit subject Drive map" : "Map a folder to a subject"}
-          sub="Where a subject's materials live. In-person requests print from here, and online tutors send from it."
+          sub=""
           onClose={onClose}
         />
         <Row>
@@ -1428,7 +1438,7 @@ export function BookletDriveModal({
             value={chosen}
             onChange={setChosen}
             placeholder="Choose who may take booklets from this folder"
-            emptyHint="A folder shared with nobody is not shared."
+            emptyHint=""
           />
         </Row>
 

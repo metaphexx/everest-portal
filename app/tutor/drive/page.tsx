@@ -49,7 +49,7 @@ export default function MyDrivePage() {
         </span>
         <div style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 800 }}>No files yet</div>
         <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 6, maxWidth: 380, marginLeft: "auto", marginRight: "auto", lineHeight: 1.55 }}>
-          This is your own personal drive space for teaching files you keep for yourself, separate from the booklets the office shares with you.
+          Your own space, separate from the booklets the office shares with you.
         </div>
         {/* Own breathing room, and left-aligned text: it is a paragraph of
             policy, not part of the centred empty state above it. */}

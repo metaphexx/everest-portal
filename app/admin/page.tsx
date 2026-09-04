@@ -177,7 +177,7 @@ export default function AdminDashboard() {
             Open print history
           </Link>
         </div>
-        {toPrint.length === 0 && <div style={{ padding: "20px 4px", textAlign: "center", fontSize: 12.5, color: "var(--fg4)" }}>Nothing to print. Every approved job is done.</div>}
+        {toPrint.length === 0 && <div style={{ padding: "20px 4px", textAlign: "center", fontSize: 12.5, color: "var(--fg4)" }}>Nothing to print.</div>}
         {toPrint.map((r) => {
           const cs = centreStyle(r.printer.startsWith("Harrisdale") ? "Harrisdale SHS" : r.printer.startsWith("Piara") ? "Piara Waters" : "Head office");
           return (
@@ -210,7 +210,7 @@ export default function AdminDashboard() {
       {/* ---- RUNNING NOW ---- what is in a room or on a call at this minute */}
       <div className="glass-card" style={{ gridColumn: "span 5", alignSelf: "start", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .25s backwards" }}>
         <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 4px" }}>Running now</h2>
-        <p style={{ margin: "0 0 10px", fontSize: 11.5, color: "var(--fg3)" }}>Classes in session at this minute, and what starts next today.</p>
+        <p style={{ margin: "0 0 10px", fontSize: 11.5, color: "var(--fg3)" }}></p>
         {live.length === 0 && <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "8px 0" }}>No class is running right now.</div>}
         {live.map((s) => {
           const cs = centreStyle(s.centre);
@@ -223,7 +223,6 @@ export default function AdminDashboard() {
                   {s.time} · {s.tutor} · {s.centre} · {s.students} students
                 </span>
               </span>
-              <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.4, color: "var(--success-700)", background: "rgba(34,160,91,.12)", padding: "4px 10px", borderRadius: 980, flex: "none" }}>LIVE</span>
             </div>
           );
         })}
@@ -241,7 +240,7 @@ export default function AdminDashboard() {
             Open booklet requests
           </Link>
         </div>
-        {pending.length === 0 && <div style={{ padding: "20px 4px", textAlign: "center", fontSize: 12.5, color: "var(--fg4)" }}>Nothing waiting. Every request has a decision on it.</div>}
+        {pending.length === 0 && <div style={{ padding: "20px 4px", textAlign: "center", fontSize: 12.5, color: "var(--fg4)" }}>Nothing waiting.</div>}
         {pending.map((r) => {
           const cs = centreStyle(r.printer.startsWith("Harrisdale") ? "Harrisdale SHS" : r.printer.startsWith("Piara") ? "Piara Waters" : "Head office");
           return (
@@ -269,7 +268,7 @@ export default function AdminDashboard() {
       {/* ---- PRINT PIPELINE, as one stacked bar ---- */}
       <div className="glass-card" style={{ gridColumn: "span 5", alignSelf: "start", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .32s backwards" }}>
         <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 4px" }}>Print pipeline</h2>
-        <p style={{ margin: "0 0 12px", fontSize: 11.5, color: "var(--fg3)" }}>Every print job this term, by where it has got to.</p>
+        <p style={{ margin: "0 0 12px", fontSize: 11.5, color: "var(--fg3)" }}></p>
         <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden", background: "rgba(0,32,63,.07)" }}>
           {pipeline.map((p) => (p.n > 0 ? <span key={p.label} title={p.label + ": " + p.n} style={{ width: (p.n / total) * 100 + "%", background: p.colour }} /> : null))}
         </div>
@@ -289,7 +288,7 @@ export default function AdminDashboard() {
       {isManager && (
         <div className="glass-card" style={{ gridColumn: "span 12", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .38s backwards" }}>
           <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 4px" }}>Most requested subjects</h2>
-          <p style={{ margin: "0 0 8px", fontSize: 11.5, color: "var(--fg3)" }}>Copies requested this term, so you can see what to keep in stock.</p>
+          <p style={{ margin: "0 0 8px", fontSize: 11.5, color: "var(--fg3)" }}>Copies requested this term.</p>
           {subjects.length === 0 && <div style={{ fontSize: 12.5, color: "var(--fg4)", padding: "10px 0" }}>Nothing requested yet this term.</div>}
           {subjects.map((s) => (
             <Bar key={s.label} label={s.label} n={s.n} max={subjects[0].n} colour="var(--accent-teal)" note="copies" />

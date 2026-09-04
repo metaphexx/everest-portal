@@ -125,9 +125,6 @@ export default function StudentBlockPage() {
           </button>
         ))}
 
-        <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 12, lineHeight: 1.55, paddingTop: 10, borderTop: "1px solid rgba(0,32,63,.06)" }}>
-          Recordings are watch-only in the portal, and you only ever see the subjects you are enrolled in.
-        </div>
       </div>
     </div>
   );

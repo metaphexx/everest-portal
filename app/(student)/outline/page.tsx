@@ -53,7 +53,7 @@ export default function OutlinePage() {
           <span style={{ flex: 1, minWidth: 200 }}>
             <span style={{ display: "block", fontSize: 13.5, fontWeight: 700 }}>Add your school outline</span>
             <span style={{ display: "block", fontSize: 12, color: "var(--fg2)", marginTop: 2, lineHeight: 1.5 }}>
-              You haven&apos;t uploaded a school outline yet. Add it so Elliot can build your assessment tracker and your tutor knows what you are studying. This is a friendly reminder - your tutor will keep nudging until it&apos;s in.
+              Upload your school outline so your tutor can plan around it.
             </span>
           </span>
           <button onClick={() => fileRef.current?.click()} className="btn-primary press" style={{ height: 36, padding: "0 18px", borderRadius: 11, fontSize: 12.5, fontWeight: 700, flex: "none" }}>

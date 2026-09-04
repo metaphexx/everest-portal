@@ -141,7 +141,7 @@ export default function AdminGrade() {
 
   const stats = [
     { label: "WAITING TO MARK", value: waiting.length, sub: "submitted, not yet returned", color: waiting.length ? "var(--fg1)" : "var(--fg1)" },
-    { label: "WAITED 3 DAYS OR MORE", value: overdue, sub: overdue ? "these become phone calls" : "nothing has gone stale", color: overdue ? "var(--warn-700)" : "var(--fg1)" },
+    { label: "WAITED 3 DAYS OR MORE", value: overdue, sub: overdue ? "waiting 3 days or more" : "nothing has gone stale", color: overdue ? "var(--warn-700)" : "var(--fg1)" },
     { label: "OUT, NOT HANDED IN", value: outstanding.length, sub: "assigned and still open", color: "var(--fg1)" },
     { label: "MARKED", value: marked.length, sub: "returned this term", color: "var(--fg1)" },
   ];
@@ -149,9 +149,7 @@ export default function AdminGrade() {
   return (
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 16 }}>
       <div className="glass-card" style={{ gridColumn: "span 12", padding: "13px 18px", boxSizing: "border-box", fontSize: 11.5, color: "var(--fg3)", lineHeight: 1.55, animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
-        Online classes only. Work handed in on paper at a centre is marked and given back in the room, so the portal never sees it.
-        Everyone still waiting gets an automatic reminder every morning, so the count under WAITED is also how many of those have gone out.
-        Remind sends an extra one right now, and records when you sent it so nobody gets asked twice in a morning.
+        Online classes only. Paper handed in at a centre is marked in the room. Everyone still waiting is reminded automatically each morning; Remind sends an extra one now.
       </div>
 
       {stats.map((s, i) => (

@@ -170,7 +170,7 @@ export default function BookletsPage() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 9, fontSize: 11.5, color: "var(--fg4)" }}>
           <Icon path="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 15h-2v-6h2v6Zm0-8h-2V7h2v2Z" size={13} style={{ color: "var(--accent-purple)", flex: "none" }} />
-          Smart search reads file names, topics and the text inside each booklet.
+          
         </div>
 
         {ql && (
