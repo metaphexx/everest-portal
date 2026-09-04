@@ -24,6 +24,7 @@ import { DOWS_MON, monthGrid, monthLabel, todayKey } from "@/lib/calendar";
 import { ICON } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
 import { outlineAverage } from "@/lib/features";
+import { displayDate, leaversFor } from "@/lib/class-changes";
 import { AttendancePanel } from "@/components/tutor/AttendancePanel";
 import { HandoverPanel } from "@/components/tutor/HandoverPanel";
 import { MeetReconcile } from "@/components/tutor/MeetReconcile";
@@ -82,6 +83,9 @@ export default function TutorCoursePage() {
   const past = sessions.filter((c) => c.k < tKey).reverse();
   const courseSubs = submissions.filter((s) => s.course === id);
   const toMark = courseSubs.filter((s) => !s.marked);
+  // Students who have left this class. Their submissions are still in
+  // courseSubs, because a submission belongs to the student, not the roster.
+  const leavers = leaversFor(id);
   const outlines = seedSharedOutlines().filter((o) => o.course === id);
   const courseAssignments = effectiveAssignments
     .filter((a) => a.courseId === id)
@@ -349,6 +353,36 @@ export default function TutorCoursePage() {
               </div>
             );
           })}
+
+          {/* Students who have left. Their work and their attendance were never
+              deleted, so the class they did it in is the right place to still
+              find them - "did she ever hand that in" is asked months later. */}
+          {leavers.length > 0 && (
+            <details style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(0,32,63,.07)" }}>
+              <summary style={{ fontSize: 11.5, fontWeight: 700, color: "var(--fg3)", cursor: "pointer" }}>
+                Past students ({leavers.length})
+              </summary>
+              {leavers.map((l) => {
+                const done = courseSubs.filter((m) => m.student === l.name).length;
+                return (
+                  <div key={l.name} style={{ display: "flex", alignItems: "center", gap: 11, padding: "8px 0", borderTop: "1px solid rgba(0,32,63,.05)" }}>
+                    <span style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,32,63,.06)", color: "var(--fg4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10.5, fontWeight: 700, flex: "none" }}>
+                      {l.name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()}
+                    </span>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "var(--fg2)" }}>{l.name}</span>
+                      <span style={{ display: "block", fontSize: 11, color: "var(--fg4)" }}>Left {displayDate(l.on)}</span>
+                    </span>
+                    {done > 0 && (
+                      <span style={{ fontSize: 10.5, fontWeight: 700, color: "var(--fg3)", background: "rgba(0,32,63,.05)", padding: "3px 9px", borderRadius: 980, flex: "none" }}>
+                        {done} marked
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </details>
+          )}
         </div>
       ) : (
         <div className="glass-card" style={{ gridColumn: "span 5", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .55s cubic-bezier(.16,1,.3,1) .12s backwards" }}>

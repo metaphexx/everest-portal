@@ -20,6 +20,8 @@ import { BlockEnrolment } from "@/components/admin/BlockEnrolment";
 import { addBlock, blockMeta, isBlock, rollBlock, slotsFor } from "@/lib/block";
 import { NewBlockModal } from "@/components/admin/NewBlockModal";
 import { RollOverModal } from "@/components/admin/RollOverModal";
+import { addRelief, cancelRelief, displayDate, pendingCatchUps, recordLeavers, reliefFor, restoreLeaver, setCatchUpStatus } from "@/lib/class-changes";
+import { ReliefModal } from "@/components/admin/ReliefModal";
 
 /** Terms a class can be started in: anything not already finished. */
 function openTerms() {
@@ -101,7 +103,7 @@ function Roll({ cls, names, onClose, onEdit }: { cls: AdminClass; names?: string
 }
 
 export default function AdminClasses() {
-  const { notWired, classPatches, patchClass, addScheduledClass, scheduled } = useAdmin();
+  const { notWired, showToast, classPatches, patchClass, addScheduledClass, scheduled } = useAdmin();
   const router = useRouter();
   // The Admin (print) role reads this page for copy counts. The roll carries
   // parent phone numbers and Edit changes enrolments - neither is its job.
@@ -152,6 +154,10 @@ export default function AdminClasses() {
   // to review before confirming, not silently repeated.
   const [rollingOver, setRollingOver] = useState<AdminClass | null>(null);
   const [buildingBlock, setBuildingBlock] = useState(false);
+  const [relieving, setRelieving] = useState<AdminClass | null>(null);
+  // Bumped after a relief change so the cards re-read the shared store.
+  const [reliefTick, setReliefTick] = useState(0);
+  const [catchUpTick, setCatchUpTick] = useState(0);
 
   /**
    * Same split as the Schedule: an online class is edited here, an in-person
@@ -186,8 +192,44 @@ export default function AdminClasses() {
   const centres = ["All", "Online", ...CENTRES];
   const seatsLeft = shown.reduce((n, c) => n + Math.max(0, c.capacity - c.students), 0);
 
+  const pending = catchUpTick >= 0 ? pendingCatchUps() : [];
+
   return (
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 16 }}>
+      {canEdit && pending.length > 0 && (
+        <div className="glass-card" style={{ gridColumn: "span 12", padding: "14px 18px", boxSizing: "border-box", border: "1px solid rgba(245,166,35,.4)", background: "rgba(245,166,35,.07)" }}>
+          <div style={{ fontSize: 12.5, fontWeight: 800, marginBottom: 8 }}>
+            {pending.length === 1 ? "1 student wants to catch up" : pending.length + " students want to catch up"}
+          </div>
+          {pending.map((c) => (
+            <div key={c.id} className="ev-wrap-row" style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 0", borderTop: "1px solid rgba(245,166,35,.25)" }}>
+              <span className="ev-wrap-main" style={{ flex: "1 0 auto", minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: 12.5, fontWeight: 700 }}>{c.student}</span>
+                <span style={{ display: "block", fontSize: 11, color: "var(--fg3)", marginTop: 2 }}>
+                  {c.hostClass} · {displayDate(c.date)} at {c.time} · misses {c.homeClass}
+                </span>
+              </span>
+              <span className="ev-wrap-cta" style={{ display: "flex", gap: 8, flex: "none" }}>
+                <button
+                  onClick={() => { setCatchUpStatus(c.id, "declined"); setCatchUpTick((n) => n + 1); }}
+                  className="btn-ghost press ev-tap-h"
+                  style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}
+                >
+                  Decline
+                </button>
+                <button
+                  onClick={() => { setCatchUpStatus(c.id, "approved"); setCatchUpTick((n) => n + 1); showToast(c.student + " is in for " + displayDate(c.date)); }}
+                  className="btn-primary press ev-tap-h"
+                  style={{ height: 34, padding: "0 14px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}
+                >
+                  Approve
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="glass-card" style={{ gridColumn: "span 12", padding: "16px 18px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
         <div className="ev-wrap-row" style={{ display: "flex", gap: 10, marginBottom: 12 }}>
           {/* The search must be allowed to SHRINK, or it holds its full width
@@ -284,10 +326,16 @@ export default function AdminClasses() {
                   "it just runs" into something the office can plan around. */}
               {(() => {
                 const t = termOf(c);
-                if (!t) return null;
+                const cover = reliefTick >= 0 ? reliefFor(c.id) : [];
+                if (!t && cover.length === 0) return null;
                 return (
                   <div style={{ fontSize: 10.5, color: "var(--fg4)", marginTop: 10, paddingTop: 8, borderTop: "1px solid rgba(0,32,63,.07)" }}>
-                    Runs weekly to {t.end} ({t.name})
+                    {t && <div>Runs weekly to {t.end} ({t.name})</div>}
+                    {cover.map((r) => (
+                      <div key={r.id} style={{ color: "var(--warn-700)", fontWeight: 700, marginTop: t ? 3 : 0 }}>
+                        {r.tutor} covering {r.from === r.to ? displayDate(r.from) : displayDate(r.from) + " to " + displayDate(r.to)}
+                      </div>
+                    ))}
                   </div>
                 );
               })()}
@@ -299,6 +347,9 @@ export default function AdminClasses() {
                   </button>
                   <button onClick={() => setRollingOver(c)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
                     Start next term
+                  </button>
+                  <button onClick={() => setRelieving(c)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
+                    Relief
                   </button>
                   {isBlock(c.id) && (
                     <button onClick={() => setEnrolling(c.id)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
@@ -344,7 +395,12 @@ export default function AdminClasses() {
             capacity: editing.capacity,
           }}
           onClose={() => setEditing(null)}
-          onSubmit={(v) =>
+          onSubmit={(v) => {
+            // Anyone taken off the roll here has LEFT, and is recorded as such
+            // rather than quietly disappearing along with their history.
+            const was = classPatches[editing.id]?.studentNames ?? rollNames(editing);
+            recordLeavers(editing.id, was.filter((n) => !v.students.includes(n)));
+            v.students.forEach((n) => restoreLeaver(editing.id, n));
             patchClass(editing.id, {
               name: v.title,
               sched: v.day + " " + toDisplay(v.start),
@@ -353,8 +409,8 @@ export default function AdminClasses() {
               students: v.students.length,
               capacity: v.capacity,
               link: v.link || undefined,
-            })
-          }
+            });
+          }}
         />
       )}
 
@@ -384,6 +440,23 @@ export default function AdminClasses() {
         />
       )}
 
+      {relieving && (
+        <ReliefModal
+          cls={relieving}
+          existing={reliefFor(relieving.id)}
+          onClose={() => setRelieving(null)}
+          onAdd={(r) => {
+            addRelief({ classId: relieving.id, ...r });
+            setReliefTick((n) => n + 1);
+            setRelieving(null);
+          }}
+          onCancel={(id) => {
+            cancelRelief(id);
+            setReliefTick((n) => n + 1);
+          }}
+        />
+      )}
+
       {rollingOver && (
         <RollOverModal
           cls={rollingOver}
@@ -396,6 +469,8 @@ export default function AdminClasses() {
             const slots = slotsFor(rollingOver.id);
             if (slots.length > 0) rollBlock(rollingOver.id, r.termId, r.slotRosters);
             else patchClass(rollingOver.id, { studentNames: r.students, students: r.students.length });
+            const before = slots.length > 0 ? slots.flatMap((sl) => sl.students.map((x) => x.name)) : classPatches[rollingOver.id]?.studentNames ?? rollNames(rollingOver);
+            recordLeavers(rollingOver.id, [...new Set(before)].filter((n) => !r.students.includes(n)));
             for (let i = 0; i < r.dates.length; i++) {
               addScheduledClass({
                 k: r.dates[i],

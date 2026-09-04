@@ -17,6 +17,7 @@
 import React from "react";
 import { useTutor } from "@/lib/tutor-store";
 import { ATTENDANCE_META, AttendanceStatus, BLOCK8_SESSIONS, TUTOR_COURSES, TutorCourseId, rosterFor } from "@/lib/tutor-data";
+import { catchUpsOn } from "@/lib/class-changes";
 
 const ORDER: AttendanceStatus[] = ["present", "late", "absent", "excused"];
 
@@ -35,7 +36,19 @@ export function AttendancePanel({ sessionId, dateKey, accent }: { sessionId: str
   const { attendance, markAttendance, markAllPresent, autoAttendance } = useTutor();
   const key = sessionId + ":" + dateKey;
   const marks = attendance[key] ?? {};
-  const roster = rosterFor(sessionId);
+  // The class's own roster, plus anyone the office has approved to sit in on
+  // THIS date only. A catch-up is present in the room, so they have to be on
+  // the roll - but they are not enrolled, and are marked as visiting.
+  const enrolled = rosterFor(sessionId);
+  // A block's roll is per slot, but a catch-up is arranged against the CLASS,
+  // so it has to be looked up under the owning course id as well as the slot's.
+  const owningCourse = BLOCK8_SESSIONS.some((b) => b.id === sessionId) ? "block8" : sessionId;
+  const visiting = [...catchUpsOn(sessionId, dateKey), ...(owningCourse === sessionId ? [] : catchUpsOn(owningCourse, dateKey))].map((c) => ({
+    name: c.student,
+    init: c.student.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase(),
+  }));
+  const roster = [...enrolled, ...visiting.filter((v) => !enrolled.some((e) => e.name === v.name))];
+  const isVisiting = (name: string) => visiting.some((v) => v.name === name);
 
   const auto = resolveAuto(sessionId, dateKey);
   const autoRecord = auto ? autoAttendance(auto.courseId, auto.sessionISO) : {};
@@ -76,6 +89,11 @@ export function AttendancePanel({ sessionId, dateKey, accent }: { sessionId: str
             <span style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(0,32,63,.06)", color: accent ?? "var(--accent-navy-blue)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9.5, fontWeight: 700, flex: "none" }}>{s.init}</span>
             <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: cur === "absent" ? "var(--fg4)" : "var(--fg1)" }}>{s.name}</span>
+              {isVisiting(s.name) && (
+                <span title="Catching up from another class" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 0.3, color: "var(--brand-600)", background: "rgba(0,157,255,.12)", padding: "2px 7px", borderRadius: 980, flex: "none" }}>
+                  CATCHING UP
+                </span>
+              )}
               {auton && (
                 <span title="Recorded automatically when the student joined" style={{ fontSize: 9, fontWeight: 700, color: "var(--fg4)", background: "rgba(0,32,63,.06)", padding: "1px 6px", borderRadius: 980, flex: "none" }}>
                   auto

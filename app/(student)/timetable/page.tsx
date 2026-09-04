@@ -3,6 +3,10 @@ import { usePortal } from "@/lib/store";
 import { ACCENT, EVENTS, STUDENT, TITLE_TO_CID } from "@/lib/data";
 import { DOWS_MON, monthGrid, monthLabel, todayKey } from "@/lib/calendar";
 import { planFor } from "@/lib/block";
+import { catchUpsFor, displayDate, requestCatchUp } from "@/lib/class-changes";
+import { allClasses } from "@/lib/admin-data";
+import { DAY_NAMES } from "@/lib/admin-schedule";
+import { CatchUpModal, CatchUpOption } from "@/components/portal/CatchUpModal";
 import { useRouter } from "@/lib/router";
 
 interface UpItem {
@@ -73,6 +77,50 @@ export default function TimetablePage() {
     openModal({ title: u.title, tutor: u.tutor, time: u.time, color: u.color, bg: u.bg, cid: TITLE_TO_CID[u.title], k: u.k, dateLabel: d.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" }) });
   };
 
+  const [catchUp, setCatchUp] = useState(false);
+  const [catchUpTick, setCatchUpTick] = useState(0);
+  const myCatchUps = useMemo(() => (catchUpTick >= 0 ? catchUpsFor(STUDENT.name) : []), [catchUpTick]);
+
+  /**
+   * Other sessions in the next fortnight the student could sit in on.
+   *
+   * Sourced from the classes Everest actually runs, not the student's own
+   * timetable - their feed only holds the classes they are already in, which
+   * is precisely the set a catch-up cannot come from. Classes sharing a
+   * subject word come first, because catching up on Chemistry in a Chemistry
+   * class is the point.
+   */
+  const catchUpOptions: CatchUpOption[] = useMemo(() => {
+    const mine = new Set(upcoming.map((u) => u.title));
+    const words = new Set([...mine].flatMap((t) => t.split(" ")).filter((w) => w.length > 4));
+    const today = new Date(tKey + "T12:00:00");
+    const out: CatchUpOption[] = [];
+    for (const c of allClasses()) {
+      if (c.delivery !== "online" || mine.has(c.name)) continue;
+      const weekday = DAY_NAMES.findIndex((d) => c.sched.startsWith(d));
+      if (weekday < 0) continue;
+      const d = new Date(today);
+      const target = (weekday + 1) % 7;
+      while (d.getDay() !== target) d.setDate(d.getDate() + 1);
+      for (let i = 0; i < 2; i++) {
+        const when = new Date(d);
+        when.setDate(when.getDate() + i * 7);
+        const iso = when.getFullYear() + "-" + String(when.getMonth() + 1).padStart(2, "0") + "-" + String(when.getDate()).padStart(2, "0");
+        out.push({
+          hostClass: c.name,
+          hostClassId: c.id,
+          date: iso,
+          dateLabel: when.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" }),
+          time: c.sched.replace(DAY_NAMES[weekday], "").trim(),
+          tutor: c.tutorName,
+          seatsLeft: Math.max(0, c.capacity - c.students),
+        });
+      }
+    }
+    const related = out.filter((o) => o.hostClass.split(" ").some((w) => words.has(w)));
+    return (related.length > 0 ? related : out).sort((a, b) => (a.date < b.date ? -1 : 1)).slice(0, 5);
+  }, [tKey, upcoming]);
+
   const myAssignments = assignedToMe();
   const bookletFor = (k: string): string | null => {
     const sessionISO = k + "T" + ONLINE_T24 + ":00";
@@ -96,7 +144,24 @@ export default function TimetablePage() {
           there and already covers these rows, so showing both repeated the same
           six classes in two different layouts on one screen. */}
       <div className="glass-card ev-only-desktop" style={{ padding: "20px 22px" }}>
-        <h2 style={{ margin: "0 0 4px", fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Upcoming classes</h2>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, flexWrap: "wrap" }}>
+          <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800, flex: 1, minWidth: 0 }}>Upcoming classes</h2>
+          <button onClick={() => setCatchUp(true)} className="btn-soft press ev-tap-h" style={{ height: 32, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700, flex: "none" }}>
+            Missed a class?
+          </button>
+        </div>
+        {myCatchUps.length > 0 && (
+          <div style={{ fontSize: 11.5, color: "var(--fg3)", marginBottom: 8 }}>
+            {myCatchUps.map((c) => (
+              <div key={c.id} style={{ marginTop: 2 }}>
+                {c.hostClass} on {displayDate(c.date)} ·{" "}
+                <strong style={{ fontWeight: 700, color: c.status === "approved" ? "var(--success-700)" : c.status === "declined" ? "var(--danger-500)" : "var(--warn-700)" }}>
+                  {c.status === "approved" ? "Confirmed" : c.status === "declined" ? "Not available" : "Waiting on the office"}
+                </strong>
+              </div>
+            ))}
+          </div>
+        )}
         {upcoming.map((u, i) => {
           const booklet = u.title === ONLINE_TITLE ? bookletFor(u.k) : null;
           const isToday = u.k === tKey;
@@ -120,6 +185,28 @@ export default function TimetablePage() {
           );
         })}
       </div>
+
+      {catchUp && (
+        <CatchUpModal
+          homeClass={upcoming[0]?.title ?? "your class"}
+          missedLabel="a session"
+          options={catchUpOptions}
+          onClose={() => setCatchUp(false)}
+          onRequest={(o) => {
+            requestCatchUp({
+              student: STUDENT.name,
+              homeClass: upcoming[0]?.title ?? "your class",
+              hostClass: o.hostClass,
+              hostClassId: o.hostClassId,
+              date: o.date,
+              time: o.time,
+            });
+            setCatchUpTick((n) => n + 1);
+            setCatchUp(false);
+            showToast("Asked the office about " + o.hostClass);
+          }}
+        />
+      )}
 
       {/* Calendar */}
       <div className="glass-card" style={{ padding: "20px 22px" }}>

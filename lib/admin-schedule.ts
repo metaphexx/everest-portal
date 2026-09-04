@@ -18,6 +18,7 @@ import {
   buildTutorClasses,
 } from "./tutor-data";
 import { STAFF, allClasses } from "./admin-data";
+import { reliefOn } from "./class-changes";
 import { hourOf } from "./block";
 
 /**
@@ -82,14 +83,23 @@ export interface SessionPatch {
 
 /** Overlay the office's edits onto the generated sessions. */
 export function applySessionPatches(sessions: AdminSession[], patches: Record<string, SessionPatch>): AdminSession[] {
-  if (!patches || Object.keys(patches).length === 0) return sessions;
-  return sessions.map((s) => {
-    const p = patches[s.id];
-    if (!p) return s;
-    const { link, notes, studentNames, ...fields } = p;
-    const next: AdminSession = { ...s, ...fields };
-    if (studentNames) next.students = studentNames.length;
-    return next;
+  const patched = !patches || Object.keys(patches).length === 0
+    ? sessions
+    : sessions.map((s) => {
+        const p = patches[s.id];
+        if (!p) return s;
+        const { link, notes, studentNames, ...fields } = p;
+        const next: AdminSession = { ...s, ...fields };
+        if (studentNames) next.students = studentNames.length;
+        return next;
+      });
+
+  // Relief last, so a covered session shows who is actually taking it. The
+  // class keeps its real tutor everywhere else - this is the one week, not a
+  // change of staff.
+  return patched.map((s) => {
+    const cover = reliefOn(s.courseId, s.k);
+    return cover ? { ...s, tutor: cover.tutor + " (relief)" } : s;
   });
 }
 
