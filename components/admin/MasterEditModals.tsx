@@ -543,7 +543,12 @@ function dayLabel(d: Date): string {
  * in sync with each other.
  */
 function SessionCalendar({ selected, onToggle }: { selected: string[]; onToggle: (label: string) => void }) {
-  const [view, setView] = useState(() => new Date(2026, 6, 1));
+  // Open on the month the selection already sits in, so editing a run of
+  // August dates does not start three clicks away from them.
+  const [view, setView] = useState(() => {
+    const first = selected[0] ? new Date(selected[0] + " 2026") : null;
+    return first && !Number.isNaN(first.getTime()) ? new Date(first.getFullYear(), first.getMonth(), 1) : new Date(2026, 6, 1);
+  });
   const year = view.getFullYear();
   const month = view.getMonth();
   const first = new Date(year, month, 1);
@@ -714,7 +719,8 @@ export function EditClassSelectionModal({
               <span>
                 <Label required>Session dates</Label>
                 <span style={{ fontSize: 11, color: "var(--fg4)", display: "block", marginBottom: 8 }}>Click every date this runs on - a term is usually several at once.</span>
-                <SessionCalendar selected={dates} onToggle={toggleDate} />
+                {/* Re-keyed per selection so loading one for editing re-opens the calendar on its own month. */}
+                <SessionCalendar key={editingAt ?? "new"} selected={dates} onToggle={toggleDate} />
                 {dates.length > 0 && (
                   <span style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
                     {dates.map((x) => (
@@ -885,12 +891,23 @@ export function EditYearGroupModal({
   const [year, setYear] = useState(group?.year ?? YEARS[1]);
   const [status, setStatus] = useState(group ? (group.active ? "Active" : "Inactive") : "Active");
   const [addSubject, setAddSubject] = useState("");
+  /**
+   * Subject moves are held here until Save, not written on click. The dialog
+   * offers Save and Cancel, so a change made inside it has to be undoable by
+   * Cancel like every other field.
+   */
+  const [moves, setMoves] = useState<Record<string, string>>({});
+  const yearOf = (s: SubjectRow) => moves[s.id] ?? s.year;
 
   const valid = name.trim().length > 0;
-  const save = () => valid && onSave(group?.id ?? "yg" + Date.now().toString(36), { name: name.trim(), year, active: status === "Active" });
+  const save = () => {
+    if (!valid) return;
+    for (const [subjectId, y] of Object.entries(moves)) onSetSubjectYear(subjectId, y);
+    onSave(group?.id ?? "yg" + Date.now().toString(36), { name: name.trim(), year, active: status === "Active" });
+  };
 
-  const inGroup = subjects.filter((s) => s.year === year);
-  const notInGroup = subjects.filter((s) => s.year !== year);
+  const inGroup = subjects.filter((s) => yearOf(s) === year);
+  const notInGroup = subjects.filter((s) => yearOf(s) !== year);
 
   return (
     <Modal onClose={onClose} labelledBy="masteredit-title" panelStyle={{ width: "min(600px, calc(100vw - 32px))", maxHeight: "min(88vh, 760px)", overflowY: "auto" }}>
@@ -915,7 +932,7 @@ export function EditYearGroupModal({
             ) : (
               <span style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {inGroup.map((s) => (
-                  <Chip key={s.id} label={s.name} tone="subject" onRemove={() => onSetSubjectYear(s.id, "")} />
+                  <Chip key={s.id} label={s.name} tone="subject" onRemove={() => setMoves((m) => ({ ...m, [s.id]: "" }))} />
                 ))}
               </span>
             )}
@@ -924,7 +941,7 @@ export function EditYearGroupModal({
                 value={addSubject}
                 onChange={(e) => {
                   if (e.target.value) {
-                    onSetSubjectYear(e.target.value, year);
+                    setMoves((m) => ({ ...m, [e.target.value]: year }));
                     setAddSubject("");
                   }
                 }}
@@ -934,12 +951,13 @@ export function EditYearGroupModal({
               >
                 <option value="">Move a subject into this year group</option>
                 {notInGroup.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name} (currently {s.year || "unassigned"})</option>
+                  <option key={s.id} value={s.id}>{s.name} (currently {yearOf(s) || "unassigned"})</option>
                 ))}
               </select>
             )}
             <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 6, lineHeight: 1.5 }}>
               Removing a subject here does not delete it - it just leaves it unassigned until you move it into another year group.
+              Subject moves apply when you save.
             </div>
           </span>
         </Row>

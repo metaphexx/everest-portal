@@ -136,6 +136,13 @@ export default function AdminMasters() {
 
   /** Office edits sit over the seeded master records wherever they are read. */
   const patched = <T extends { id: string }>(rows: T[]): T[] => rows.map((r) => ({ ...r, ...(masterPatches[r.id] as Partial<T>) }));
+  /**
+   * What a tab shows: the seeded rows plus the ones the office has added, with
+   * its edits applied over BOTH. Patching only the seed was why editing a
+   * record you had just added saved the change and then never showed it.
+   */
+  const rowsFor = <T extends { id: string }>(seed: T[], table: string): T[] =>
+    patched([...seed, ...((masterAdds[table] ?? []) as unknown as T[])]);
   const save = (label: string) => (id: string, patch: Record<string, unknown>) => {
     patchMaster(id, patch, label);
     setEditing(null);
@@ -157,7 +164,7 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={[...patched(PRINTERS_M), ...((masterAdds.printers ?? []) as unknown as Printer[])]}
+            rows={rowsFor(PRINTERS_M, "printers")}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
@@ -180,7 +187,7 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={[...patched(CENTRE_PRINTERS), ...((masterAdds["centre-printers"] ?? []) as unknown as CentrePrinter[])]}
+            rows={rowsFor(CENTRE_PRINTERS, "centre-printers")}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
@@ -203,7 +210,7 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={[...patched(STAFF), ...((masterAdds.tutors ?? []) as unknown as StaffMember[])]}
+            rows={rowsFor(STAFF, "tutors")}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={(r) => (r.status === "active" ? PILL.active : { label: "On leave", color: "var(--warn-700)", bg: "rgba(245,166,35,.16)" })}
@@ -219,7 +226,11 @@ export default function AdminMasters() {
         );
       }
       case "students": {
-        const rows = [...allStudents(), ...((masterAdds.students ?? []) as unknown as AdminStudent[])];
+        // A student has no id of its own, so its edits are keyed by name.
+        const rows = [...allStudents(), ...((masterAdds.students ?? []) as unknown as AdminStudent[])].map((r) => ({
+          ...r,
+          ...(masterPatches[r.name] as Partial<AdminStudent>),
+        }));
         const cols: Column<(typeof rows)[number]>[] = [
           { key: "n", label: "Student", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
           { key: "y", label: "Year", render: (r) => r.year, text: (r) => r.year },
@@ -262,7 +273,7 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={[...patched(CLASS_SELECTIONS), ...((masterAdds["class-selection"] ?? []) as unknown as ClassSelectionRow[])]}
+            rows={rowsFor(CLASS_SELECTIONS, "class-selection")}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
@@ -286,7 +297,7 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={[...patched(YEAR_GROUPS), ...((masterAdds["year-groups"] ?? []) as unknown as YearGroup[])]}
+            rows={rowsFor(YEAR_GROUPS, "year-groups")}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
@@ -310,7 +321,7 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={[...patched(SUBJECTS), ...((masterAdds.subjects ?? []) as unknown as SubjectRow[])]}
+            rows={rowsFor(SUBJECTS, "subjects")}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={(r) => (r.active ? PILL.active : PILL.inactive)}
@@ -333,7 +344,7 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={[...patched(TERMS), ...((masterAdds.terms ?? []) as unknown as Term[])]}
+            rows={rowsFor(TERMS, "terms")}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={(r) => (r.state === "ongoing" ? PILL.ongoing : r.state === "upcoming" ? PILL.pending : PILL.inactive)}
@@ -357,7 +368,7 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={[...patched(COURSES), ...((masterAdds.courses ?? []) as unknown as CourseRow[])]}
+            rows={rowsFor(COURSES, "courses")}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
@@ -380,7 +391,7 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={[...patched(COURSE_CATEGORIES), ...((masterAdds.categories ?? []) as unknown as CourseCategory[])]}
+            rows={rowsFor(COURSE_CATEGORIES, "categories")}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
@@ -395,7 +406,7 @@ export default function AdminMasters() {
         );
       }
       case "course-tutors": {
-        const rows = [...patched(COURSE_TUTORS), ...((masterAdds["course-tutors"] ?? []) as unknown as CourseTutorMap[])];
+        const rows = rowsFor(COURSE_TUTORS, "course-tutors");
         const cols: Column<(typeof rows)[number]>[] = [
           { key: "c", label: "Course", render: (r) => <strong style={{ fontWeight: 700 }}>{r.course}</strong>, text: (r) => r.course },
           { key: "t", label: "Tutors", render: (r) => <List items={r.tutors} empty="Nobody assigned" />, text: (r) => r.tutors.join(" "), width: 320 },
@@ -424,7 +435,7 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={[...patched(SUBJECT_DRIVE), ...((masterAdds["subject-drive"] ?? []) as unknown as DriveMap[])]}
+            rows={rowsFor(SUBJECT_DRIVE, "subject-drive")}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
@@ -464,7 +475,7 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={[...patched(BOOKLET_DRIVE), ...((masterAdds["booklet-drive"] ?? []) as unknown as BookletDriveMap[])]}
+            rows={rowsFor(BOOKLET_DRIVE, "booklet-drive")}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
@@ -486,7 +497,7 @@ export default function AdminMasters() {
         ];
         return (
           <MasterTable
-            rows={[...patched(CENTRES_M), ...((masterAdds.centres ?? []) as unknown as Centre[])]}
+            rows={rowsFor(CENTRES_M, "centres")}
             columns={cols}
             idOf={(r) => r.id}
             statusOf={onOff}
