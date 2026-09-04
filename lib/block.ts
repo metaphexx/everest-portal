@@ -92,8 +92,60 @@ export function patchSlotRoster(slotId: string, studentNames: string[]) {
   if (typeof window !== "undefined") window.dispatchEvent(new Event("evr-sync"));
 }
 
+const ADDED_KEY = "evr-block-added";
+
+function readAddedBlocks(): Record<string, BlockSession[]> {
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(ADDED_KEY) : null;
+    return raw ? (JSON.parse(raw) as Record<string, BlockSession[]>) : {};
+  } catch {
+    return {};
+  }
+}
+
+const SLOT_COLOURS = [
+  { color: "#7A5AF8", bg: "rgba(122,90,248,.13)" },
+  { color: "#0E9C8E", bg: "rgba(14,156,142,.14)" },
+  { color: "#D68910", bg: "rgba(245,166,35,.16)" },
+  { color: "#0E7AC2", bg: "rgba(0,122,194,.12)" },
+];
+
+/**
+ * Registers a block the office has just created, so every reader of slotsFor()
+ * treats it exactly like a seeded one: isBlock() is true for it, the enrolment
+ * grid has columns to tick, and the tutor's handover panel has slots to hand
+ * over between. Without this a new block was a class with a block-shaped form
+ * behind it and nothing on the other side.
+ */
+export function addBlock(courseId: string, slots: { subject: string; start: string; end: string; tutor: string }[], students: string[] = []) {
+  const roster = students.map((name) => ({ name, init: initialsOf(name) }));
+  const sessions: BlockSession[] = slots.map((s, i) => ({
+    id: courseId + "-s" + i,
+    subject: s.subject,
+    start: s.start,
+    end: s.end,
+    t24: s.start,
+    tutor: s.tutor,
+    color: SLOT_COLOURS[i % SLOT_COLOURS.length].color,
+    bg: SLOT_COLOURS[i % SLOT_COLOURS.length].bg,
+    icon: "",
+    // Everyone starts on every slot; the office then unticks what a student
+    // does not take. Starting empty would mean a new block had no roster to
+    // uncheck from, which is the harder way round to fill a grid in.
+    students: roster,
+  }));
+  try {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(ADDED_KEY, JSON.stringify({ ...readAddedBlocks(), [courseId]: sessions }));
+      window.dispatchEvent(new Event("evr-sync"));
+    }
+  } catch {
+    /* a full quota should not stop the class being created */
+  }
+}
+
 export function slotsFor(courseId: string): BlockSession[] {
-  const base = BLOCKS[courseId] ?? [];
+  const base = BLOCKS[courseId] ?? readAddedBlocks()[courseId] ?? [];
   if (base.length === 0) return base;
   const patches = readEnrolPatches();
   if (Object.keys(patches).length === 0) return base;

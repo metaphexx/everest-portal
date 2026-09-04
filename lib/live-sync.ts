@@ -43,3 +43,29 @@ export function patchTutorState(patch: Record<string, any>): void {
     /* quota or private mode: the admin's own state still updated */
   }
 }
+
+/** Reads the classroom blob ("evr-classroom"): posts, replies and their attachments. */
+export function readClassroomState(): any | null {
+  return readBlob("evr-classroom");
+}
+
+/** Reads the messaging blob ("evr-messaging"): threads and their messages. */
+export function readMessagingState(): any | null {
+  return readBlob("evr-messaging");
+}
+
+/**
+ * Writes a whole store back. Used when the office recalls or blocks a file: the
+ * attachment has to leave the post or message it was shared in, not just gain a
+ * badge on the office's own ledger. The version field is preserved, because
+ * both stores drop a blob whose version they do not recognise.
+ */
+export function writeSharedStore(key: "evr-classroom" | "evr-messaging", db: Record<string, any>): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(db));
+    window.dispatchEvent(new Event("evr-sync"));
+  } catch {
+    /* quota or private mode: the office ledger still records the decision */
+  }
+}

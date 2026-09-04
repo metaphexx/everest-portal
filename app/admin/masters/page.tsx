@@ -111,7 +111,7 @@ type EditTarget =
 export default function AdminMasters() {
   const params = useSearchParams();
   const router = useRouter();
-  const { notWired, masterPatches, patchMaster, masterAdds, addMaster } = useAdmin();
+  const { masterPatches, patchMaster, masterAdds, addMaster, masterDeletes, deleteMaster } = useAdmin();
   const tab = params.get("tab") ?? "centres";
   const [editing, setEditing] = useState<EditTarget | null>(null);
   const [adding, setAdding] = useState<
@@ -141,16 +141,22 @@ export default function AdminMasters() {
    * its edits applied over BOTH. Patching only the seed was why editing a
    * record you had just added saved the change and then never showed it.
    */
-  const rowsFor = <T extends { id: string }>(seed: T[], table: string): T[] =>
-    patched([...seed, ...((masterAdds[table] ?? []) as unknown as T[])]);
+  const rowsFor = <T extends { id: string }>(seed: T[], table: string): T[] => {
+    const gone = new Set(masterDeletes[table] ?? []);
+    return patched([...seed, ...((masterAdds[table] ?? []) as unknown as T[])].filter((r) => !gone.has(r.id)));
+  };
+  // A student has no id of its own, so its edits are keyed by name. Built here
+  // rather than in the tab because the enrol dialog needs the same list to
+  // refuse a duplicate name.
+  const studentRows = [...allStudents(), ...((masterAdds.students ?? []) as unknown as AdminStudent[])]
+    .filter((r) => !(masterDeletes.students ?? []).includes(r.name))
+    .map((r) => ({ ...r, ...(masterPatches[r.name] as Partial<AdminStudent>) }));
   const save = (label: string) => (id: string, patch: Record<string, unknown>) => {
     patchMaster(id, patch, label);
     setEditing(null);
   };
 
   const go = (id: string) => router.push("/admin/masters?tab=" + id);
-  const del = (what: string) => notWired("Delete " + what);
-  const exp = () => notWired("Export");
 
   const onOff = (r: { active: boolean }) => (r.active ? PILL.active : PILL.inactive);
 
@@ -172,8 +178,8 @@ export default function AdminMasters() {
             addLabel="Add a printer"
             onAdd={() => setAdding("printer")}
             onEdit={(r) => setEditing({ kind: "printer", row: r })}
-            onDelete={() => del("printer")}
-            onExport={exp}
+            onDelete={(r) => deleteMaster("printers", r.id, "Printer")}
+            exportName="printers"
             emptyTitle="No printers yet"
             emptyBody="Add the printers at each centre so tutors can pick one when they request booklets."
           />
@@ -195,8 +201,8 @@ export default function AdminMasters() {
             addLabel="Map a printer"
             onAdd={() => setAdding("centre-printer")}
             onEdit={(r) => setEditing({ kind: "centre-printer", row: r })}
-            onDelete={() => del("mapping")}
-            onExport={exp}
+            onDelete={(r) => deleteMaster("centre-printers", r.id, "Mapping")}
+            exportName="centre-printers"
             emptyTitle="Nothing mapped yet"
             emptyBody="A centre with no printer cannot receive a print request, so map at least one to each."
           />
@@ -218,19 +224,15 @@ export default function AdminMasters() {
             addLabel="Add a tutor"
             onAdd={() => setAdding("tutor")}
             onEdit={(r) => setEditing({ kind: "tutor", row: r })}
-            onDelete={() => del("tutor")}
-            onExport={exp}
+            onDelete={(r) => deleteMaster("tutors", r.id, "Tutor")}
+            exportName="tutors"
             emptyTitle="No tutors yet"
             emptyBody="Add your teaching staff and grant each of them in-person duties, online duties, or both."
           />
         );
       }
       case "students": {
-        // A student has no id of its own, so its edits are keyed by name.
-        const rows = [...allStudents(), ...((masterAdds.students ?? []) as unknown as AdminStudent[])].map((r) => ({
-          ...r,
-          ...(masterPatches[r.name] as Partial<AdminStudent>),
-        }));
+        const rows = studentRows;
         const cols: Column<(typeof rows)[number]>[] = [
           { key: "n", label: "Student", render: (r) => <strong style={{ fontWeight: 700 }}>{r.name}</strong>, text: (r) => r.name },
           { key: "y", label: "Year", render: (r) => r.year, text: (r) => r.year },
@@ -249,7 +251,8 @@ export default function AdminMasters() {
             addLabel="Enrol a student"
             onAdd={() => setAdding("student")}
             onEdit={(r) => setEditing({ kind: "student", row: r })}
-            onExport={exp}
+            onDelete={(r) => deleteMaster("students", r.name, "Student")}
+            exportName="students"
             emptyTitle="No students enrolled"
             emptyBody="Enrol students and put them in a class to give them a portal login."
           />
@@ -282,8 +285,8 @@ export default function AdminMasters() {
             addLabel="Add a selection"
             onAdd={() => setAdding("class-selection")}
             onEdit={(r) => setEditing({ kind: "class-selection", row: r })}
-            onDelete={() => del("class selection")}
-            onExport={exp}
+            onDelete={(r) => deleteMaster("class-selection", r.id, "Class selection")}
+            exportName="class-selections"
             emptyTitle="No class selections"
             emptyBody="A class selection is which subjects a tutor covers at a centre, and on which dates."
           />
@@ -305,7 +308,7 @@ export default function AdminMasters() {
             addLabel="Add a year group"
             onAdd={() => setAdding("year-group")}
             onEdit={(r) => setEditing({ kind: "year-group", row: r })}
-            onDelete={() => del("year group")}
+            onDelete={(r) => deleteMaster("year-groups", r.id, "Year group")}
             emptyTitle="No year groups"
             emptyBody="A year group is what a subject and a class both hang off, so set these up first."
           />
@@ -329,7 +332,7 @@ export default function AdminMasters() {
             addLabel="Add a subject"
             onAdd={() => setAdding("subject")}
             onEdit={(r) => setEditing({ kind: "subject", row: r })}
-            onDelete={() => del("subject")}
+            onDelete={(r) => deleteMaster("subjects", r.id, "Subject")}
             emptyTitle="No subjects defined"
             emptyBody="A subject is the unit a class, a booklet and a curriculum outline all point at."
           />
@@ -352,7 +355,7 @@ export default function AdminMasters() {
             addLabel="Add a term"
             onAdd={() => setAdding("term")}
             onEdit={(r) => setEditing({ kind: "term", row: r })}
-            onDelete={() => del("term")}
+            onDelete={(r) => deleteMaster("terms", r.id, "Term")}
             emptyTitle="No terms set up"
             emptyBody="Terms drive the timetable and the booklet tracker, so add the current one first."
           />
@@ -376,8 +379,8 @@ export default function AdminMasters() {
             addLabel="Add a course"
             onAdd={() => setAdding("course")}
             onEdit={(r) => setEditing({ kind: "course", row: r })}
-            onDelete={() => del("course")}
-            onExport={exp}
+            onDelete={(r) => deleteMaster("courses", r.id, "Course")}
+            exportName="courses"
             emptyTitle="No courses yet"
             emptyBody="A course is what a student enrols in. Classes are the sessions that run it."
           />
@@ -399,7 +402,7 @@ export default function AdminMasters() {
             addLabel="Add a category"
             onAdd={() => setAdding("category")}
             onEdit={(r) => setEditing({ kind: "category", row: r })}
-            onDelete={() => del("category")}
+            onDelete={(r) => deleteMaster("categories", r.id, "Category")}
             emptyTitle="No categories yet"
             emptyBody="Categories group courses on the enrolment pages."
           />
@@ -422,7 +425,8 @@ export default function AdminMasters() {
             addLabel="Staff a course"
             onAdd={() => setAdding("course-tutor")}
             onEdit={(r) => setEditing({ kind: "course-tutor", row: r })}
-            onExport={exp}
+            onDelete={(r) => deleteMaster("course-tutors", r.id, "Course tutors")}
+            exportName="course-tutors"
             emptyTitle="Nothing assigned"
             emptyBody="Assign a tutor to a course so the course appears in their portal."
           />
@@ -444,7 +448,7 @@ export default function AdminMasters() {
             addLabel="Map a folder"
             onAdd={() => setAdding("subject-drive")}
             onEdit={(r) => setEditing({ kind: "subject-drive", row: r })}
-            onDelete={() => del("mapping")}
+            onDelete={(r) => deleteMaster("subject-drive", r.id, "Drive map")}
             emptyTitle="Nothing mapped"
             emptyBody="Point each subject at the Drive folder its materials live in. In-person requests print from it, and online tutors send from it."
           />
@@ -484,7 +488,7 @@ export default function AdminMasters() {
             addLabel="Map a folder"
             onAdd={() => setAdding("booklet-drive")}
             onEdit={(r) => setEditing({ kind: "booklet-drive", row: r })}
-            onDelete={() => del("mapping")}
+            onDelete={(r) => deleteMaster("booklet-drive", r.id, "Drive map")}
             emptyTitle="Nothing mapped"
             emptyBody="Share a folder of extra booklets with online tutors, beyond what their subject already gives them."
           />
@@ -505,8 +509,8 @@ export default function AdminMasters() {
             addLabel="Add a centre"
             onAdd={() => setAdding("centre")}
             onEdit={(r) => setEditing({ kind: "centre", row: r })}
-            onDelete={() => del("centre")}
-            onExport={exp}
+            onDelete={(r) => deleteMaster("centres", r.id, "Centre")}
+            exportName="centres"
             emptyTitle="No centres yet"
             emptyBody="A centre is a physical location that runs in-person classes and holds a printer."
           />
@@ -614,10 +618,16 @@ export default function AdminMasters() {
         />
       )}
       {editing?.kind === "student" && (
-        <EditStudentModal student={editing.row} onClose={() => setEditing(null)} onSave={save("Student")} />
+        <EditStudentModal
+          student={editing.row}
+          existingNames={studentRows.map((s) => s.name)}
+          onClose={() => setEditing(null)}
+          onSave={save("Student")}
+        />
       )}
       {adding === "student" && (
         <EditStudentModal
+          existingNames={studentRows.map((s) => s.name)}
           onClose={() => setAdding(null)}
           onSave={(id, patch) => {
             addMaster("students", patch, "Student");

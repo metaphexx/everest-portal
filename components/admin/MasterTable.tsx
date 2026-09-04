@@ -62,7 +62,8 @@ export interface MasterTableProps<T> {
   onAdd?: () => void;
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
-  onExport?: () => void;
+  /** Filename stem for the CSV export. Omit to hide the Export button. */
+  exportName?: string;
   /** Shown when the data set itself is empty, as opposed to filtered empty. */
   emptyTitle: string;
   emptyBody: string;
@@ -81,7 +82,7 @@ export function MasterTable<T>({
   onAdd,
   onEdit,
   onDelete,
-  onExport,
+  exportName,
   emptyTitle,
   emptyBody,
   pageSize = 10,
@@ -98,6 +99,29 @@ export function MasterTable<T>({
     return ql ? rows.filter((r) => searchable(r).includes(ql)) : rows;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, q, columns]);
+
+  /**
+   * Exports what is on screen, not the whole table: if the office has searched
+   * for the Harrisdale rows, that search IS the export it is asking for. The
+   * same column accessors the search reads supply the cells, so the file can
+   * never carry a column the table does not show.
+   */
+  const exportCsv = () => {
+    const escape = (v: string) => (/[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v);
+    const head = [...columns.map((c) => c.label), ...(statusOf ? ["Status"] : [])];
+    const body = filtered.map((r) => [
+      ...columns.map((c) => (c.text ? c.text(r) : "")),
+      ...(statusOf ? [statusOf(r).label] : []),
+    ]);
+    const csv = [head, ...body].map((cells) => cells.map((cell) => escape(String(cell ?? ""))).join(",")).join("\r\n");
+    // A BOM so Excel opens it as UTF-8 rather than mangling any accented name.
+    const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = exportName + "-" + new Date().toISOString().slice(0, 10) + ".csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pages - 1);
@@ -131,8 +155,8 @@ export function MasterTable<T>({
           />
         </span>
         <span className="ev-wrap-cta" style={{ display: "flex", gap: 8, flex: "none" }}>
-          {onExport && (
-            <button onClick={onExport} className="btn-ghost press ev-tap-h" style={{ height: 44, padding: "0 14px", borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: "var(--fg2)", display: "inline-flex", alignItems: "center", gap: 7 }}>
+          {exportName && filtered.length > 0 && (
+            <button onClick={exportCsv} className="btn-ghost press ev-tap-h" style={{ height: 44, padding: "0 14px", borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: "var(--fg2)", display: "inline-flex", alignItems: "center", gap: 7 }}>
               <Icon path={IC.down} size={14} />
               Export
             </button>

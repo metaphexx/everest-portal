@@ -125,14 +125,40 @@ function Roll({ cls, names, onClose, onEdit }: { cls: AdminClass; names?: string
 }
 
 export default function AdminClasses() {
-  const { notWired, classPatches, patchClass, addScheduledClass } = useAdmin();
+  const { notWired, classPatches, patchClass, addScheduledClass, scheduled } = useAdmin();
   const router = useRouter();
   // The Admin (print) role reads this page for copy counts. The roll carries
   // parent phone numbers and Edit changes enrolments - neither is its job.
   const canEdit = useRole() === "office";
   // Office edits sit over the seed records, so a changed tutor or time shows
   // here, on the roll, and in the seats-left count without touching the seed.
-  const classes = useMemo(() => allClasses().map((c) => ({ ...c, ...classPatches[c.id] })), [classPatches]);
+  //
+  // Classes the office scheduled itself are folded in beside the seeded ones.
+  // They arrive as one row PER DATE, so they are collapsed back into the class
+  // they are sessions of - a ten week course is one class here, not ten. Until
+  // this, a class you had just scheduled appeared on the calendar and nowhere
+  // on the page named Classes.
+  const classes = useMemo(() => {
+    const seeded = allClasses().map((c) => ({ ...c, ...classPatches[c.id] }));
+    const byClass = new Map<string, AdminClass>();
+    for (const s of scheduled) {
+      if (byClass.has(s.courseId)) continue;
+      byClass.set(s.courseId, {
+        id: s.courseId,
+        name: s.className,
+        year: "",
+        centre: s.centre,
+        delivery: s.delivery,
+        sched: WEEKDAYS[(new Date(s.k + "T12:00:00").getDay() + 6) % 7] + " " + s.time,
+        tutorId: "office",
+        tutorName: s.tutor,
+        colour: "var(--brand-600)",
+        students: s.students,
+        capacity: s.delivery === "online" ? 12 : 16,
+      });
+    }
+    return [...seeded, ...[...byClass.values()].map((c) => ({ ...c, ...classPatches[c.id] }))];
+  }, [classPatches, scheduled]);
   const [centre, setCentre] = useState("All");
   const [delivery, setDelivery] = useState<"all" | "online" | "in_person">("all");
   const [q, setQ] = useState("");

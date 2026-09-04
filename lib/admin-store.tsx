@@ -13,7 +13,7 @@
 // My Requests.
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { patchTutorState, readPortalState, readTutorState } from "./live-sync";
+import { patchTutorState, readClassroomState, readMessagingState, readPortalState, readTutorState, writeSharedStore } from "./live-sync";
 import {
   ApprovalStatus,
   BookletRequest,
@@ -104,12 +104,20 @@ interface AdminApi extends AdminState {
   /** Master records the office has created, by table. */
   masterAdds: Record<string, MasterPatch[]>;
   addMaster: (table: string, row: MasterPatch, label?: string) => void;
+  /** Ids the office has deleted, by table. Seeded rows cannot be removed at source. */
+  masterDeletes: Record<string, string[]>;
+  deleteMaster: (table: string, id: string, label?: string) => void;
   /** Reminders the office has sent, by what they were about. */
   nudges: Record<string, { on: string; count: number }>;
   nudge: (key: string, who: string) => void;
-  /** Recalled or blocked shared files, by the file's id in sharedFiles. */
-  fileActions: Record<string, { action: "recalled" | "blocked"; on: string }>;
-  recallFile: (id: string, action: "recalled" | "blocked") => void;
+  /**
+   * Recalled or blocked shared files, by the file's id in sharedFiles. The row
+   * itself is kept alongside the decision: pulling a live file deletes the post
+   * it came from, and an oversight ledger that forgets what it withdrew is no
+   * longer a record of what was shared.
+   */
+  fileActions: Record<string, { action: "recalled" | "blocked"; on: string; row?: SharedFileRow }>;
+  recallFile: (id: string, action: "recalled" | "blocked", row?: SharedFileRow) => void;
 }
 
 const Ctx = createContext<AdminApi | null>(null);
@@ -129,6 +137,13 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     hydrated: false,
   });
   const toastTimer = useRef<ReturnType<typeof setTimeout>>();
+  /**
+   * The classroom and messaging stores, read the same way the tutor blob is.
+   * The office's promise is that it sees every file shared on the platform, and
+   * a file posted in a classroom or sent in a message is most of that traffic -
+   * reading only the assignment list made the ledger quietly incomplete.
+   */
+  const [shared, setShared] = useState<{ classroom: any | null; messaging: any | null }>({ classroom: null, messaging: null });
 
   // Read the tutor blob on mount and whenever either portal writes. The office
   // is a viewer of the tutor's work, so its data is theirs, not a second seed.
@@ -142,6 +157,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         assignments: t && Array.isArray(t.assignments) ? t.assignments : SEED_ASSIGNMENTS,
         submissions: t && Array.isArray(t.submissions) ? t.submissions : seedSubmissions(),
       }));
+      setShared({ classroom: readClassroomState(), messaging: readMessagingState() });
     };
     load();
     window.addEventListener("storage", load);
@@ -201,9 +217,19 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     [state.requests, writeRequests]
   );
 
-  // Classes scheduled from the office. Session-scoped on purpose: the demo
-  // resets cleanly, and nothing here belongs in the tutor's own blob.
-  const [scheduled, setScheduled] = useState<AdminSession[]>([]);
+  /**
+   * Classes scheduled from the office. Persisted like every other office edit:
+   * being the one thing that vanished on reload made a scheduled class look
+   * like it had failed to save. Clearing localStorage still resets the demo.
+   */
+  const [scheduled, setScheduled] = useState<AdminSession[]>(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-scheduled") : null;
+      return raw ? (JSON.parse(raw) as AdminSession[]) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Edits to classes. Persisted: an office that fixes a tutor's name expects
   // the fix to still be there tomorrow.
@@ -278,6 +304,49 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   }, [showToast]);
 
   /**
+   * Deleted master records, by table, as a list of ids. A seeded row cannot be
+   * removed from the file it is declared in, so deletion is recorded here and
+   * applied wherever the rows are read. A row the office added itself is
+   * dropped outright instead, so it leaves nothing behind.
+   */
+  const [masterDeletes, setMasterDeletes] = useState<Record<string, string[]>>(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-master-deletes") : null;
+      return raw ? (JSON.parse(raw) as Record<string, string[]>) : {};
+    } catch {
+      return {};
+    }
+  });
+  const deleteMaster = useCallback(
+    (table: string, id: string, label = "Record") => {
+      const added = (masterAdds[table] ?? []).some((r) => r.id === id);
+      if (added) {
+        setMasterAdds((m) => {
+          const next = { ...m, [table]: (m[table] ?? []).filter((r) => r.id !== id) };
+          try {
+            window.localStorage.setItem("evr-admin-master-adds", JSON.stringify(next));
+          } catch {
+            /* storage full - the row is still gone for this session */
+          }
+          return next;
+        });
+      } else {
+        setMasterDeletes((m) => {
+          const next = { ...m, [table]: [...(m[table] ?? []), id] };
+          try {
+            window.localStorage.setItem("evr-admin-master-deletes", JSON.stringify(next));
+          } catch {
+            /* storage full - the row is still gone for this session */
+          }
+          return next;
+        });
+      }
+      showToast(label + " deleted");
+    },
+    [masterAdds, showToast]
+  );
+
+  /**
    * Chasing someone is a real event, so it is recorded rather than toasted and
    * forgotten: the office needs to see it has already asked, and how long ago,
    * or it nags the same tutor twice on a Monday and not at all on a Friday.
@@ -304,18 +373,19 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   }, [showToast]);
 
   /** Recalling or blocking a tutor's own material, on rows sourced from it. */
-  const [fileActions, setFileActions] = useState<Record<string, { action: "recalled" | "blocked"; on: string }>>(() => {
+  type FileAction = { action: "recalled" | "blocked"; on: string; row?: SharedFileRow };
+  const [fileActions, setFileActions] = useState<Record<string, FileAction>>(() => {
     try {
       const raw = typeof window !== "undefined" ? window.localStorage.getItem("evr-admin-file-actions") : null;
-      return raw ? (JSON.parse(raw) as Record<string, { action: "recalled" | "blocked"; on: string }>) : {};
+      return raw ? (JSON.parse(raw) as Record<string, FileAction>) : {};
     } catch {
       return {};
     }
   });
   const recallFile = useCallback(
-    (id: string, action: "recalled" | "blocked") => {
+    (id: string, action: "recalled" | "blocked", row?: SharedFileRow) => {
       setFileActions((m) => {
-        const next = { ...m, [id]: { action, on: new Date().toISOString() } };
+        const next = { ...m, [id]: { action, on: new Date().toISOString(), row } };
         try {
           window.localStorage.setItem("evr-admin-file-actions", JSON.stringify(next));
         } catch {
@@ -323,6 +393,38 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         }
         return next;
       });
+
+      // Pull the file out of wherever it was actually shared, so it stops being
+      // reachable by the student rather than only being marked here. A seeded
+      // row has no live post or message behind it, so for those the badge is
+      // the whole of the effect.
+      const [kind, ...parts] = id.split(":");
+      const drop = <T,>(list: T[] | undefined, i: number): T[] => (list ?? []).filter((_, j) => j !== i);
+
+      if (kind === "post" || kind === "reply") {
+        const db = readClassroomState();
+        if (db?.posts) {
+          const [classroomId, postId] = parts;
+          const at = Number(parts[parts.length - 1]);
+          db.posts[classroomId] = (db.posts[classroomId] ?? []).map((p: any) => {
+            if (p.id !== postId) return p;
+            if (kind === "post") return { ...p, attachments: drop(p.attachments, at) };
+            const replyId = parts[2];
+            return { ...p, replies: (p.replies ?? []).map((r: any) => (r.id === replyId ? { ...r, attachments: drop(r.attachments, at) } : r)) };
+          });
+          writeSharedStore("evr-classroom", db);
+        }
+      } else if (kind === "msg") {
+        const db = readMessagingState();
+        if (db?.messages) {
+          const [threadId, messageId, attachmentId] = parts;
+          db.messages[threadId] = (db.messages[threadId] ?? []).map((m: any) =>
+            m.id === messageId ? { ...m, attachments: (m.attachments ?? []).filter((a: any) => a.id !== attachmentId) } : m
+          );
+          writeSharedStore("evr-messaging", db);
+        }
+      }
+
       showToast(action === "recalled" ? "File recalled" : "File blocked");
     },
     [showToast]
@@ -350,7 +452,15 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   }, [showToast]);
   const addScheduledClass = useCallback(
     (s: Omit<AdminSession, "id">) => {
-      setScheduled((list) => [...list, { ...s, id: "new-" + list.length + ":" + s.k }]);
+      setScheduled((list) => {
+        const next = [...list, { ...s, id: "new-" + list.length + ":" + s.k }];
+        try {
+          window.localStorage.setItem("evr-admin-scheduled", JSON.stringify(next));
+        } catch {
+          /* storage full - the class still shows for this session */
+        }
+        return next;
+      });
       showToast(s.className + " scheduled for " + new Date(s.k + "T12:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" }));
     },
     [showToast]
@@ -380,8 +490,84 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       kind: "assigned" as const,
       source: "everest" as const,
     }));
-    return [...live, ...SHARED_FILES];
-  }, [state.assignments]);
+
+    // Files a tutor posted into a classroom, including on a reply. These are
+    // the tutor's own uploads rather than anything the office vetted, so they
+    // are exactly what the Recall and Block actions exist for.
+    const fromClassrooms: SharedFileRow[] = [];
+    const posts: Record<string, any[]> = shared.classroom?.posts ?? {};
+    for (const [classroomId, list] of Object.entries(posts)) {
+      const room = (TUTOR_COURSES as Record<string, { name: string } | undefined>)[classroomId]?.name ?? classroomId;
+      for (const post of list ?? []) {
+        if (post.role === "tutor") {
+          (post.attachments ?? []).forEach((att: any, i: number) => {
+            if (att.kind === "link") return;
+            fromClassrooms.push({
+              id: "post:" + classroomId + ":" + post.id + ":" + i,
+              file: att.name,
+              from: post.author,
+              to: room + " classroom",
+              context: "Classroom post",
+              when: post.when,
+              kind: "classroom",
+              source: "tutor",
+            });
+          });
+        }
+        for (const reply of post.replies ?? []) {
+          if (reply.role !== "tutor") continue;
+          (reply.attachments ?? []).forEach((att: any, i: number) => {
+            if (att.kind === "link") return;
+            fromClassrooms.push({
+              id: "reply:" + classroomId + ":" + post.id + ":" + reply.id + ":" + i,
+              file: att.name,
+              from: reply.author,
+              to: room + " classroom",
+              context: "Classroom reply",
+              when: reply.when,
+              kind: "classroom",
+              source: "tutor",
+            });
+          });
+        }
+      }
+    }
+
+    // Files a tutor attached to a message thread.
+    const fromMessages: SharedFileRow[] = [];
+    const threads: any[] = shared.messaging?.threads ?? [];
+    const byThread: Record<string, any[]> = shared.messaging?.messages ?? {};
+    for (const thread of threads) {
+      for (const m of byThread[thread.id] ?? []) {
+        if (m.role !== "tutor" || !m.attachments?.length) continue;
+        const sender = thread.tutor?.name ?? TUTOR.name;
+        for (const att of m.attachments) {
+          fromMessages.push({
+            id: "msg:" + thread.id + ":" + m.id + ":" + att.id,
+            file: att.name,
+            from: sender,
+            to: thread.student?.name ?? "a student",
+            context: "Direct message",
+            when: new Date(m.sentAt).toLocaleDateString("en-AU", { day: "numeric", month: "short" }),
+            kind: "message",
+            source: "tutor",
+          });
+        }
+      }
+    }
+
+    const rows = [...live, ...fromClassrooms, ...fromMessages, ...SHARED_FILES];
+
+    // Anything recalled or blocked out of a live post or message no longer
+    // exists to derive a row from, so its saved copy stands in for it. The
+    // office keeps a record of what it withdrew and when.
+    const present = new Set(rows.map((r) => r.id));
+    const withdrawn = Object.entries(fileActions)
+      .filter(([id, a]) => a.row && !present.has(id))
+      .map(([, a]) => a.row as SharedFileRow);
+
+    return [...rows, ...withdrawn];
+  }, [state.assignments, shared, fileActions]);
 
   const api: AdminApi = {
     ...state,
@@ -402,6 +588,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     patchMaster,
     masterAdds,
     addMaster,
+    masterDeletes,
+    deleteMaster,
     nudges,
     nudge,
     sharedFiles,

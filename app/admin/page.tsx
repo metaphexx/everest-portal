@@ -155,7 +155,7 @@ export default function AdminDashboard() {
             </span>
           </span>
           <Link href={base + "/approvals"} className="btn-ghost press ev-tap-h ev-wrap-cta" style={{ height: 36, padding: "0 15px", borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", color: "var(--fg2)" }}>
-            Chase the tutors
+            Remind the tutors
           </Link>
         </div>
       )}

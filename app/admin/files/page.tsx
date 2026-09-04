@@ -146,10 +146,10 @@ export default function AdminFiles() {
                     </button>
                     {f.source === "tutor" && (
                       <>
-                        <button onClick={() => recallFile(f.id, "recalled")} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
+                        <button onClick={() => recallFile(f.id, "recalled", f)} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
                           Recall
                         </button>
-                        <button onClick={() => recallFile(f.id, "blocked")} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 700, color: "var(--danger-500)" }}>
+                        <button onClick={() => recallFile(f.id, "blocked", f)} className="btn-ghost press ev-tap-h" style={{ height: 32, padding: "0 12px", borderRadius: 9, fontSize: 11.5, fontWeight: 700, color: "var(--danger-500)" }}>
                           Block
                         </button>
                       </>

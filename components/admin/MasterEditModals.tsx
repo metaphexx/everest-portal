@@ -410,11 +410,14 @@ export function EditTutorModal({ tutor, onClose, onSave }: { /** Absent when add
 
 export function EditStudentModal({
   student,
+  existingNames = [],
   onClose,
   onSave,
 }: {
   /** Absent when enrolling a new student. */
   student?: AdminStudent;
+  /** Everyone already on the roster. A student's name IS its key, so two cannot share one. */
+  existingNames?: string[];
   onClose: () => void;
   onSave: (id: string, patch: Record<string, unknown>) => void;
 }) {
@@ -426,7 +429,10 @@ export function EditStudentModal({
   const [parentEmail, setParentEmail] = useState(student?.parentEmail ?? "");
   const [status, setStatus] = useState(student ? (student.status === "active" ? "Active" : student.status === "trial" ? "Trial" : "Withdrawn") : "Trial");
 
-  const valid = name.trim().length > 0 && parent.trim().length > 0;
+  // Renaming an existing student onto someone else's name collides just as
+  // badly as enrolling a duplicate, so both are checked - minus their own name.
+  const taken = existingNames.some((n) => n.toLowerCase() === name.trim().toLowerCase() && n !== student?.name);
+  const valid = name.trim().length > 0 && parent.trim().length > 0 && !taken;
   const save = () =>
     valid &&
     onSave(student?.name ?? name.trim(), {
@@ -448,6 +454,7 @@ export function EditStudentModal({
           <span>
             <Label required>Student name</Label>
             <input value={name} onChange={(e) => setName(e.target.value)} className="field" style={{ width: "100%", height: 44, boxSizing: "border-box" }} autoFocus />
+            {taken && <span style={{ display: "block", fontSize: 11, color: "var(--danger-500)", marginTop: 5 }}>{name.trim()} is already on the roster.</span>}
           </span>
           {sel("Year", year, ["Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"], setYear, true)}
         </Row>
@@ -477,7 +484,13 @@ export function EditStudentModal({
         <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 8, lineHeight: 1.5 }}>
           Which classes a student is in is set on the class itself, not here.
         </div>
-        <Actions valid={valid} why="A student needs a name and a parent or guardian." onSave={save} onClose={onClose} label={student ? "Save changes" : "Enrol student"} />
+        <Actions
+          valid={valid}
+          why={taken ? "That name is already on the roster." : "A student needs a name and a parent or guardian."}
+          onSave={save}
+          onClose={onClose}
+          label={student ? "Save changes" : "Enrol student"}
+        />
       </div>
     </Modal>
   );

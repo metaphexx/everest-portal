@@ -14,6 +14,7 @@ import { ClassFormModal, ClassFormValues, to24, toDisplay } from "@/components/a
 import { ClassViewModal } from "@/components/admin/ClassViewModal";
 import { AdminSession, allSessions, applySessionPatches, centreStyle, needsRequest } from "@/lib/admin-schedule";
 import { BOOKLET_META } from "@/lib/tutor-data";
+import { addBlock } from "@/lib/block";
 
 const IC = {
   plus: "M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z",
@@ -149,6 +150,10 @@ export default function AdminSchedule() {
               // does not apply to it at all.
               booklet: null,
             };
+            // A block's slots have to be registered before its sessions, or the
+            // class turns up on the calendar with nothing behind it to enrol
+            // into.
+            if (v.slots?.length) addBlock(v.course, v.slots.map((s) => ({ ...s, start: toDisplay(s.start), end: toDisplay(s.end) })), v.students);
             const n = v.repeat === "weekly" ? v.weeks : 1;
             for (let i = 0; i < n; i++) {
               const d = new Date(v.day + "T12:00:00");

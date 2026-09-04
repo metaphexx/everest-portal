@@ -238,7 +238,7 @@ export default function AdminApprovals() {
           statusOf={(r) => BOOKLET_META[bookletStatusFromRequest(r)]}
           searchHint="Search by class, booklet, centre or reference"
           onEdit={(r) => setOpen(r)}
-          onExport={() => notWired("Export")}
+          exportName="booklet-requests"
           emptyTitle="No requests"
           emptyBody="Requests from tutors land here."
           pageSize={12}

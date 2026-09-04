@@ -182,7 +182,7 @@ export default function AdminHistory() {
         idOf={(r) => r.id}
         searchHint="Search history by booklet, class or printer"
         onEdit={(r) => setOpen(r)}
-        onExport={() => notWired("Export")}
+        exportName="print-history"
         emptyTitle={centre === "All" ? "Nothing has been printed yet" : "Nothing printed at " + centre}
         emptyBody={centre === "All" ? "A job appears here once it is marked printed. Approving alone does not print it." : "Try another centre, or clear the filter."}
         pageSize={12}
