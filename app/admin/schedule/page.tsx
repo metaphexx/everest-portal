@@ -10,7 +10,7 @@ import { useRouter } from "@/lib/router";
 import { useAdmin } from "@/lib/admin-store";
 import { Icon } from "@/components/ui/Icon";
 import { DayList, MonthCalendar } from "@/components/admin/MonthCalendar";
-import { ClassFormModal, ClassFormValues, to24, toDisplay } from "@/components/admin/ClassFormModal";
+import { ClassFormModal, ClassFormValues, WEEKDAYS, to24, toDisplay } from "@/components/admin/ClassFormModal";
 import { ClassViewModal } from "@/components/admin/ClassViewModal";
 import { AdminSession, allSessions, applySessionPatches, centreStyle, needsRequest } from "@/lib/admin-schedule";
 import { BOOKLET_META } from "@/lib/tutor-data";
@@ -153,7 +153,13 @@ export default function AdminSchedule() {
             // A block's slots have to be registered before its sessions, or the
             // class turns up on the calendar with nothing behind it to enrol
             // into.
-            if (v.slots?.length) addBlock(v.course, v.slots.map((s) => ({ ...s, start: toDisplay(s.start), end: toDisplay(s.end) })), v.students);
+            if (v.slots?.length) {
+              addBlock(
+                v.course,
+                { name: v.title, day: WEEKDAYS[(new Date(v.day + "T12:00:00").getDay() + 6) % 7], start: toDisplay(v.start) },
+                v.slots.map((s) => ({ ...s, start: toDisplay(s.start), end: toDisplay(s.end), students: v.students }))
+              );
+            }
             const n = v.repeat === "weekly" ? v.weeks : 1;
             for (let i = 0; i < n; i++) {
               const d = new Date(v.day + "T12:00:00");

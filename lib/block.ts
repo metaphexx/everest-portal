@@ -94,13 +94,40 @@ export function patchSlotRoster(slotId: string, studentNames: string[]) {
 
 const ADDED_KEY = "evr-block-added";
 
-function readAddedBlocks(): Record<string, BlockSession[]> {
+/** A block the office built, with enough of itself to be shown by name anywhere. */
+export interface AddedBlock {
+  name: string;
+  day: string;
+  start: string;
+  sessions: BlockSession[];
+}
+
+function readAddedBlocks(): Record<string, AddedBlock> {
   try {
     const raw = typeof window !== "undefined" ? window.localStorage.getItem(ADDED_KEY) : null;
-    return raw ? (JSON.parse(raw) as Record<string, BlockSession[]>) : {};
+    const parsed = raw ? (JSON.parse(raw) as Record<string, AddedBlock>) : {};
+    // Ignore anything that is not the current shape rather than crashing a
+    // browser holding an older blob.
+    return Object.fromEntries(Object.entries(parsed).filter(([, b]) => b && Array.isArray(b.sessions)));
   } catch {
     return {};
   }
+}
+
+/** Name, day and start time of a block the office built. Null for a seeded one. */
+export function blockMeta(courseId: string): AddedBlock | null {
+  return readAddedBlocks()[courseId] ?? null;
+}
+
+/**
+ * The block a student is actually in, across seeded and office-built ones.
+ * The student's own block page reads this instead of naming one block in
+ * code, which is what made a block the office had just built invisible to
+ * every student in it.
+ */
+export function blockForStudent(student: string): string | null {
+  const ids = [...Object.keys(readAddedBlocks()), ...Object.keys(BLOCKS)];
+  return ids.find((id) => slotsFor(id).some((s) => s.students.some((st) => st.name === student))) ?? null;
 }
 
 const SLOT_COLOURS = [
@@ -117,8 +144,11 @@ const SLOT_COLOURS = [
  * over between. Without this a new block was a class with a block-shaped form
  * behind it and nothing on the other side.
  */
-export function addBlock(courseId: string, slots: { subject: string; start: string; end: string; tutor: string }[], students: string[] = []) {
-  const roster = students.map((name) => ({ name, init: initialsOf(name) }));
+export function addBlock(
+  courseId: string,
+  block: { name: string; day: string; start: string },
+  slots: { subject: string; start: string; end: string; tutor: string; students: string[] }[]
+) {
   const sessions: BlockSession[] = slots.map((s, i) => ({
     id: courseId + "-s" + i,
     subject: s.subject,
@@ -129,14 +159,14 @@ export function addBlock(courseId: string, slots: { subject: string; start: stri
     color: SLOT_COLOURS[i % SLOT_COLOURS.length].color,
     bg: SLOT_COLOURS[i % SLOT_COLOURS.length].bg,
     icon: "",
-    // Everyone starts on every slot; the office then unticks what a student
-    // does not take. Starting empty would mean a new block had no roster to
-    // uncheck from, which is the harder way round to fill a grid in.
-    students: roster,
+    // The roster lives on the slot, never on the class - the rule this whole
+    // file is built around - so who takes what is decided per slot up front
+    // rather than being a second trip to a second screen.
+    students: s.students.map((name) => ({ name, init: initialsOf(name) })),
   }));
   try {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(ADDED_KEY, JSON.stringify({ ...readAddedBlocks(), [courseId]: sessions }));
+      window.localStorage.setItem(ADDED_KEY, JSON.stringify({ ...readAddedBlocks(), [courseId]: { ...block, sessions } }));
       window.dispatchEvent(new Event("evr-sync"));
     }
   } catch {
@@ -145,7 +175,7 @@ export function addBlock(courseId: string, slots: { subject: string; start: stri
 }
 
 export function slotsFor(courseId: string): BlockSession[] {
-  const base = BLOCKS[courseId] ?? readAddedBlocks()[courseId] ?? [];
+  const base = BLOCKS[courseId] ?? readAddedBlocks()[courseId]?.sessions ?? [];
   if (base.length === 0) return base;
   const patches = readEnrolPatches();
   if (Object.keys(patches).length === 0) return base;

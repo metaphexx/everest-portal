@@ -11,10 +11,9 @@ import React from "react";
 import { STUDENT } from "@/lib/data";
 import { Icon, ICON } from "@/components/portal/nav-icons";
 import { usePortal } from "@/lib/store";
-import { chaptersForStudent, hhmm, planFor, slotsFor, slotsForStudent } from "@/lib/block";
+import { blockForStudent, blockMeta, chaptersForStudent, hhmm, planFor, slotsFor, slotsForStudent } from "@/lib/block";
 
-const COURSE = "block11";
-const BLOCK_START = "4:00pm";
+const FALLBACK_START = "4:00pm";
 
 const IC = {
   clock: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 10.6V7h-2v6.4l4.7 2.8 1-1.7-3.7-2.2Z",
@@ -24,17 +23,22 @@ const IC = {
 
 export default function StudentBlockPage() {
   const { notWired } = usePortal();
+  // Whichever block this student is actually in, rather than one named in
+  // code: a block the office builds has to reach the students in it.
+  const COURSE = blockForStudent(STUDENT.name) ?? "block11";
   const all = slotsFor(COURSE);
   const mine = slotsForStudent(COURSE, STUDENT.name);
   const plan = planFor(COURSE, STUDENT.name);
-  const chapters = chaptersForStudent(COURSE, BLOCK_START, STUDENT.name);
+  const chapters = chaptersForStudent(COURSE, blockMeta(COURSE)?.start ?? FALLBACK_START, STUDENT.name);
   const mineIds = new Set(mine.map((s) => s.id));
 
   return (
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 16 }}>
       {/* WHAT YOU DO TODAY - the one thing a student needs before 4pm */}
       <div className="glass-card" style={{ gridColumn: "span 7", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
-        <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 4px" }}>Your Wednesday</h2>
+        <h2 className="portal-section-title" style={{ fontSize: 15, margin: "0 0 4px" }}>
+          Your {(blockMeta(COURSE)?.day ?? "Wednesdays").replace(/s$/, "")}
+        </h2>
         <p style={{ margin: "0 0 14px", fontSize: 12.5, color: "var(--fg3)", lineHeight: 1.6 }}>
           {plan
             ? "You are in " + mine.length + " of the " + all.length + " subjects. Join once at " + plan.joinAt + " and stay until " + plan.leaveAt + " - it is one call, so you do not rejoin between subjects."

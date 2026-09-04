@@ -6,6 +6,7 @@ import { aiSearch } from "@/lib/search";
 import { useDebouncedValue } from "@/lib/use-debounce";
 import { useDismissable } from "@/lib/use-dismissable";
 import { COURSE_DEFS, CourseId, STUDENT } from "@/lib/data";
+import { blockForStudent, blockMeta } from "@/lib/block";
 import { Icon } from "@/components/ui/Icon";
 
 interface NotifItem {
@@ -37,7 +38,10 @@ function pageMeta(pathname: string, greeting: string, dueCount: number): { t: st
   }
   if (pathname === "/grades") return { t: "My Grades", s: "Your submissions, grades and tutor feedback." };
   if (pathname === "/timetable") return { t: "Timetable", s: "Your classes for the term, month by month." };
-  if (pathname === "/block") return { t: "Year 11 Wednesday Block", s: "Your subjects, when to join and when to leave." };
+  if (pathname === "/block") {
+    const id = blockForStudent(STUDENT.name);
+    return { t: (id && blockMeta(id)?.name) || "Year 11 Wednesday Block", s: "Your subjects, when to join and when to leave." };
+  }
   if (pathname === "/library") return { t: "Library", s: "Materials from your past sessions, organised by date." };
   if (pathname === "/outline") return { t: "Assessment Tracker", s: "Upload your school outline and Elliot maps out your assessments." };
   if (pathname.startsWith("/classroom/")) return { t: "Classroom", s: "Class announcements, discussion and shared files, all in one place." };

@@ -17,7 +17,8 @@ import { DELIVERY_META } from "@/lib/tutor-data";
 import { TERMS } from "@/lib/admin-masters";
 import { centreStyle } from "@/lib/admin-schedule";
 import { BlockEnrolment } from "@/components/admin/BlockEnrolment";
-import { isBlock, slotsFor } from "@/lib/block";
+import { addBlock, isBlock, slotsFor } from "@/lib/block";
+import { NewBlockModal } from "@/components/admin/NewBlockModal";
 
 /**
  * A block does not (yet) store which term it belongs to, so "the current term"
@@ -171,6 +172,7 @@ export default function AdminClasses() {
   // (subjects, tutors, roster) prefilled into the create form for the office
   // to review before confirming, not silently repeated.
   const [rollingOver, setRollingOver] = useState<AdminClass | null>(null);
+  const [buildingBlock, setBuildingBlock] = useState(false);
 
   /**
    * Same split as the Schedule: an online class is edited here, an in-person
@@ -198,7 +200,14 @@ export default function AdminClasses() {
   return (
     <div className="ev-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 16 }}>
       <div className="glass-card" style={{ gridColumn: "span 12", padding: "16px 18px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by class, tutor or year" aria-label="Search classes" className="field" style={{ width: "100%", height: 44, boxSizing: "border-box", marginBottom: 12 }} />
+        <div className="ev-wrap-row" style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by class, tutor or year" aria-label="Search classes" className="field ev-wrap-main" style={{ flex: "1 0 auto", minWidth: 0, height: 44, boxSizing: "border-box" }} />
+          {canEdit && (
+            <button onClick={() => setBuildingBlock(true)} className="btn-primary press ev-tap-h ev-wrap-cta" style={{ height: 44, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, flex: "none" }}>
+              New core block
+            </button>
+          )}
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10 }}>
           <span>
             <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--fg4)", marginBottom: 5 }}>CENTRE</label>
@@ -357,6 +366,31 @@ export default function AdminClasses() {
               link: v.link || undefined,
             })
           }
+        />
+      )}
+
+      {buildingBlock && (
+        <NewBlockModal
+          onClose={() => setBuildingBlock(false)}
+          onCreate={(b) => {
+            addBlock(b.courseId, { name: b.name, day: b.day, start: toDisplay(b.start) }, b.slots.map((s) => ({ ...s, start: toDisplay(s.start), end: toDisplay(s.end) })));
+            for (let i = 0; i < b.dates.length; i++) {
+              addScheduledClass({
+                k: b.dates[i],
+                className: b.name,
+                courseId: b.courseId,
+                tutor: b.slots.map((s) => s.tutor).filter((t, j, a) => a.indexOf(t) === j).join(", "),
+                centre: "Online",
+                delivery: "online",
+                time: toDisplay(b.start),
+                students: b.students.length,
+                durationMins: b.slots.length * 60,
+                booklet: null,
+                session: i + 1,
+              });
+            }
+            setBuildingBlock(false);
+          }}
         />
       )}
 

@@ -56,7 +56,9 @@ export default function TutorCoursesPage() {
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
                 <Pill>{cd.centre}</Pill>
                 <Pill>{cd.sched}</Pill>
-                <Pill>{cd.students.length} students</Pill>
+                {/* In-person classes never display a student count. Every other
+                    surface guards this; this card was the one that did not. */}
+                {cd.delivery === "online" && <Pill>{cd.students.length} students</Pill>}
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, fontSize: 11.5 }}>
                 <span style={{ opacity: 0.85 }}>
