@@ -11,7 +11,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Icon } from "@/components/ui/Icon";
 import { Column, MasterTable } from "@/components/admin/MasterTable";
 import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
-import { BookletRequest, DEFAULT_FORMAT, centreOfPrinter, driveIdFor } from "@/lib/tutor-data";
+import { BookletRequest, DEFAULT_FORMAT, TUTOR, centreOfPrinter, driveIdFor } from "@/lib/tutor-data";
 import { CENTRES_M } from "@/lib/admin-masters";
 import { centreStyle } from "@/lib/admin-schedule";
 
@@ -140,6 +140,8 @@ export default function AdminHistory() {
       width: 260,
     },
     { key: "c", label: "Class", render: (r) => r.classText, text: (r) => r.classText, width: 200 },
+    // Who raised it. Absent on the tutor portal's own rows, which are Priya's.
+    { key: "tu", label: "Tutor", render: (r) => r.tutor ?? TUTOR.name, text: (r) => r.tutor ?? TUTOR.name, width: 140 },
     { key: "n", label: "Copies", render: (r) => r.items.reduce((n, i) => n + i.qty, 0), text: (r) => String(r.items.reduce((n, i) => n + i.qty, 0)) },
     {
       key: "t",

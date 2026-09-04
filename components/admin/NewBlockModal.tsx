@@ -33,14 +33,6 @@ function addMinutes(hhmm: string, mins: number): string {
   return String(Math.floor(total / 60) % 24).padStart(2, "0") + ":" + String(total % 60).padStart(2, "0");
 }
 
-/** The first date on or after a term's start that falls on the chosen day. */
-function firstDate(day: string, termStart: string): Date {
-  const d = new Date(termStart);
-  const target = (DAYS.indexOf(day) + 1) % 7; // DAYS is Monday-first, getDay() is Sunday-first
-  if (!Number.isNaN(d.getTime())) while (d.getDay() !== target) d.setDate(d.getDate() + 1);
-  return d;
-}
-
 function isoDate(d: Date): string {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
@@ -73,7 +65,10 @@ export function NewBlockModal({ onClose, onCreate }: { onClose: () => void; onCr
   const terms = TERMS.filter((t) => t.state !== "finished");
 
   const [year, setYear] = useState(groups[1]?.year ?? groups[0]?.year ?? "Year 8");
-  const [day, setDay] = useState("Wednesdays");
+  // A start DATE, not a weekday. The office knows when the block starts; the
+  // day it lands on follows from that, and starting partway through a term is
+  // then just a later date rather than a shorter count to work out by hand.
+  const [start1, setStart1] = useState("");
   const [start, setStart] = useState("16:00");
   const [mins, setMins] = useState(60);
   const [termId, setTermId] = useState(terms[0]?.id ?? "");
@@ -118,18 +113,28 @@ export function NewBlockModal({ onClose, onCreate }: { onClose: () => void; onCr
       return { ...o, [student]: next };
     });
 
+  // Every week from the start date up to the end of the term. Starting in
+  // week 6 gives five sessions, not ten - the run is bounded by the term, not
+  // by a fixed count.
   const dates = useMemo(() => {
-    if (!term) return [];
-    const first = firstDate(day, term.start);
-    return Array.from({ length: term.weeks }, (_, i) => {
+    if (!term || !start1) return [];
+    const first = new Date(start1 + "T12:00:00");
+    const last = new Date(term.end);
+    if (Number.isNaN(first.getTime())) return [];
+    const out: string[] = [];
+    for (let i = 0; i < 30; i++) {
       const d = new Date(first);
       d.setDate(d.getDate() + i * 7);
-      return isoDate(d);
-    });
-  }, [day, term]);
+      if (!Number.isNaN(last.getTime()) && d > last) break;
+      out.push(isoDate(d));
+    }
+    return out;
+  }, [start1, term]);
+
+  const day = start1 ? DAYS[(new Date(start1 + "T12:00:00").getDay() + 6) % 7] : "";
 
   const name = year + " Core Block";
-  const valid = subjects.length > 1 && tutor.length > 0 && students.length > 0 && !!term && (!splitTutors || slots.every((s) => s.tutor));
+  const valid = subjects.length > 1 && tutor.length > 0 && students.length > 0 && !!term && dates.length > 0 && (!splitTutors || slots.every((s) => s.tutor));
 
   const create = () => {
     if (!valid) return;
@@ -139,7 +144,7 @@ export function NewBlockModal({ onClose, onCreate }: { onClose: () => void; onCr
       termId: term.id,
       day,
       start,
-      weeks: term.weeks,
+      weeks: dates.length,
       dates,
       slots: slots.map((s, i) => ({ ...s, students: students.filter((st) => takes(st, i)) })),
       students,
@@ -171,12 +176,8 @@ export function NewBlockModal({ onClose, onCreate }: { onClose: () => void; onCr
               ))}
             </select>
           </Field>
-          <Field label="DAY">
-            <select value={day} onChange={(e) => setDay(e.target.value)} className="field" style={fieldStyle} aria-label="Day">
-              {DAYS.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
+          <Field label="FIRST SESSION">
+            <input type="date" value={start1} onChange={(e) => setStart1(e.target.value)} className="field" style={fieldStyle} aria-label="First session" />
           </Field>
           <Field label="STARTS">
             <input type="time" value={start} onChange={(e) => setStart(e.target.value)} className="field" style={fieldStyle} aria-label="Start time" />
@@ -206,7 +207,8 @@ export function NewBlockModal({ onClose, onCreate }: { onClose: () => void; onCr
             <div style={{ marginTop: 16, border: "1px solid rgba(0,32,63,.08)", borderRadius: 14, background: "rgba(255,255,255,.66)", padding: "12px 14px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 12.5, fontWeight: 800, flex: 1, minWidth: 0 }}>
-                  {name} · {day} {toDisplay(start)} to {toDisplay(slots[slots.length - 1].end)}
+                  {name} · {day || "pick a first session"} {toDisplay(start)} to {toDisplay(slots[slots.length - 1].end)}
+                  {dates.length > 0 && term ? " · " + dates.length + " sessions to " + term.end : ""}
                 </span>
                 <label style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 11.5, color: "var(--fg3)", cursor: "pointer", flex: "none" }}>
                   <input type="checkbox" checked={splitTutors} onChange={(e) => setSplitTutors(e.target.checked)} />
@@ -317,7 +319,7 @@ export function NewBlockModal({ onClose, onCreate }: { onClose: () => void; onCr
             className="btn-primary press ev-tap-h"
             style={{ height: 44, padding: "0 20px", borderRadius: 12, fontSize: 13, fontWeight: 700, opacity: valid ? 1 : 0.5, cursor: valid ? "pointer" : "not-allowed" }}
           >
-            {term ? "Create block · " + term.weeks + " " + day : "Create block"}
+            {dates.length > 0 ? "Create block · " + dates.length + " " + day : "Create block"}
           </button>
           <button onClick={onClose} className="btn-ghost press ev-tap-h" style={{ height: 44, padding: "0 18px", borderRadius: 12, fontSize: 13, fontWeight: 600, color: "var(--fg2)" }}>
             Cancel

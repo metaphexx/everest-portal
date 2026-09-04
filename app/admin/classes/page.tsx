@@ -16,13 +16,16 @@ import { AdminClass, AdminStudent, CENTRES, allClasses, allStudents, defaultCapa
 import { DELIVERY_META } from "@/lib/tutor-data";
 import { TERMS } from "@/lib/admin-masters";
 import { allSessions, centreStyle } from "@/lib/admin-schedule";
+import { DayList, MonthCalendar } from "@/components/admin/MonthCalendar";
 import { ExpectedSession, attendanceHistory, summarise } from "@/lib/attendance-history";
 import { StudentDetailModal } from "@/components/admin/StudentDetailModal";
 import { BlockEnrolment } from "@/components/admin/BlockEnrolment";
 import { addBlock, blockMeta, isBlock, rollBlock, slotsFor } from "@/lib/block";
 import { NewBlockModal } from "@/components/admin/NewBlockModal";
+import { CatchUpModal } from "@/components/portal/CatchUpModal";
+import { CATALOGUE } from "@/lib/tutor-data";
 import { RollOverModal } from "@/components/admin/RollOverModal";
-import { addRelief, cancelRelief, displayDate, leaversFor, pendingCatchUps, recordLeavers, reliefFor, restoreLeaver, setCatchUpStatus } from "@/lib/class-changes";
+import { addRelief, cancelRelief, displayDate, leaversFor, pendingCatchUps, recordLeavers, reliefFor, requestCatchUp, restoreLeaver, setCatchUpStatus } from "@/lib/class-changes";
 import { ReliefModal } from "@/components/admin/ReliefModal";
 
 /** Terms a class can be started in: anything not already finished. */
@@ -39,7 +42,7 @@ export function rollNames(cls: AdminClass): string[] {
   return allStudents().filter((s) => s.classNames.includes(cls.name)).map((s) => s.name);
 }
 
-function Roll({ cls, names, onClose, onEdit, onOpenStudent, pctFor }: { cls: AdminClass; names?: string[]; onClose: () => void; onEdit: () => void; onOpenStudent: (s: AdminStudent) => void; pctFor: (name: string) => number }) {
+function Roll({ cls, names, onClose, onEdit, onOpenStudent, pctFor, canEdit, onAssign, onCatchUp, onRelief }: { cls: AdminClass; names?: string[]; onClose: () => void; onEdit: () => void; onOpenStudent: (s: AdminStudent) => void; pctFor: (name: string) => number; canEdit: boolean; onAssign: (s: AdminStudent) => void; onCatchUp: (s: AdminStudent) => void; onRelief: () => void }) {
   // Once the office has picked the students, THAT is the roll - not whichever
   // records happen to name this class.
   const roll = useMemo(() => {
@@ -81,27 +84,61 @@ function Roll({ cls, names, onClose, onEdit, onOpenStudent, pctFor }: { cls: Adm
             <span style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(14,156,142,.14)", color: "var(--accent-teal)", fontSize: 11.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
               {s.initials}
             </span>
+            {/* The print role reads this to count copies and check a name. The
+                parent's number is the Manager's to hold, so it is not shown,
+                and the row does not open into a record full of it. */}
             <button
-              onClick={() => onOpenStudent(s)}
+              onClick={() => canEdit && onOpenStudent(s)}
+              disabled={!canEdit}
               className="press"
-              style={{ flex: 1, minWidth: 0, textAlign: "left", border: "none", background: "none", padding: 0, font: "inherit", cursor: "pointer" }}
+              style={{ flex: 1, minWidth: 0, textAlign: "left", border: "none", background: "none", padding: 0, font: "inherit", cursor: canEdit ? "pointer" : "default" }}
             >
-              <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "var(--brand-600)" }}>{s.name}</span>
+              <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: canEdit ? "var(--brand-600)" : "var(--fg1)" }}>{s.name}</span>
               <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 2 }}>
-                {s.parent} · {s.parentPhone}
+                {canEdit ? s.parent + " · " + s.parentPhone : s.year}
               </span>
             </button>
             {/* The same figure the detail view breaks down, not a second one:
                 a roll saying 99% beside a list that adds up to 100% is a bug
                 the office would have to reconcile by hand. */}
             <span style={{ fontSize: 12, fontWeight: 700, color: pctFor(s.name) < 80 ? "var(--warn-700)" : "var(--fg3)", flex: "none" }}>{pctFor(s.name)}%</span>
+            {/* The office rings a parent, then wants to DO the thing they rang
+                about. Both actions are for one named student, so they belong
+                on that student's row rather than on the class. */}
+            {canEdit && (
+              <span style={{ display: "flex", gap: 6, flex: "none" }}>
+                <button
+                  onClick={() => onAssign(s)}
+                  title={"Send a booklet to " + s.name}
+                  className="btn-ghost press ev-tap-h"
+                  style={{ height: 30, padding: "0 10px", borderRadius: 9, fontSize: 11, fontWeight: 700, color: "var(--fg2)" }}
+                >
+                  Send booklet
+                </button>
+                <button
+                  onClick={() => onCatchUp(s)}
+                  title={"Book " + s.name + " into another session"}
+                  className="btn-ghost press ev-tap-h"
+                  style={{ height: 30, padding: "0 10px", borderRadius: 9, fontSize: 11, fontWeight: 700, color: "var(--fg2)" }}
+                >
+                  Catch-up
+                </button>
+              </span>
+            )}
           </div>
         ))}
 
         <div style={{ display: "flex", gap: 8, marginTop: 18, flexWrap: "wrap" }}>
-          <button onClick={onEdit} className="btn-primary press ev-tap-h" style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 700 }}>
-            Edit this class
-          </button>
+          {canEdit && (
+            <>
+              <button onClick={onEdit} className="btn-primary press ev-tap-h" style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 12.5, fontWeight: 700 }}>
+                Edit this class
+              </button>
+              <button onClick={onRelief} className="btn-soft press ev-tap-h" style={{ height: 42, padding: "0 16px", borderRadius: 12, fontSize: 12.5, fontWeight: 700 }}>
+                Arrange relief
+              </button>
+            </>
+          )}
           <button onClick={onClose} className="btn-ghost press ev-tap-h" style={{ height: 42, padding: "0 16px", borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: "var(--fg2)" }}>
             Close
           </button>
@@ -164,6 +201,9 @@ export default function AdminClasses() {
   const [rollingOver, setRollingOver] = useState<AdminClass | null>(null);
   const [buildingBlock, setBuildingBlock] = useState(false);
   const [viewingStudent, setViewingStudent] = useState<AdminStudent | null>(null);
+  const [day, setDay] = useState<string | null>("2026-07-02");
+  const [assigning, setAssigning] = useState<{ cls: AdminClass; student: AdminStudent } | null>(null);
+  const [bookingCatchUp, setBookingCatchUp] = useState<{ cls: AdminClass; student: AdminStudent } | null>(null);
   const [relieving, setRelieving] = useState<AdminClass | null>(null);
   // Bumped after a relief change so the cards re-read the shared store.
   const [reliefTick, setReliefTick] = useState(0);
@@ -269,7 +309,16 @@ export default function AdminClasses() {
         </div>
       )}
 
-      <div className="glass-card" style={{ gridColumn: "span 12", padding: "16px 18px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
+      {/* The print role has no Schedule page, so without this it has no way to
+          ask what runs on a given day - only a flat list of every class. */}
+      <div className="glass-card" style={{ gridColumn: "span 7", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) backwards" }}>
+        <MonthCalendar sessions={everySession} selected={day} onSelect={setDay} />
+      </div>
+      <div className="glass-card" style={{ gridColumn: "span 5", padding: "20px 22px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .04s backwards" }}>
+        <DayList dayKey={day} sessions={everySession} />
+      </div>
+
+      <div className="glass-card" style={{ gridColumn: "span 12", padding: "16px 18px", boxSizing: "border-box", animation: "evrise .5s cubic-bezier(.16,1,.3,1) .08s backwards" }}>
         <div className="ev-wrap-row" style={{ display: "flex", gap: 10, marginBottom: 12 }}>
           {/* The search must be allowed to SHRINK, or it holds its full width
               and pushes the button out through the side of the card. */}
@@ -379,11 +428,12 @@ export default function AdminClasses() {
                 );
               })()}
 
-              {canEdit && (
-                <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-                  <button onClick={() => setRoll(c)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
-                    View the roll
-                  </button>
+              <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+                <button onClick={() => setRoll(c)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
+                  View the roll
+                </button>
+                {canEdit && (
+                  <>
                   <button onClick={() => setRollingOver(c)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
                     Start next term
                   </button>
@@ -398,8 +448,9 @@ export default function AdminClasses() {
                   <button onClick={() => editClass(c)} className="btn-ghost press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, color: "var(--fg2)" }}>
                     Edit
                   </button>
-                </div>
-              )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -479,6 +530,88 @@ export default function AdminClasses() {
         />
       )}
 
+      {/* Sending one student a booklet, from the roll. The catalogue is the
+          office's own list, so this is the same material a tutor would assign
+          rather than a second library. */}
+      {assigning && (
+        <Modal onClose={() => setAssigning(null)} labelledBy="assign-title" panelStyle={{ width: "min(560px, calc(100vw - 32px))", maxHeight: "min(88vh, 760px)", overflowY: "auto" }}>
+          <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span id="assign-title" style={{ display: "block", fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 800 }}>
+                  Send a booklet to {assigning.student.name}
+                </span>
+                <span style={{ display: "block", fontSize: 12, color: "var(--fg3)", marginTop: 3 }}>{assigning.cls.name}</span>
+              </span>
+              <button onClick={() => setAssigning(null)} aria-label="Close" className="btn-ghost press" style={{ width: 34, height: 34, borderRadius: 10, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, color: "var(--fg3)", flex: "none" }}>
+                <Icon path={IC.close} size={14} />
+              </button>
+            </div>
+            <div style={{ marginTop: 14 }}>
+              {CATALOGUE.filter((b) => !assigning.cls.year || b.year === assigning.cls.year).slice(0, 8).map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() => {
+                    showToast(b.name + " sent to " + assigning.student.name);
+                    setAssigning(null);
+                  }}
+                  className="list-hover press"
+                  style={{ display: "flex", width: "100%", textAlign: "left", alignItems: "center", gap: 11, padding: "11px 10px", borderRadius: 12, border: "none", background: "none", cursor: "pointer", fontFamily: "inherit", borderTop: "1px solid rgba(0,32,63,.06)" }}
+                >
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: "block", fontSize: 12.5, fontWeight: 700 }}>{b.name}</span>
+                    <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 2 }}>{b.year} {b.subject} · {b.pages} pages</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Booking a catch-up FOR a student, rather than waiting for them to ask. */}
+      {bookingCatchUp && (
+        <CatchUpModal
+          homeClass={bookingCatchUp.cls.name}
+          missedLabel={"a session of " + bookingCatchUp.cls.name}
+          options={classes
+            .filter((c) => c.delivery === "online" && c.id !== bookingCatchUp.cls.id)
+            .flatMap((c) => {
+              const wd = WEEKDAYS.findIndex((d) => c.sched.startsWith(d));
+              if (wd < 0) return [];
+              const d = new Date("2026-07-02T12:00:00");
+              while (d.getDay() !== (wd + 1) % 7) d.setDate(d.getDate() + 1);
+              return [{
+                hostClass: c.name,
+                hostClassId: c.id,
+                date: d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"),
+                dateLabel: d.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" }),
+                time: c.sched.replace(WEEKDAYS[wd], "").trim(),
+                tutor: c.tutorName,
+                seatsLeft: Math.max(0, c.capacity - c.students),
+              }];
+            })
+            .slice(0, 5)}
+          onClose={() => setBookingCatchUp(null)}
+          onRequest={(o) => {
+            requestCatchUp({
+              student: bookingCatchUp.student.name,
+              homeClass: bookingCatchUp.cls.name,
+              hostClass: o.hostClass,
+              hostClassId: o.hostClassId,
+              date: o.date,
+              time: o.time,
+            });
+            // Arranged BY the office, so it does not queue for the office.
+            const latest = pendingCatchUps().slice(-1)[0];
+            if (latest) setCatchUpStatus(latest.id, "approved");
+            setCatchUpTick((n) => n + 1);
+            setBookingCatchUp(null);
+            showToast(bookingCatchUp.student.name + " is in for " + o.hostClass);
+          }}
+        />
+      )}
+
       {viewingStudent && (
         <StudentDetailModal
           student={viewingStudent}
@@ -548,6 +681,10 @@ export default function AdminClasses() {
           onEdit={() => editClass(roll)}
           onOpenStudent={setViewingStudent}
           pctFor={pctFor}
+          canEdit={canEdit}
+          onAssign={(st) => setAssigning({ cls: roll, student: st })}
+          onCatchUp={(st) => setBookingCatchUp({ cls: roll, student: st })}
+          onRelief={() => { setRelieving(roll); setRoll(null); }}
         />
       )}
     </div>

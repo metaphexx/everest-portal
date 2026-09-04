@@ -64,6 +64,13 @@ export interface MasterTableProps<T> {
   onDelete?: (row: T) => void;
   /** Filename stem for the CSV export. Omit to hide the Export button. */
   exportName?: string;
+  /**
+   * Opens the row itself. Where a row HAS a detail view, reaching it through a
+   * pencil the size of a fingernail is the wrong target - the row is the thing
+   * being clicked at. The action buttons stop the click so they still do their
+   * own job.
+   */
+  onRowClick?: (row: T) => void;
   /** Shown when the data set itself is empty, as opposed to filtered empty. */
   emptyTitle: string;
   emptyBody: string;
@@ -83,6 +90,7 @@ export function MasterTable<T>({
   onEdit,
   onDelete,
   exportName,
+  onRowClick,
   emptyTitle,
   emptyBody,
   pageSize = 10,
@@ -210,7 +218,12 @@ export function MasterTable<T>({
                 const id = idOf(row);
                 const st = statusOf ? statusOf(row) : null;
                 return (
-                  <tr key={id} className="list-hover">
+                  <tr
+                    key={id}
+                    className="list-hover"
+                    onClick={onRowClick ? () => onRowClick(row) : undefined}
+                    style={onRowClick ? { cursor: "pointer" } : undefined}
+                  >
                     {numbered && (
                       <td style={{ padding: "12px 14px", borderBottom: "1px solid rgba(0,32,63,.05)", fontSize: 12, fontWeight: 700, color: "var(--fg4)", whiteSpace: "nowrap" }}>{from + i + 1}</td>
                     )}
@@ -229,7 +242,10 @@ export function MasterTable<T>({
                       </td>
                     )}
                     {hasActions && (
-                      <td style={{ padding: "12px 14px", borderBottom: "1px solid rgba(0,32,63,.05)", whiteSpace: "nowrap", textAlign: "right" }}>
+                      <td
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ padding: "12px 14px", borderBottom: "1px solid rgba(0,32,63,.05)", whiteSpace: "nowrap", textAlign: "right" }}
+                      >
                         {confirming === id ? (
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                             <span style={{ fontSize: 11.5, color: "var(--fg3)" }}>Delete this?</span>
