@@ -78,12 +78,15 @@ assuming a logic bug.
 | Path | What it holds |
 |---|---|
 | `src/main.tsx`, `src/App.tsx` | Entry + the full route table (`[id]` → `:id`, route groups → layout routes) |
-| `app/(student)/**` | 14 student pages |
-| `app/tutor/**` | 15 tutor pages |
+| `app/(student)/**` | 15 student pages |
+| `app/tutor/**` | 18 tutor pages |
+| `app/admin/**` | 13 office pages, mounted twice: `/admin` is Manager, `/staff` is the print desk (Admin). Same shell, different nav |
 | `app/**/layout.tsx` | Mounts the providers + shell around an `<Outlet />` |
 | `app/globals.css` | **All** design tokens in `:root` + the shared classes (`.glass-card`, `.btn-*`, `.field`, motion keyframes). Nothing visual is hardcoded elsewhere |
 | `components/portal/**` | Student shell, sidebar, header, Elliot FAB, preview modal, toasts |
 | `components/tutor/**` | Tutor shell, sidebar/header, booklet picker, stats panel, attendance |
+| `components/admin/**` | Office shell, sidebar/header, `MasterTable` + `MasterEditModals` (all 14 Master Records tabs), block/roll-over/relief/student modals |
+| `components/messaging/**` | Shared thread list, composer and message parts |
 | `components/ui/**` | Primitives: `Modal`, `Icon`, `LineChart`, `Link`, `ImageSlot` |
 | `lib/router.tsx`, `components/ui/Link.tsx` | Thin shims giving pages a Next-style `useRouter/usePathname/useSearchParams/useParams` and an `href`-based `<Link>` over React Router. **Keep or unwind - your call**, but if you unwind them, do it in one pass |
 | `lib/*.ts(x)` | State, data and logic - see below |
@@ -98,6 +101,24 @@ Each is a React context persisted to one localStorage key. **This table is the p
 | `lib/tutor-store.tsx` | `useTutor()` | `evr-tutor` | Tutor state: booklet cart + requests, working mode, attendance, digital-pack assignments, marking submissions, calendar cursor | Booklet pipeline, attendance, marking, assignment endpoints |
 | `lib/messaging.tsx` | `useMessaging()` | `evr-messaging` | Threads, messages, delivery status, read receipts, attachments, moderation holds | Messaging service + moderation pipeline |
 | `lib/classroom.tsx` | `useClassroom()` | `evr-classroom` | Class posts, replies, pins, attachments/links | Classroom feed endpoints |
+| `lib/admin-store.tsx` | `useAdmin()` | `evr-admin-*` (see below) | Office state: booklet approvals, scheduled classes, Master Records patches/adds/deletes, file recalls, reminders, attendance hydrated from the tutor blob | Office/CRM endpoints |
+
+The office writes to more than one key, and modules outside the provider read them
+directly. That is the established pattern here, not an accident - `lib/block.ts`,
+`lib/class-changes.ts` and `lib/booklet-access.ts` all read localStorage at render
+time so the tutor and student portals see office decisions without a provider
+dependency. The keys:
+
+| Key | Holds |
+|---|---|
+| `evr-admin-requests` | Booklet request decisions. **Approved means printed** - there is no separate printed state |
+| `evr-admin-masters` | Master Records edits, as patches keyed by row id (students are keyed by name) |
+| `evr-admin-master-adds` / `evr-admin-master-deletes` | Rows the office added / removed |
+| `evr-admin-scheduled` | Classes and block sessions the office created |
+| `evr-admin-classes` / `evr-admin-sessions` | Edits overlaid on seeded classes and sessions |
+| `evr-block-added` / `evr-block-enrolment` | Office-created blocks and their per-slot rosters |
+| `evr-class-leavers` / `evr-class-relief` / `evr-class-catchups` | What happens to a class after setup |
+| `evr-admin-file-actions` / `evr-admin-nudges` | File recalls and reminders sent |
 
 Cross-portal "sync" is `lib/live-sync.ts`: each portal reads the other's blob and both listen for
 the browser `storage` event. **That is the entire sync layer** - it is a demo device, not a
@@ -126,6 +147,10 @@ implementation.**
 | `elliotAgent(text, ctx)` | `lib/elliot-agent.ts` | Elliot's agentic plan: navigate / submit / raise support |
 | `bookletSeries(requests, courseId?, mode)` | `lib/booklet-stats.ts` | Tracker maths. `mode` is `cumulative` or `weekly`; counts **individual printed copies** (sums `qty`), not requests |
 | `bookletStatusFromRequest(req)` | `lib/tutor-data.ts` | The class booklet pill. **Derivation order matters:** printing completed/failed → approval rejected/approved → requested |
+| `attendanceHistory(...)`, `summarise(...)` | `lib/attendance-history.ts` | The sessions behind a percentage. Tutor marks always win; unmarked past sessions are inferred and labelled "not marked". `late` counts as attended on both sides |
+| `canAssignToAnyStudent(tutor)` | `lib/booklet-access.ts` | The Booklet Drive Map's per-tutor "Any student" grant, and the roster it widens to |
+| `slotsFor`, `blockForStudent`, `patchSlotRoster` | `lib/block.ts` | Core blocks. **The roster lives on the slot, never the class** |
+| `dateKey(d)` | `lib/admin-schedule.ts` | A Date as a day key, from local parts. **Never use `toISOString()` for this** - it rolls the day back anywhere ahead of UTC |
 | `seed*()` in `lib/data.ts`, `lib/tutor-data.ts` | | The fixture data every screen renders against |
 
 **Cost posture is part of the contract** (`lib/store.tsx`): search is debounced 200ms; Elliot is
@@ -135,13 +160,17 @@ models.
 
 ## 7. Deliberately not wired - do not chase these as bugs
 
-There are **12** controls that call `notWired(label)` and intentionally show a toast instead of
-acting. They are placeholders for things that need a backend:
+There are **18** distinct controls that call `notWired(label)` and intentionally show a toast
+instead of acting. They are placeholders for things that need a backend:
 
-- **Sign out** (both portals) · **Calling** (student support) · **Opening the live classroom**
+- **Sign out** and **Account menu** (all three portals) - auth is not wired
+- **Calling** (student support) · **Join the class** / **Opening the live classroom** /
+  **Play recording** - no video backend
 - Student: file attachments + voice input in Elliot chat; grade exports; worksheet/file downloads
   from My Grades; download of the student's own submitted file in My Drive
-- Tutor: uploading to My Drive; opening a submission file in Marking
+- Tutor: uploading to My Drive; opening a submission file in Marking; the locked safeguarding
+  toggle (which is locked on purpose)
+- Office: **Change photo** and **Replace booklet** - both need real file upload
 
 Everything else is genuinely functional against the mock layer. `grep -rn "notWired(" app components`
 gives you the current list at any time. **If a control does nothing in your build, check this list

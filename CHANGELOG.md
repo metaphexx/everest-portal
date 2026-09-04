@@ -4,6 +4,150 @@ Updates made to the prototype after the initial handoff. Each entry is part of t
 specification: the production build must include it. See `HANDOFF.md` for the full
 system description and `DESIGN-FIDELITY.md` for the UI contract.
 
+## 2026-09-05 - The office portal: two roles, real blocks, and a class that has a life
+
+Everything below is spec. This is the largest block of work since the initial
+handoff and it is almost all office-side: the manager and print views, core
+blocks, terms and re-enrolment, and the things that happen to a class after it
+has been set up. Grouped by area; `git log` carries the reasoning per change.
+
+### The office is two roles, not one
+
+- `/admin` is **Manager** (everything) and `/staff` is **Admin**, the print desk.
+  Both are the same shell with a different nav, read from `lib/admin-role.tsx`.
+- The print role has **no Schedule page**. It gets a calendar on Classes instead,
+  because without one it had no way to ask what runs on a Thursday.
+- The print role can open a roll and sees names, year and attendance. It does
+  **not** see parent contact details, and a name there does not open a record
+  full of them. That restriction is deliberate - do not relax it by reusing the
+  manager's student modal on the print side.
+- Both surfaces carry `public/admin-portal-logo.png` in the sidebar and the phone
+  bar, the same way the student and tutor portals carry theirs.
+
+### Core blocks
+
+A core block is one class that runs three subjects back to back in one sitting
+(Year 8 Core Block: Maths, then Science, then English, Wednesdays 4-7pm).
+
+- **The roster lives on the slot, never the class.** A student takes Maths and
+  Science but not English, so a block-level roster cannot express enrolment.
+  Everything downstream - the roll, attendance, materials - resolves per slot.
+  `lib/block.ts` owns this.
+- **New core block** is one screen. It asks which year, which date, who teaches
+  and who is in it, and derives the rest: subjects come from the year group,
+  slots chain off the start time, the run length comes from the term, and the
+  enrolment grid is on the same screen with everyone pre-ticked. It refuses a
+  year group with fewer than two active subjects.
+- Creating a block asks for the **first session's date**, not a weekday. The day
+  comes off the date and the run goes from there to the end of term, so starting
+  in week seven makes four sessions rather than insisting on ten.
+- The student half now exists. `blockForStudent()` resolves whichever block the
+  student is actually in; the page used to name `block11` in code, so a block the
+  office built was invisible to every student in it.
+
+### A run belongs to a term, and terms restart
+
+- Classes used to repeat weekly and never stop. A run now carries a term id and
+  each card shows its real end date. A seeded class with no run shows nothing,
+  which is the honest state rather than a borrowed date.
+- **Start next term** is on every class. Everyone is ticked; untick whoever is
+  not returning. For a block the ticks are per subject.
+- Rolling over **does not clone the class**. One class, new run. Both terms'
+  sessions stay on the calendar and last term's enrolment ticks are cleared.
+
+### What happens to a class after setup
+
+`lib/class-changes.ts` owns all three, and both portals read it.
+
+- **Leaving is recorded, not deleted.** Attendance and submissions were always
+  stored per student rather than per class, but the roster was the only thing
+  listing them, so removing someone put their history out of reach. The tutor's
+  class page keeps a **Past students** section.
+- **Relief is its own record.** Overwriting the tutor's name loses the fact that
+  they are still the tutor. Only the covered sessions read "Grace Lin (relief)",
+  and a class's own tutors are not offered as cover for themselves.
+- **Catch-ups change no enrolment.** A student picks a session that week with a
+  free seat, the office approves, and they appear on that one roll marked
+  CATCHING UP. A block's roll is per slot but a catch-up is arranged against the
+  class, so it resolves through the owning course.
+
+### Attendance has a history behind the percentage
+
+- The office could only show a percentage. Clicking a student on any roll now
+  opens their record - year, own email, parent and both parent contacts, classes,
+  status, and the sessions the percentage is made of. Phone and email are
+  click-to-use.
+- Tutor marks are hydrated and **always win**. Unmarked past sessions are filled
+  in deterministically and labelled "not marked", so a register the tutor took is
+  never confused with one inferred from the running total.
+- The roll's percentage is computed from that same history. `late` counts as
+  attended on both sides; they used to disagree by a point or two.
+
+### Booklet requests and approval
+
+- Booklet Requests opens on **today**. The office works a day at a time.
+- **Approving prints.** There is no separate mark-as-printed step and no queue of
+  approved-but-unticked jobs: the office approves a job at the printer it is
+  about to run it on. An approved card offers Open and Reprint.
+- **Approve all** takes the day in one go, as a single write. Looping the
+  single-request approve closes over a stale snapshot, so five calls each rewrote
+  the same one and all but one decision was lost.
+- A request row opens the request. The row actions stop the click so they still
+  do their own job. Print History lists the tutor who raised each job.
+
+### Master Records
+
+Fourteen tabs, and an audit of all fourteen confirms Add opens a real dialog on
+every one, with Edit, Delete and Export throughout. Nothing there is a stub.
+
+- Edits are stored as patches keyed by row id (`evr-admin-masters`), additions in
+  `evr-admin-master-adds`, removals in `evr-admin-master-deletes`. **A tab that
+  renders its seed array directly will show an edit being saved and then thrown
+  away** - read through the merge helper, not the seed.
+- The seat cap was invented in three places as `online ? 12 : 16`. It is now one
+  default in one place plus an editable **Seats** field, so a class that takes 20
+  says 20. Seats cannot drop below the current roll.
+- Editing a class deliberately excludes year, subject and delivery. That is a new
+  class, not an edit - every roll and request attached to the id would silently
+  change meaning.
+
+### The Booklet Drive Map grant
+
+- The per-tutor tick is **"Any student"**. Ticked, a tutor can assign from that
+  folder to any student, not only their own, and hand the whole folder to a
+  class. Unticked, their own students only. It was stored and displayed and read
+  by nothing before this, so it granted precisely nothing.
+- `lib/booklet-access.ts` is the side that reads it. The booklet picker grows a
+  **Students outside your classes** section naming the folders the reach came
+  from; without the grant the section does not exist.
+- A whole folder can be selected at once, so a module goes to a class in one
+  action rather than one tick per file.
+- **Trial students are marked on the tutor's roster and roll.** The office held
+  that status and the tutor never saw it, which is backwards for the one status
+  the tutor is most of the decision on.
+
+### Copy: the app had been explaining itself
+
+A subtraction pass, not a rewrite. Cut: fourteen modal subtitles that only
+defined the noun in the title, three separate monitoring notices, two support
+replies promising different response times, and every aside that argued for the
+design rather than telling the office anything. Removed outright: the AI badge on
+the search box, the LIVE pill on a list of live classes, and the MEET ROOM READY
+pill sitting above a visible Meet link - none ever showed a second value.
+
+### Traps this work uncovered - read these before you port
+
+- **Never serialise a constructed date with `toISOString()`.** Dates here are
+  built and walked forward in local time; `toISOString()` converts to UTC first,
+  which rolls the day back anywhere ahead of UTC. Perth included. Use
+  `dateKey(d)` from `lib/admin-schedule.ts`.
+- **A bulk action must be one write.** Any handler that closes over a state
+  snapshot will clobber itself if you loop it.
+- **The `storage` event only fires in other tabs.** Same-tab cross-portal updates
+  need the `evr-sync` custom event.
+- **After a route or data change, verify on a fresh tab.** Stale HMR modules
+  produce console errors that are not real.
+
 ## 2026-08-15 - Marking, assigning, tutor Elliot, and the phone header
 
 Everything below is spec. Grouped by area rather than by commit; `git log` carries
