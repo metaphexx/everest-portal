@@ -3,7 +3,7 @@
 // request approved is searchable immediately.
 
 import { Indexable, rank } from "./search-core";
-import { ADMIN_NAV, SAFEGUARDING, STAFF, allClasses, allStudents } from "./admin-data";
+import { SAFEGUARDING, STAFF, allClasses, allStudents } from "./admin-data";
 import { BookletRequest, CATALOGUE } from "./tutor-data";
 import type { AdminRole } from "./admin-role";
 

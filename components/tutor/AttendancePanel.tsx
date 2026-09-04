@@ -18,6 +18,7 @@ import React from "react";
 import { useTutor } from "@/lib/tutor-store";
 import { ATTENDANCE_META, AttendanceStatus, BLOCK8_SESSIONS, TUTOR_COURSES, TutorCourseId, rosterFor } from "@/lib/tutor-data";
 import { catchUpsOn } from "@/lib/class-changes";
+import { trialStudents } from "@/lib/booklet-access";
 
 const ORDER: AttendanceStatus[] = ["present", "late", "absent", "excused"];
 
@@ -49,6 +50,7 @@ export function AttendancePanel({ sessionId, dateKey, accent }: { sessionId: str
   }));
   const roster = [...enrolled, ...visiting.filter((v) => !enrolled.some((e) => e.name === v.name))];
   const isVisiting = (name: string) => visiting.some((v) => v.name === name);
+  const onTrial = trialStudents();
 
   const auto = resolveAuto(sessionId, dateKey);
   const autoRecord = auto ? autoAttendance(auto.courseId, auto.sessionISO) : {};
@@ -89,6 +91,11 @@ export function AttendancePanel({ sessionId, dateKey, accent }: { sessionId: str
             <span style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(0,32,63,.06)", color: accent ?? "var(--accent-navy-blue)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9.5, fontWeight: 700, flex: "none" }}>{s.init}</span>
             <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: cur === "absent" ? "var(--fg4)" : "var(--fg1)" }}>{s.name}</span>
+              {onTrial.has(s.name) && (
+                <span title="On a trial" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 0.3, color: "var(--warn-700)", background: "rgba(245,166,35,.16)", padding: "2px 7px", borderRadius: 980, flex: "none" }}>
+                  TRIAL
+                </span>
+              )}
               {isVisiting(s.name) && (
                 <span title="Catching up from another class" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 0.3, color: "var(--brand-600)", background: "rgba(0,157,255,.12)", padding: "2px 7px", borderRadius: 980, flex: "none" }}>
                   CATCHING UP

@@ -12,6 +12,7 @@ import {
   DriveFile,
   MATERIAL_KIND_META,
   MaterialKind,
+  TUTOR,
   TUTOR_COURSES,
   TUTOR_COURSE_ORDER,
   TutorCourseId,
@@ -21,6 +22,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
 import { OfficeVisibilityNotice } from "@/components/tutor/OfficeVisibilityNotice";
 import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";
+import { canAssignToAnyStudent, grantedFolders, studentsOutsideOwnClasses } from "@/lib/booklet-access";
 
 const ONLINE_COURSE_IDS = (Object.keys(TUTOR_COURSES) as TutorCourseId[]).filter((id) => TUTOR_COURSES[id].delivery === "online");
 
@@ -147,6 +149,22 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
   // digital assignment would go to nobody - those classes get printed booklets
   // through Study Materials instead.
   const assignCourseIds = TUTOR_COURSE_ORDER.filter((cid) => TUTOR_COURSES[cid].delivery === "online");
+
+  /**
+   * Students outside the tutor's own classes.
+   *
+   * Only offered when the office has ticked "any student" against them on a
+   * booklet folder. Without that grant a tutor reaches their own roll and
+   * nothing else, which is the default and the safe one.
+   */
+  const anyStudent = canAssignToAnyStudent(TUTOR.name);
+  const outsideStudents = useMemo(() => {
+    if (!open || !anyStudent) return [];
+    // Their own students are anyone on any of their rolls, in person included.
+    const mine = TUTOR_COURSE_ORDER.flatMap((cid) => TUTOR_COURSES[cid].students.map((st) => st.name));
+    return studentsOutsideOwnClasses(TUTOR.name, mine);
+  }, [open, anyStudent]);
+  const grantSource = useMemo(() => (anyStudent ? grantedFolders(TUTOR.name) : []), [anyStudent]);
   const toggleCourseOpen = (cid: string) =>
     setOpenCourseIds((s) => {
       const n = new Set(s);
@@ -218,6 +236,16 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
 
   const searchResults = useMemo(() => (mode === "search" ? searchDrive(query) : []), [mode, query]);
   const folderFiles = useMemo(() => DRIVE_FILES.filter((f) => f.folderId === activeFolder), [activeFolder]);
+  // A folder often is the unit of work - a whole module handed to a class at
+  // once - so ticking it file by file is busywork.
+  const folderAllSelected = folderFiles.length > 0 && folderFiles.every((f) => selected.has(f.id));
+  const toggleWholeFolder = () =>
+    setSelected((prev) => {
+      const n = new Set(prev);
+      if (folderAllSelected) folderFiles.forEach((f) => n.delete(f.id));
+      else folderFiles.forEach((f) => n.add(f.id));
+      return n;
+    });
   const folderById = useMemo(() => new Map(DRIVE_FOLDERS.map((f) => [f.id, f])), []);
 
   if (!open) return null;
@@ -275,7 +303,7 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
           <div style={{ flex: 1, minWidth: 0 }}>
             <div id="booklet-picker-title" style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 800, letterSpacing: -0.3 }}>Assign materials</div>
             <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 4, lineHeight: 1.45 }}>
-              Search or browse the linked Drive, then assign to an online class or one of its students. In-person classes order printed booklets from Study Materials instead.
+              Search or browse the linked Drive, then assign a file or a whole folder to an online class{anyStudent ? ", one of its students, or any other student the office has given you" : " or one of its students"}. In-person classes order printed booklets from Study Materials instead.
             </div>
           </div>
           <button onClick={handleClose} aria-label="Close" className="btn-ghost ev-tap" style={{ width: 32, height: 32, borderRadius: 9, fontSize: 14, lineHeight: 1, flex: "none", background: "#fff" }}>
@@ -383,6 +411,19 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
                 );
               })}
             </div>
+            {folderFiles.length > 0 && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 6 }}>
+                <span style={{ fontSize: 11.5, color: "var(--fg4)" }}>
+                  {folderFiles.length} {folderFiles.length === 1 ? "file" : "files"} in this folder
+                </span>
+                <button
+                  onClick={() => toggleWholeFolder()}
+                  style={{ height: 26, padding: "0 11px", borderRadius: 980, border: "1px solid rgba(0,32,63,.1)", background: folderAllSelected ? "rgba(0,157,255,.16)" : "rgba(255,255,255,.7)", color: folderAllSelected ? "var(--brand-600)" : "var(--fg2)", fontFamily: "inherit", fontSize: 11.5, fontWeight: 700, cursor: "pointer", flex: "none" }}
+                >
+                  {folderAllSelected ? "Clear folder" : "Whole folder"}
+                </button>
+              </div>
+            )}
             <div style={{ maxHeight: 260, overflowY: "auto" }}>
               {folderFiles.map((file) => (
                 <FileRow key={file.id} file={file} selected={selected.has(file.id)} onToggle={() => toggleFile(file.id)} onPreview={() => setPreview(file)} />
@@ -454,6 +495,33 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
                   </div>
                 );
               })}
+
+              {outsideStudents.length > 0 && (
+                <div style={{ borderRadius: 12, border: "1px solid rgba(0,157,255,.25)", background: "rgba(0,157,255,.05)", padding: "10px 12px 11px" }}>
+                  <div style={{ fontSize: 11.5, fontWeight: 700, marginBottom: 2 }}>Students outside your classes</div>
+                  <div style={{ fontSize: 11, color: "var(--fg4)", marginBottom: 8 }}>
+                    {grantSource.length > 0
+                      ? "The office lets you assign " + grantSource.join(", ") + " to any student, not only your own."
+                      : "The office lets you assign to any student, not only your own."}
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {outsideStudents.map((st) => {
+                      const on = targets.some((t) => t.kind === "student" && t.studentId === st.name);
+                      return (
+                        <button
+                          key={st.name}
+                          onClick={() => selectTarget(effectiveCourseId as TutorCourseId, { kind: "student", studentId: st.name, studentName: st.name })}
+                          aria-pressed={on}
+                          title={on ? "Tap to unselect " + st.name : "Assign to " + st.name}
+                          style={chipStyle(on)}
+                        >
+                          {st.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { usePortal } from "@/lib/store";
-import { ACCENT, EVENTS, STUDENT, TITLE_TO_CID } from "@/lib/data";
+import { EVENTS, STUDENT, TITLE_TO_CID } from "@/lib/data";
 import { DOWS_MON, monthGrid, monthLabel, todayKey } from "@/lib/calendar";
 import { planFor } from "@/lib/block";
 import { catchUpsFor, displayDate, requestCatchUp } from "@/lib/class-changes";

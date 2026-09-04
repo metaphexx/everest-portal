@@ -6,7 +6,6 @@
 
 import React, { useState } from "react";
 import { Assessment, Outline, outlineAverage, scoreToPct } from "@/lib/features";
-import { Icon } from "@/components/ui/Icon";
 
 export function AverageChip({ assessments }: { assessments: Assessment[] }) {
   const avg = outlineAverage(assessments);

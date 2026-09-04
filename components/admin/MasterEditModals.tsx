@@ -1360,7 +1360,7 @@ export function SubjectDriveModal({
  * A booklet folder and the tutors it is shared with.
  *
  * The per-tutor "allow all students" flag is the part that matters: it decides
- * whether a tutor may hand the whole folder to a class or only individual files
+ * whether a tutor may assign from it to any student or only their own
  * from it, and it is set per person, so it belongs in a row per person rather
  * than as one switch on the folder.
  */
@@ -1457,14 +1457,14 @@ export function BookletDriveModal({
                       type="button"
                       role="checkbox"
                       aria-checked={r.allowAllStudents}
-                      aria-label={"Let " + r.name + " give this folder to all their students"}
+                      aria-label={"Let " + r.name + " assign from this folder to any student"}
                       onClick={() => setRows((v) => v.map((x) => (x.name === r.name ? { ...x, allowAllStudents: !x.allowAllStudents } : x)))}
                       className="press"
                       style={{ width: 22, height: 22, borderRadius: 6, flex: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", border: r.allowAllStudents ? "none" : "1.5px solid rgba(0,32,63,.18)", background: r.allowAllStudents ? "var(--brand-500)" : "transparent", color: "#fff" }}
                     >
                       {r.allowAllStudents && <Icon path={IC4.tick} size={13} />}
                     </button>
-                    <span className="ev-only-desktop">All their students</span>
+                    <span className="ev-only-desktop">Any student</span>
                   </label>
                   <button
                     onClick={() => setRows((v) => v.filter((x) => x.name !== r.name))}
@@ -1478,7 +1478,7 @@ export function BookletDriveModal({
               ))}
             </div>
             <div style={{ fontSize: 11, color: "var(--fg4)", marginTop: 7, lineHeight: 1.5 }}>
-              Ticked, a tutor can give the whole folder to a class. Unticked, they hand out single booklets from it.
+              Ticked, a tutor can assign from this folder to any student, not only their own, and hand the whole folder to a class. Unticked, their own students only.
             </div>
           </div>
         )}

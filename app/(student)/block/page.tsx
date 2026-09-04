@@ -9,7 +9,7 @@
 
 import React from "react";
 import { STUDENT } from "@/lib/data";
-import { Icon, ICON } from "@/components/portal/nav-icons";
+import { Icon } from "@/components/portal/nav-icons";
 import { usePortal } from "@/lib/store";
 import { blockForStudent, blockMeta, chaptersForStudent, hhmm, planFor, slotsFor, slotsForStudent } from "@/lib/block";
 

@@ -4,7 +4,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "@/lib/router";
-import { ChatAction, ChatMsg, usePortal } from "@/lib/store";
+import { ChatAction, usePortal } from "@/lib/store";
 import { STUDENT_ME, useMessaging } from "@/lib/messaging";
 import { elliotAgent } from "@/lib/elliot-agent";
 import { Icon } from "@/components/ui/Icon";

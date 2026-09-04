@@ -7,18 +7,7 @@
 import React, { useMemo, useState } from "react";
 import { useRouter } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
-import {
-  APPROVAL_META,
-  BookletRequest,
-  CATALOGUE,
-  CENTRES,
-  RequestItem,
-  TUTOR,
-  TUTOR_COURSES,
-  TUTOR_COURSE_ORDER,
-  centreOfPrinter,
-  driveIdFor,
-} from "@/lib/tutor-data";
+import { BookletRequest, CATALOGUE, CENTRES, RequestItem, TUTOR, TUTOR_COURSES, TUTOR_COURSE_ORDER, centreOfPrinter, driveIdFor } from "@/lib/tutor-data";
 import { ICON } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";

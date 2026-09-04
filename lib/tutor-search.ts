@@ -8,15 +8,7 @@
 // requests and submissions currently exist.
 
 import { Indexable, rank } from "./search-core";
-import {
-  CATALOGUE,
-  DRIVE_FILES,
-  BookletRequest,
-  Submission,
-  TUTOR_COURSES,
-  TUTOR_COURSE_ORDER,
-  TutorCourseId,
-} from "./tutor-data";
+import { CATALOGUE, DRIVE_FILES, BookletRequest, Submission, TUTOR_COURSES, TUTOR_COURSE_ORDER } from "./tutor-data";
 
 const PAGE = "#66707F";
 

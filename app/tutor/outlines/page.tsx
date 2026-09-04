@@ -7,17 +7,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useTutor } from "@/lib/tutor-store";
-import {
-  OutlineRosterEntry,
-  SharedOutline,
-  TUTOR_COURSES,
-  TUTOR_COURSE_ORDER,
-  TutorCourseId,
-  courseYear,
-  isReminderYear,
-  outlineRoster,
-  seedSharedOutlines,
-} from "@/lib/tutor-data";
+import { OutlineRosterEntry, SharedOutline, TUTOR_COURSES, TUTOR_COURSE_ORDER, isReminderYear, outlineRoster, seedSharedOutlines } from "@/lib/tutor-data";
 import { ICON } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
 import { Outline, outlineAverage } from "@/lib/features";

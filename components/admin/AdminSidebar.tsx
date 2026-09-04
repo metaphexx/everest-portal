@@ -117,12 +117,10 @@ export function AdminSidebar() {
         boxShadow: "inset 0 1px 0 rgba(255,255,255,.9),inset -1px 0 0 rgba(255,255,255,.45),0 14px 44px -20px rgba(0,32,63,.3)",
       }}
     >
-      {/* No admin lockup asset exists, so the wordmark carries a typeset label
-          rather than a faked script logo. */}
-      <div style={{ padding: "6px 10px 20px" }}>
+      {/* The office lockup carries its own script label, so no typeset one. */}
+      <div style={{ padding: "6px 10px 16px" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/everest-logo.png" alt="Everest Tutoring" width={400} height={126} decoding="async" style={{ width: 158, height: "auto", display: "block" }} />
-        <div style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 800, letterSpacing: 2.4, color: meta.accent, marginTop: 6 }}>{meta.portal}</div>
+        <img src="/admin-portal-logo.png" alt="Everest Tutoring - Admin Portal" width={400} height={200} decoding="async" style={{ width: 168, height: "auto", display: "block" }} />
       </div>
 
       <DrawerAccount searchPath={base + "/search"} />

@@ -4,7 +4,7 @@ import { Background } from "@/components/portal/Background";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { useAdmin } from "@/lib/admin-store";
-import { ADMIN } from "@/lib/admin-data";
+
 import { ROLE_META, useBase, useRole } from "@/lib/admin-role";
 import { Icon } from "@/components/ui/Icon";
 import { AccountMenu } from "@/components/portal/AccountMenu";
@@ -70,13 +70,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <button className="ev-hamburger" aria-label="Open menu" onClick={() => setNavOpen(true)}>
           <Icon path="M3 6h18M3 12h18M3 18h18" size={20} stroke />
         </button>
-        {/* No admin lockup exists, so the phone bar carries the wordmark with a
-            typeset label rather than a faked script logo. */}
-        <span className="ev-mobilebar-logo" style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/everest-logo.png" alt="Everest Tutoring" width={400} height={126} {...({ fetchpriority: "high" } as object)} decoding="async" style={{ width: 132, height: "auto", display: "block" }} />
-          <span style={{ fontFamily: "var(--font-display)", fontSize: 9, fontWeight: 800, letterSpacing: 2.2, color: who.accent }}>{who.portal}</span>
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="ev-mobilebar-logo" src="/admin-portal-logo.png" alt="Everest Tutoring - Admin Portal" width={400} height={200} {...({ fetchpriority: "high" } as object)} decoding="async" />
       </div>
 
       <div className="ev-sidewrap" data-open={navOpen}>

@@ -338,6 +338,17 @@ export function monthKey(y: number, m: number, d: number): string {
 /** Weekday names as the office writes them, Monday first. */
 export const DAY_NAMES = ["Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays", "Sundays"];
 
+/**
+ * A Date as a YYYY-MM-DD day key, read from its local parts.
+ *
+ * Never use toISOString() for this. Dates here are built and walked forward in
+ * local time, and toISOString() converts to UTC first, which rolls the day back
+ * anywhere ahead of UTC - Perth included.
+ */
+export function dateKey(d: Date): string {
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+}
+
 /** Every date a weekly class on `day` runs on, inside `term`. */
 export function termDates(day: string, term: { start: string; weeks: number }): string[] {
   const d = new Date(term.start);
@@ -347,9 +358,7 @@ export function termDates(day: string, term: { start: string; weeks: number }): 
   return Array.from({ length: term.weeks }, (_, i) => {
     const s = new Date(d);
     s.setDate(s.getDate() + i * 7);
-    // Built and walked forward in local time, so serialise from local parts -
-    // toISOString() would roll the date back a day anywhere ahead of UTC.
-    return s.getFullYear() + "-" + pad(s.getMonth() + 1) + "-" + pad(s.getDate());
+    return dateKey(s);
   });
 }
 

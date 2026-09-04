@@ -11,7 +11,7 @@ import { useParams } from "@/lib/router";
 import { useTutor } from "@/lib/tutor-store";
 import { CLASSROOMS, DRIVE_FILES, DRIVE_FOLDERS, MATERIAL_KIND_META, MaterialAssignment, TUTOR_COURSES, TutorCourseId, rosterFor } from "@/lib/tutor-data";
 import { Icon } from "@/components/ui/Icon";
-import { ICON } from "@/lib/data";
+
 import { BookletPicker } from "@/components/tutor/BookletPicker";
 import { ClassroomStream } from "@/components/portal/ClassroomStream";
 import { PdfPreviewModal } from "@/components/portal/PdfPreviewModal";

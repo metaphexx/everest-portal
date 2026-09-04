@@ -25,10 +25,11 @@ import { ICON } from "@/lib/data";
 import { Icon } from "@/components/ui/Icon";
 import { outlineAverage } from "@/lib/features";
 import { displayDate, leaversFor } from "@/lib/class-changes";
+import { trialStudents } from "@/lib/booklet-access";
 import { AttendancePanel } from "@/components/tutor/AttendancePanel";
 import { HandoverPanel } from "@/components/tutor/HandoverPanel";
 import { MeetReconcile } from "@/components/tutor/MeetReconcile";
-import { blockRoster, seedMeetRows, slotsFor } from "@/lib/block";
+import { blockRoster, seedMeetRows } from "@/lib/block";
 import { BookletPicker } from "@/components/tutor/BookletPicker";
 import { BookletStatsPanel } from "@/components/tutor/BookletStatsPanel";
 
@@ -86,6 +87,7 @@ export default function TutorCoursePage() {
   // Students who have left this class. Their submissions are still in
   // courseSubs, because a submission belongs to the student, not the roster.
   const leavers = leaversFor(id);
+  const onTrial = trialStudents();
   const outlines = seedSharedOutlines().filter((o) => o.course === id);
   const courseAssignments = effectiveAssignments
     .filter((a) => a.courseId === id)
@@ -342,6 +344,13 @@ export default function TutorCoursePage() {
               <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 11, padding: "8px 0", borderBottom: i < cd.students.length - 1 ? "1px solid rgba(0,32,63,.06)" : "none" }}>
                 <span style={{ width: 32, height: 32, borderRadius: "50%", background: cd.bg, color: cd.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10.5, fontWeight: 700, flex: "none" }}>{s.init}</span>
                 <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</span>
+                {/* A trial student is being decided on, and the tutor is most
+                    of that decision - they should not have to be told. */}
+                {onTrial.has(s.name) && (
+                  <span title="On a trial. The office is deciding whether they continue." style={{ fontSize: 10.5, fontWeight: 700, color: "var(--warn-700)", background: "rgba(245,166,35,.16)", padding: "3px 9px", borderRadius: 980, flex: "none" }}>
+                    Trial
+                  </span>
+                )}
                 {outline && (
                   <Link href="/tutor/outlines" title="Shared a school outline" style={{ fontSize: 10.5, fontWeight: 700, color: "var(--brand-600)", background: "rgba(0,157,255,.1)", padding: "3px 9px", borderRadius: 980, textDecoration: "none", flex: "none" }}>
                     Outline

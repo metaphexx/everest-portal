@@ -10,7 +10,7 @@ import {
   wsBase,
 } from "./data";
 import { Assessment, Outline, scanOutline, seedOutlines, subjectToCourse } from "./features";
-import { MaterialAssignment, TutorCourseId, TUTOR_COURSE_FOR } from "./tutor-data";
+import { MaterialAssignment, TUTOR_COURSE_FOR } from "./tutor-data";
 import { readTutorState } from "./live-sync";
 
 // Maya Kapoor's stable id, shared with the tutor side (lib/tutor-data.ts

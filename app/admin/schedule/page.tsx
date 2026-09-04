@@ -12,7 +12,7 @@ import { Icon } from "@/components/ui/Icon";
 import { DayList, MonthCalendar } from "@/components/admin/MonthCalendar";
 import { ClassFormModal, ClassFormValues, WEEKDAYS, to24, toDisplay } from "@/components/admin/ClassFormModal";
 import { ClassViewModal } from "@/components/admin/ClassViewModal";
-import { AdminSession, allSessions, applySessionPatches, centreStyle, needsRequest } from "@/lib/admin-schedule";
+import { AdminSession, allSessions, applySessionPatches, centreStyle, needsRequest, dateKey } from "@/lib/admin-schedule";
 import { BOOKLET_META } from "@/lib/tutor-data";
 import { addBlock, slotsFor } from "@/lib/block";
 import { AdminStudent, allClasses, allStudents } from "@/lib/admin-data";
@@ -191,7 +191,7 @@ export default function AdminSchedule() {
             for (let i = 0; i < n; i++) {
               const d = new Date(v.day + "T12:00:00");
               d.setDate(d.getDate() + i * 7);
-              addScheduledClass({ ...base, k: d.toISOString().slice(0, 10), ...(n > 1 ? { session: i + 1 } : {}) });
+              addScheduledClass({ ...base, k: dateKey(d), ...(n > 1 ? { session: i + 1 } : {}) });
             }
           }}
         />

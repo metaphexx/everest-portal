@@ -13,7 +13,7 @@
 
 import React from "react";
 import { Icon } from "@/components/ui/Icon";
-import { BlockSession, Handover, handoverAt, hourOf, lingerers, slotAt, slotsFor } from "@/lib/block";
+import { Handover, handoverAt, hourOf, lingerers, slotAt, slotsFor } from "@/lib/block";
 import { useTutor } from "@/lib/tutor-store";
 
 const IC = {
