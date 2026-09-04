@@ -53,6 +53,8 @@ export interface AdminSession {
   session?: number;
   /** Whole-session length. Only the tutor-side courses declare one; the rest run an hour. */
   durationMins?: number;
+  /** The term this run belongs to. A class repeats weekly and stops at its end. */
+  termId?: string;
 }
 
 /**
@@ -312,4 +314,36 @@ export function needsRequest(s: AdminSession): boolean {
 
 export function monthKey(y: number, m: number, d: number): string {
   return y + "-" + pad(m + 1) + "-" + pad(d);
+}
+
+// ---------------------------------------------------------------------------
+// Term-bounded runs
+//
+// A class repeats weekly and then STOPS, at the end of the term it belongs to.
+// Both the setup form and the roll-over need the same list of dates out of a
+// term, so it is worked out in one place rather than twice with a drift
+// between them.
+// ---------------------------------------------------------------------------
+
+/** Weekday names as the office writes them, Monday first. */
+export const DAY_NAMES = ["Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays", "Sundays"];
+
+/** Every date a weekly class on `day` runs on, inside `term`. */
+export function termDates(day: string, term: { start: string; weeks: number }): string[] {
+  const d = new Date(term.start);
+  if (Number.isNaN(d.getTime())) return [];
+  const target = (DAY_NAMES.indexOf(day) + 1) % 7; // DAY_NAMES is Monday-first, getDay() is Sunday-first
+  while (d.getDay() !== target) d.setDate(d.getDate() + 1);
+  return Array.from({ length: term.weeks }, (_, i) => {
+    const s = new Date(d);
+    s.setDate(s.getDate() + i * 7);
+    // Built and walked forward in local time, so serialise from local parts -
+    // toISOString() would roll the date back a day anywhere ahead of UTC.
+    return s.getFullYear() + "-" + pad(s.getMonth() + 1) + "-" + pad(s.getDate());
+  });
+}
+
+/** The weekday a "Wednesdays 4:00pm" style schedule string runs on. */
+export function dayOfSched(sched: string): string {
+  return DAY_NAMES.find((d) => sched.startsWith(d)) ?? DAY_NAMES[2];
 }

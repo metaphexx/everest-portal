@@ -17,38 +17,13 @@ import { DELIVERY_META } from "@/lib/tutor-data";
 import { TERMS } from "@/lib/admin-masters";
 import { centreStyle } from "@/lib/admin-schedule";
 import { BlockEnrolment } from "@/components/admin/BlockEnrolment";
-import { addBlock, isBlock, slotsFor } from "@/lib/block";
+import { addBlock, blockMeta, isBlock, rollBlock, slotsFor } from "@/lib/block";
 import { NewBlockModal } from "@/components/admin/NewBlockModal";
+import { RollOverModal } from "@/components/admin/RollOverModal";
 
-/**
- * A block does not (yet) store which term it belongs to, so "the current term"
- * and "the next one" are read straight off the Term records rather than off
- * the block itself - true for the seeded demo, and the first thing to fix
- * properly once a block is a real, persisted record rather than a seed.
- */
-function currentTerm() {
-  return TERMS.find((t) => t.state === "ongoing") ?? null;
-}
-function nextTerm() {
-  return TERMS.find((t) => t.state === "upcoming") ?? null;
-}
-
-/** The first date on or after `fromDisplay` (e.g. "12 Oct 2026") that falls on `weekday` (e.g. "Wednesdays"). */
-function firstWeekdayOnOrAfter(weekday: string, fromDisplay: string): string {
-  const idx = WEEKDAYS.indexOf(weekday);
-  const d = new Date(fromDisplay);
-  if (idx >= 0 && !Number.isNaN(d.getTime())) {
-    // WEEKDAYS is Monday-first; Date.getDay() is Sunday-first.
-    const target = (idx + 1) % 7;
-    while (d.getDay() !== target) d.setDate(d.getDate() + 1);
-  }
-  // toISOString() would convert to UTC first, rolling the date back a day in
-  // any timezone ahead of UTC - d is built and walked forward in local time,
-  // so it has to be serialised from its local components too.
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+/** Terms a class can be started in: anything not already finished. */
+function openTerms() {
+  return TERMS.filter((t) => t.state !== "finished");
 }
 
 const IC = {
@@ -141,9 +116,13 @@ export default function AdminClasses() {
   // on the page named Classes.
   const classes = useMemo(() => {
     const seeded = allClasses().map((c) => ({ ...c, ...classPatches[c.id] }));
+    // A scheduled session belonging to a class that already exists is one of
+    // that class's runs, not a second class - starting Year 11 Chemistry again
+    // must not put a second Year 11 Chemistry card on the page.
+    const known = new Set(seeded.map((c) => c.id));
     const byClass = new Map<string, AdminClass>();
     for (const s of scheduled) {
-      if (byClass.has(s.courseId)) continue;
+      if (byClass.has(s.courseId) || known.has(s.courseId)) continue;
       byClass.set(s.courseId, {
         id: s.courseId,
         name: s.className,
@@ -193,6 +172,16 @@ export default function AdminClasses() {
     const ql = q.trim().toLowerCase();
     return !ql || (c.name + " " + c.tutorName + " " + c.year).toLowerCase().includes(ql);
   });
+
+  /**
+   * The term a class's current run belongs to. A block carries its own; an
+   * office-scheduled class carries it on its sessions. A seeded class has
+   * never been given a run, so it has no end date until it is started.
+   */
+  const termOf = (cls: AdminClass) => {
+    const id = blockMeta(cls.id)?.termId ?? scheduled.find((s) => s.courseId === cls.id && s.termId)?.termId;
+    return TERMS.find((t) => t.id === id) ?? null;
+  };
 
   const centres = ["All", "Online", ...CENTRES];
   const seatsLeft = shown.reduce((n, c) => n + Math.max(0, c.capacity - c.students), 0);
@@ -271,26 +260,6 @@ export default function AdminClasses() {
                       <span style={{ color: "var(--fg4)" }}>{s.start} · {s.students.length} on roll</span>
                     </div>
                   ))}
-                  {/* A block runs for a term, not forever - it stops rather
-                      than silently continuing, because who is in which
-                      subject is exactly the thing a new term changes. */}
-                  {currentTerm() && (
-                    <div style={{ fontSize: 10.5, color: "var(--fg4)", marginTop: 7, paddingTop: 7, borderTop: "1px solid rgba(0,157,255,.14)" }}>
-                      Runs to the end of {currentTerm()!.name} ({currentTerm()!.end})
-                      {nextTerm() && canEdit && (
-                        <>
-                          {" · "}
-                          <button
-                            onClick={() => setRollingOver(c)}
-                            className="ev-tap-link"
-                            style={{ border: "none", background: "none", padding: 0, font: "inherit", fontWeight: 700, color: "var(--brand-600)", cursor: "pointer" }}
-                          >
-                            Roll over to {nextTerm()!.name}
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -308,10 +277,26 @@ export default function AdminClasses() {
                 </div>
               </div>
 
+              {/* A class repeats weekly and then stops, at the end of the term
+                  it belongs to. Saying which date that is here is what turns
+                  "it just runs" into something the office can plan around. */}
+              {(() => {
+                const t = termOf(c);
+                if (!t) return null;
+                return (
+                  <div style={{ fontSize: 10.5, color: "var(--fg4)", marginTop: 10, paddingTop: 8, borderTop: "1px solid rgba(0,32,63,.07)" }}>
+                    Runs weekly to {t.end} ({t.name})
+                  </div>
+                );
+              })()}
+
               {canEdit && (
                 <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
                   <button onClick={() => setRoll(c)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
                     View the roll
+                  </button>
+                  <button onClick={() => setRollingOver(c)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
+                    Start next term
                   </button>
                   {isBlock(c.id) && (
                     <button onClick={() => setEnrolling(c.id)} className="btn-soft press ev-tap-h" style={{ height: 34, padding: "0 13px", borderRadius: 10, fontSize: 11.5, fontWeight: 700 }}>
@@ -373,7 +358,7 @@ export default function AdminClasses() {
         <NewBlockModal
           onClose={() => setBuildingBlock(false)}
           onCreate={(b) => {
-            addBlock(b.courseId, { name: b.name, day: b.day, start: toDisplay(b.start) }, b.slots.map((s) => ({ ...s, start: toDisplay(s.start), end: toDisplay(s.end) })));
+            addBlock(b.courseId, { name: b.name, day: b.day, start: toDisplay(b.start), termId: b.termId }, b.slots.map((s) => ({ ...s, start: toDisplay(s.start), end: toDisplay(s.end) })));
             for (let i = 0; i < b.dates.length; i++) {
               addScheduledClass({
                 k: b.dates[i],
@@ -387,6 +372,7 @@ export default function AdminClasses() {
                 durationMins: b.slots.length * 60,
                 booklet: null,
                 session: i + 1,
+                termId: b.termId,
               });
             }
             setBuildingBlock(false);
@@ -394,54 +380,38 @@ export default function AdminClasses() {
         />
       )}
 
-      {rollingOver && (() => {
-        const slots = slotsFor(rollingOver.id);
-        const target = nextTerm();
-        if (!target) return null;
-        return (
-          <ClassFormModal
-            mode="create"
-            scope="session"
-            subtitle={"Carried over from " + rollingOver.name + ". Review the roster and slots before confirming."}
-            initial={{
-              title: rollingOver.name,
-              course: rollingOver.name,
-              subject: slots[0]?.subject,
-              day: firstWeekdayOnOrAfter(WEEKDAYS.find((d) => rollingOver.sched.startsWith(d)) ?? WEEKDAYS[3], target.start),
-              start: to24(rollingOver.sched),
-              end: slots.length ? to24(slots[slots.length - 1].end) : undefined,
-              repeat: "weekly",
-              weeks: target.weeks,
-              tutors: rollingOver.tutorName.split(",").map((t) => t.trim()).filter(Boolean),
-              students: classPatches[rollingOver.id]?.studentNames ?? rollNames(rollingOver),
-              link: classPatches[rollingOver.id]?.link ?? "",
-              slots: slots.map((s) => ({ subject: s.subject, start: to24(s.start), end: to24(s.end), tutor: s.tutor })),
-            }}
-            onClose={() => setRollingOver(null)}
-            onSubmit={(v) => {
-              const n = v.weeks;
-              for (let i = 0; i < n; i++) {
-                const d = new Date(v.day + "T12:00:00");
-                d.setDate(d.getDate() + i * 7);
-                addScheduledClass({
-                  k: d.toISOString().slice(0, 10),
-                  className: v.title,
-                  courseId: v.course,
-                  tutor: v.tutors.join(", "),
-                  centre: "Online",
-                  delivery: "online",
-                  time: toDisplay(v.start),
-                  students: v.students.length,
-                  durationMins: v.durationMins,
-                  booklet: null,
-                  session: i + 1,
-                });
-              }
-              setRollingOver(null);
-            }}
-          />
-        );
-      })()}
+      {rollingOver && (
+        <RollOverModal
+          cls={rollingOver}
+          slots={slotsFor(rollingOver.id)}
+          roster={classPatches[rollingOver.id]?.studentNames ?? rollNames(rollingOver)}
+          terms={openTerms()}
+          currentTermId={termOf(rollingOver)?.id}
+          onClose={() => setRollingOver(null)}
+          onRoll={(r) => {
+            const slots = slotsFor(rollingOver.id);
+            if (slots.length > 0) rollBlock(rollingOver.id, r.termId, r.slotRosters);
+            else patchClass(rollingOver.id, { studentNames: r.students, students: r.students.length });
+            for (let i = 0; i < r.dates.length; i++) {
+              addScheduledClass({
+                k: r.dates[i],
+                className: rollingOver.name,
+                courseId: rollingOver.id,
+                tutor: rollingOver.tutorName,
+                centre: rollingOver.centre,
+                delivery: rollingOver.delivery,
+                time: rollingOver.sched.replace(r.day, "").trim(),
+                students: r.students.length,
+                durationMins: slots.length > 0 ? slots.length * 60 : undefined,
+                booklet: rollingOver.delivery === "online" ? null : "not_requested",
+                session: i + 1,
+                termId: r.termId,
+              });
+            }
+            setRollingOver(null);
+          }}
+        />
+      )}
 
       {roll && (
         <Roll

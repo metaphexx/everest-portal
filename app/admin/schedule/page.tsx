@@ -15,6 +15,7 @@ import { ClassViewModal } from "@/components/admin/ClassViewModal";
 import { AdminSession, allSessions, applySessionPatches, centreStyle, needsRequest } from "@/lib/admin-schedule";
 import { BOOKLET_META } from "@/lib/tutor-data";
 import { addBlock } from "@/lib/block";
+import { TERMS } from "@/lib/admin-masters";
 
 const IC = {
   plus: "M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z",
@@ -156,7 +157,7 @@ export default function AdminSchedule() {
             if (v.slots?.length) {
               addBlock(
                 v.course,
-                { name: v.title, day: WEEKDAYS[(new Date(v.day + "T12:00:00").getDay() + 6) % 7], start: toDisplay(v.start) },
+                { name: v.title, day: WEEKDAYS[(new Date(v.day + "T12:00:00").getDay() + 6) % 7], start: toDisplay(v.start), termId: TERMS.find((t) => t.state === "ongoing")?.id ?? "" },
                 v.slots.map((s) => ({ ...s, start: toDisplay(s.start), end: toDisplay(s.end), students: v.students }))
               );
             }

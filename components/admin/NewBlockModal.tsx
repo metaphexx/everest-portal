@@ -59,6 +59,7 @@ const fieldStyle = { width: "100%", height: 44, boxSizing: "border-box" as const
 export interface NewBlockResult {
   courseId: string;
   name: string;
+  termId: string;
   day: string;
   start: string;
   weeks: number;
@@ -135,6 +136,7 @@ export function NewBlockModal({ onClose, onCreate }: { onClose: () => void; onCr
     onCreate({
       courseId: "blk" + Date.now().toString(36),
       name,
+      termId: term.id,
       day,
       start,
       weeks: term.weeks,

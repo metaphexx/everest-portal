@@ -99,6 +99,8 @@ export interface AddedBlock {
   name: string;
   day: string;
   start: string;
+  /** The term this run belongs to. A block stops at the end of it rather than repeating forever. */
+  termId: string;
   sessions: BlockSession[];
 }
 
@@ -144,9 +146,39 @@ const SLOT_COLOURS = [
  * over between. Without this a new block was a class with a block-shaped form
  * behind it and nothing on the other side.
  */
+/**
+ * Starts a block's next run: the same block, carried into another term with
+ * the roster the office has just confirmed. Rolling over does NOT clone the
+ * class - a block that ran last term and runs again this term is one class
+ * with a new run, not two classes with the same name.
+ */
+export function rollBlock(courseId: string, termId: string, rosters: string[][]) {
+  const added = readAddedBlocks();
+  const block = added[courseId];
+  if (!block) return;
+  const sessions = block.sessions.map((s, i) => ({
+    ...s,
+    students: (rosters[i] ?? []).map((name) => ({ name, init: initialsOf(name) })),
+  }));
+  try {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(ADDED_KEY, JSON.stringify({ ...added, [courseId]: { ...block, termId, sessions } }));
+      // A roll-over rewrites the rosters wholesale, so the per-slot enrolment
+      // ticks from the term just gone must not survive and re-add last term's
+      // students on the next read.
+      const patches = readEnrolPatches();
+      for (const s of sessions) delete patches[s.id];
+      writeEnrolPatches(patches);
+      window.dispatchEvent(new Event("evr-sync"));
+    }
+  } catch {
+    /* a full quota should not stop the term starting */
+  }
+}
+
 export function addBlock(
   courseId: string,
-  block: { name: string; day: string; start: string },
+  block: { name: string; day: string; start: string; termId: string },
   slots: { subject: string; start: string; end: string; tutor: string; students: string[] }[]
 ) {
   const sessions: BlockSession[] = slots.map((s, i) => ({
