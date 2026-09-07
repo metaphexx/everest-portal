@@ -4,7 +4,7 @@
 // WorksheetPicker): a centred glass dialog over a blurred scrim.
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useTutor } from "@/lib/tutor-store";
+import { useTutorOrNull } from "@/lib/tutor-store";
 import {
   AssignTarget,
   DRIVE_FILES,
@@ -37,6 +37,16 @@ const CHEV = "M7 10l5 5 5-5H7Z";
 // aren't things a tutor hands out this way.
 const ASSIGN_KINDS: MaterialKind[] = ["booklet", "worksheet", "study_notes"];
 
+/** What one confirmed assignment looks like, whoever is making it. */
+export interface BookletAssignInput {
+  fileIds: string[];
+  courseId: TutorCourseId;
+  target: AssignTarget;
+  kind: MaterialKind;
+  sessionISO?: string;
+  due?: string;
+}
+
 interface BookletPickerProps {
   open: boolean;
   onClose: () => void;
@@ -48,6 +58,19 @@ interface BookletPickerProps {
       pre-selected (and the picker opens on its folder) so the tutor doesn't
       have to find it again. */
   preselectFileId?: string;
+  /**
+   * Who is assigning. The office reaches every folder and every class by
+   * definition, so it does not get the tutor's folder grant, and it is not
+   * warned that the office can see what it shares.
+   */
+  actor?: "tutor" | "office";
+  /** Which classes appear under ASSIGN TO. Defaults to the tutor's own online
+      classes; the office passes the one class it opened the roll from. */
+  courseIds?: TutorCourseId[];
+  /** Pre-selected but still changeable, unlike fixedTarget which locks it. */
+  initialTarget?: AssignTarget;
+  /** Where a confirmed assignment goes. Defaults to the tutor store. */
+  onAssign?: (input: BookletAssignInput) => void;
 }
 
 function fileSizeLabel(f: DriveFile): string {
@@ -123,8 +146,11 @@ function FileRow({ file, folderName, why, selected, onToggle, onPreview }: { fil
   );
 }
 
-export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget, defaultKind = "booklet", preselectFileId }: BookletPickerProps) {
-  const { assignMaterial } = useTutor();
+export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget, defaultKind = "booklet", preselectFileId, actor = "tutor", courseIds, initialTarget, onAssign }: BookletPickerProps) {
+  // The office mounts this outside the TutorProvider and passes its own
+  // onAssign, so the store is optional here and only here.
+  const tutorStore = useTutorOrNull();
+  const isOffice = actor === "office";
 
   const [mode, setMode] = useState<"search" | "browse">("search");
   const [query, setQuery] = useState("");
@@ -136,7 +162,7 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
   // first. Selection stays scoped to a single course - picking a chip under a
   // different class starts a fresh selection there, which keeps assignMaterial's
   // one-course contract intact.
-  const [targets, setTargets] = useState<AssignTarget[]>(fixedTarget ? [fixedTarget] : [{ kind: "class" }]);
+  const [targets, setTargets] = useState<AssignTarget[]>(fixedTarget ? [fixedTarget] : initialTarget ? [initialTarget] : [{ kind: "class" }]);
   const [kind, setKind] = useState<MaterialKind>(defaultKind);
   const [due, setDue] = useState("");
   const [preview, setPreview] = useState<DriveFile | null>(null);
@@ -149,7 +175,7 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
   // Online classes only. In-person students have no portal login yet, so a
   // digital assignment would go to nobody - those classes get printed booklets
   // through Study Materials instead.
-  const assignCourseIds = TUTOR_COURSE_ORDER.filter((cid) => TUTOR_COURSES[cid].delivery === "online");
+  const assignCourseIds = courseIds ?? TUTOR_COURSE_ORDER.filter((cid) => TUTOR_COURSES[cid].delivery === "online");
 
   /**
    * Students outside the tutor's own classes.
@@ -158,7 +184,7 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
    * booklet folder. Without that grant a tutor reaches their own roll and
    * nothing else, which is the default and the safe one.
    */
-  const anyStudent = canAssignToAnyStudent(TUTOR.name);
+  const anyStudent = !isOffice && canAssignToAnyStudent(TUTOR.name);
   const outsideStudents = useMemo(() => {
     if (!open || !anyStudent) return [];
     // Their own students are anyone on any of their rolls, in person included.
@@ -216,7 +242,7 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
     setKind(defaultKind);
     const initialCourse = courseId ?? ONLINE_COURSE_IDS[0];
     setCourse(initialCourse);
-    setTargets(fixedTarget ? [fixedTarget] : [{ kind: "class" }]);
+    setTargets(fixedTarget ? [fixedTarget] : initialTarget ? [initialTarget] : [{ kind: "class" }]);
     setOpenCourseIds(new Set([initialCourse]));
     if (preselectFileId) {
       const file = DRIVE_FILES.find((f) => f.id === preselectFileId);
@@ -276,8 +302,10 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
     if (selected.size === 0 || !effectiveCourseId || targets.length === 0) return;
     // One assignment record per target, so each student's copy tracks its own
     // status (assigned / submitted / graded) independently.
+    const send = onAssign ?? tutorStore?.assignMaterial;
+    if (!send) return;
     targets.forEach((t) =>
-      assignMaterial({
+      send({
         fileIds: Array.from(selected),
         courseId: effectiveCourseId,
         target: t,
@@ -302,16 +330,19 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
             into a ~90px column on a phone. */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div id="booklet-picker-title" style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 800, letterSpacing: -0.3 }}>Assign materials</div>
+            <div id="booklet-picker-title" style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 800, letterSpacing: -0.3 }}>{isOffice ? "Send materials" : "Assign materials"}</div>
             <div style={{ fontSize: 12.5, color: "var(--fg3)", marginTop: 4, lineHeight: 1.45 }}>
-              Search or browse the linked Drive, then assign a file or a whole folder to an online class{anyStudent ? ", one of its students, or any other student the office has given you" : " or one of its students"}. In-person classes order printed booklets from Study Materials instead.
+              {isOffice
+                ? "Search or browse every folder on the Drive, then send a file or a whole folder to this class or to one of its students."
+                : <>Search or browse the linked Drive, then assign a file or a whole folder to an online class{anyStudent ? ", one of its students, or any other student the office has given you" : " or one of its students"}. In-person classes order printed booklets from Study Materials instead.</>}
             </div>
           </div>
           <button onClick={handleClose} aria-label="Close" className="btn-ghost ev-tap" style={{ width: 32, height: 32, borderRadius: 9, fontSize: 14, lineHeight: 1, flex: "none", background: "#fff" }}>
             ✕
           </button>
         </div>
-        <OfficeVisibilityNotice compact style={{ margin: "12px 0 14px" }} />
+        {/* The office does not need warning that the office can see this. */}
+        {!isOffice && <OfficeVisibilityNotice compact style={{ margin: "12px 0 14px" }} />}
 
 
         {/* Search / browse toggle */}
@@ -603,7 +634,7 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
               className="btn-primary"
               style={{ height: 40, padding: "0 22px", borderRadius: 12, fontSize: 13, fontWeight: 700, opacity: selected.size === 0 || targets.length === 0 ? 0.5 : 1, cursor: selected.size === 0 || targets.length === 0 ? "not-allowed" : "pointer" }}
             >
-              Assign {MATERIAL_KIND_META[kind].label.toLowerCase()}{selected.size > 1 ? "s" : ""}
+              {isOffice ? "Send" : "Assign"} {MATERIAL_KIND_META[kind].label.toLowerCase()}{selected.size > 1 ? "s" : ""}
             </button>
           </div>
         </div>

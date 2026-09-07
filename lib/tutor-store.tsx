@@ -130,6 +130,17 @@ export function useTutor(): TutorContextValue {
   return ctx;
 }
 
+/**
+ * The tutor store when there is one, null when there is not.
+ *
+ * The booklet picker is shared with the office, which mounts outside the
+ * TutorProvider and supplies its own write path. Everything else should keep
+ * using useTutor() and fail loudly.
+ */
+export function useTutorOrNull(): TutorContextValue | null {
+  return useContext(TutorContext);
+}
+
 function todayKeyOf(now: number): string {
   const d = new Date(now);
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");

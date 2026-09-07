@@ -13,7 +13,7 @@ import { Modal } from "@/components/ui/Modal";
 import { ClassFormModal, WEEKDAYS, to24, toDisplay } from "@/components/admin/ClassFormModal";
 import { Icon } from "@/components/ui/Icon";
 import { AdminClass, AdminStudent, CENTRES, allClasses, allStudents, defaultCapacity } from "@/lib/admin-data";
-import { DELIVERY_META, studentIdFor } from "@/lib/tutor-data";
+import { DELIVERY_META } from "@/lib/tutor-data";
 import { patchTutorState, readTutorState } from "@/lib/live-sync";
 import { TERMS } from "@/lib/admin-masters";
 import { allSessions, centreStyle } from "@/lib/admin-schedule";
@@ -24,8 +24,9 @@ import { BlockEnrolment } from "@/components/admin/BlockEnrolment";
 import { addBlock, blockMeta, isBlock, rollBlock, slotsFor } from "@/lib/block";
 import { NewBlockModal } from "@/components/admin/NewBlockModal";
 import { CatchUpModal } from "@/components/portal/CatchUpModal";
-import { CATALOGUE, DRIVE_FILES, MaterialAssignment, TUTOR_COURSES, TutorCourseId } from "@/lib/tutor-data";
+import { DRIVE_FILES, MaterialAssignment, TUTOR_COURSES, TutorCourseId, studentIdFor } from "@/lib/tutor-data";
 import { RollOverModal } from "@/components/admin/RollOverModal";
+import { BookletPicker } from "@/components/tutor/BookletPicker";
 import { addRelief, cancelRelief, displayDate, leaversFor, pendingCatchUps, recordLeavers, reliefFor, requestCatchUp, restoreLeaver, setCatchUpStatus } from "@/lib/class-changes";
 import { ReliefModal } from "@/components/admin/ReliefModal";
 
@@ -537,60 +538,43 @@ export default function AdminClasses() {
         />
       )}
 
-      {/* Sending one student a booklet, from the roll. The catalogue is the
-          office's own list, so this is the same material a tutor would assign
-          rather than a second library. */}
+      {/* Sending materials from the roll. This is the tutor's own picker, so
+          the office searches and browses the same Drive rather than a cut-down
+          list - it just reaches every folder, and is not warned that the office
+          can see what it sends, being the office. */}
       {assigning && (
-        <Modal onClose={() => setAssigning(null)} labelledBy="assign-title" panelStyle={{ width: "min(560px, calc(100vw - 32px))", maxHeight: "min(88vh, 760px)", overflowY: "auto" }}>
-          <div className="ev-modal-pad" style={{ padding: "20px 22px" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <span style={{ flex: 1, minWidth: 0 }}>
-                <span id="assign-title" style={{ display: "block", fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 800 }}>
-                  Send a booklet to {assigning.student.name}
-                </span>
-                <span style={{ display: "block", fontSize: 12, color: "var(--fg3)", marginTop: 3 }}>{assigning.cls.name}</span>
-              </span>
-              <button onClick={() => setAssigning(null)} aria-label="Close" className="btn-ghost press" style={{ width: 34, height: 34, borderRadius: 10, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, color: "var(--fg3)", flex: "none" }}>
-                <Icon path={IC.close} size={14} />
-              </button>
-            </div>
-            <div style={{ marginTop: 14 }}>
-              {CATALOGUE.filter((b) => !assigning.cls.year || b.year === assigning.cls.year).slice(0, 8).map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => {
-                    // Assignments live in the tutor blob, so the office writes
-                    // there - the same place and shape a tutor's assign lands,
-                    // which is how it reaches the student's My Library at all.
-                    const t = readTutorState();
-                    const existing: MaterialAssignment[] = Array.isArray(t?.assignments) ? t.assignments : [];
-                    const sent: MaterialAssignment = {
-                      id: "ma-office-" + Date.now(),
-                      fileId: DRIVE_FILES.find((f) => f.name === b.name)?.id ?? b.id,
-                      fileName: b.name,
-                      courseId: assigning.cls.id as TutorCourseId,
-                      target: { kind: "student", studentId: studentIdFor(assigning.student.name), studentName: assigning.student.name },
-                      kind: "booklet",
-                      assignedAt: new Date().toISOString(),
-                      status: "assigned",
-                      by: "office",
-                    };
-                    patchTutorState({ assignments: [...existing, sent] });
-                    showToast(b.name + " sent to " + assigning.student.name);
-                    setAssigning(null);
-                  }}
-                  className="list-hover press"
-                  style={{ display: "flex", width: "100%", textAlign: "left", alignItems: "center", gap: 11, padding: "11px 10px", borderRadius: 12, border: "none", background: "none", cursor: "pointer", fontFamily: "inherit", borderTop: "1px solid rgba(0,32,63,.06)" }}
-                >
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: "block", fontSize: 12.5, fontWeight: 700 }}>{b.name}</span>
-                    <span style={{ display: "block", fontSize: 11, color: "var(--fg4)", marginTop: 2 }}>{b.year} {b.subject} · {b.pages} pages</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </Modal>
+        <BookletPicker
+          open
+          actor="office"
+          onClose={() => setAssigning(null)}
+          courseId={assigning.cls.id as TutorCourseId}
+          courseIds={[assigning.cls.id as TutorCourseId]}
+          initialTarget={{ kind: "student", studentId: studentIdFor(assigning.student.name), studentName: assigning.student.name }}
+          onAssign={(input) => {
+            // Assignments live in the tutor blob, so the office writes there -
+            // the same place and shape a tutor's assign lands, which is how it
+            // reaches the student's course page at all.
+            const t = readTutorState();
+            const existing: MaterialAssignment[] = Array.isArray(t?.assignments) ? t.assignments : [];
+            const stamp = Date.now();
+            const sent: MaterialAssignment[] = input.fileIds.map((fileId, i) => ({
+              id: "ma-office-" + (stamp + i),
+              fileId,
+              fileName: DRIVE_FILES.find((f) => f.id === fileId)?.name ?? fileId,
+              courseId: input.courseId,
+              target: input.target,
+              kind: input.kind,
+              assignedAt: new Date().toISOString(),
+              ...(input.due ? { due: input.due } : {}),
+              status: "assigned" as const,
+              by: "office" as const,
+            }));
+            patchTutorState({ assignments: [...existing, ...sent] });
+            const who = input.target.kind === "class" ? assigning.cls.name : input.target.studentName;
+            showToast(sent.length === 1 ? sent[0].fileName + " sent to " + who : sent.length + " files sent to " + who);
+            setAssigning(null);
+          }}
+        />
       )}
 
       {/* Booking a catch-up FOR a student, rather than waiting for them to ask. */}
