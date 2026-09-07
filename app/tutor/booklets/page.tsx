@@ -327,7 +327,7 @@ export default function BookletsPage() {
                   <span className="ev-wrap-main" style={{ flex: 1, minWidth: 0 }}>
                     <span className="ev-title-2" style={{ display: "block", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.fileName}</span>
                     <span className="ev-title-2" style={{ display: "block", fontSize: 11.5, color: "var(--fg4)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {cd.name} · {a.target.kind === "class" ? "Whole class" : a.target.studentName} · assigned {new Date(a.assignedAt).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
+                      {cd.name} · {a.target.kind === "class" ? "Whole class" : a.target.studentName} · {a.by === "office" ? "sent by the office" : "assigned"} {new Date(a.assignedAt).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
                     </span>
                   </span>
                   <span style={{ fontSize: 10.5, fontWeight: 700, color: km.color, background: km.bg, padding: "4px 10px", borderRadius: 980, flex: "none" }}>{km.label}</span>

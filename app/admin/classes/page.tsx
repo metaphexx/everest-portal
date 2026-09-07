@@ -13,7 +13,8 @@ import { Modal } from "@/components/ui/Modal";
 import { ClassFormModal, WEEKDAYS, to24, toDisplay } from "@/components/admin/ClassFormModal";
 import { Icon } from "@/components/ui/Icon";
 import { AdminClass, AdminStudent, CENTRES, allClasses, allStudents, defaultCapacity } from "@/lib/admin-data";
-import { DELIVERY_META } from "@/lib/tutor-data";
+import { DELIVERY_META, studentIdFor } from "@/lib/tutor-data";
+import { patchTutorState, readTutorState } from "@/lib/live-sync";
 import { TERMS } from "@/lib/admin-masters";
 import { allSessions, centreStyle } from "@/lib/admin-schedule";
 import { DayList, MonthCalendar } from "@/components/admin/MonthCalendar";
@@ -23,7 +24,7 @@ import { BlockEnrolment } from "@/components/admin/BlockEnrolment";
 import { addBlock, blockMeta, isBlock, rollBlock, slotsFor } from "@/lib/block";
 import { NewBlockModal } from "@/components/admin/NewBlockModal";
 import { CatchUpModal } from "@/components/portal/CatchUpModal";
-import { CATALOGUE } from "@/lib/tutor-data";
+import { CATALOGUE, DRIVE_FILES, MaterialAssignment, TUTOR_COURSES, TutorCourseId } from "@/lib/tutor-data";
 import { RollOverModal } from "@/components/admin/RollOverModal";
 import { addRelief, cancelRelief, displayDate, leaversFor, pendingCatchUps, recordLeavers, reliefFor, requestCatchUp, restoreLeaver, setCatchUpStatus } from "@/lib/class-changes";
 import { ReliefModal } from "@/components/admin/ReliefModal";
@@ -43,6 +44,10 @@ export function rollNames(cls: AdminClass): string[] {
 }
 
 function Roll({ cls, names, onClose, onEdit, onOpenStudent, pctFor, canEdit, onAssign, onCatchUp, onRelief }: { cls: AdminClass; names?: string[]; onClose: () => void; onEdit: () => void; onOpenStudent: (s: AdminStudent) => void; pctFor: (name: string) => number; canEdit: boolean; onAssign: (s: AdminStudent) => void; onCatchUp: (s: AdminStudent) => void; onRelief: () => void }) {
+  // A digital assignment only lands somewhere for an online class backed by a
+  // real course. In-person students have no login, so the office orders them a
+  // printed booklet through the request pipeline instead.
+  const canAssign = cls.delivery === "online" && cls.id in TUTOR_COURSES;
   // Once the office has picked the students, THAT is the roll - not whichever
   // records happen to name this class.
   const roll = useMemo(() => {
@@ -107,6 +112,7 @@ function Roll({ cls, names, onClose, onEdit, onOpenStudent, pctFor, canEdit, onA
                 on that student's row rather than on the class. */}
             {canEdit && (
               <span style={{ display: "flex", gap: 6, flex: "none" }}>
+                {canAssign && (
                 <button
                   onClick={() => onAssign(s)}
                   title={"Send a booklet to " + s.name}
@@ -115,6 +121,7 @@ function Roll({ cls, names, onClose, onEdit, onOpenStudent, pctFor, canEdit, onA
                 >
                   Send booklet
                 </button>
+                )}
                 <button
                   onClick={() => onCatchUp(s)}
                   title={"Book " + s.name + " into another session"}
@@ -552,6 +559,23 @@ export default function AdminClasses() {
                 <button
                   key={b.id}
                   onClick={() => {
+                    // Assignments live in the tutor blob, so the office writes
+                    // there - the same place and shape a tutor's assign lands,
+                    // which is how it reaches the student's My Library at all.
+                    const t = readTutorState();
+                    const existing: MaterialAssignment[] = Array.isArray(t?.assignments) ? t.assignments : [];
+                    const sent: MaterialAssignment = {
+                      id: "ma-office-" + Date.now(),
+                      fileId: DRIVE_FILES.find((f) => f.name === b.name)?.id ?? b.id,
+                      fileName: b.name,
+                      courseId: assigning.cls.id as TutorCourseId,
+                      target: { kind: "student", studentId: studentIdFor(assigning.student.name), studentName: assigning.student.name },
+                      kind: "booklet",
+                      assignedAt: new Date().toISOString(),
+                      status: "assigned",
+                      by: "office",
+                    };
+                    patchTutorState({ assignments: [...existing, sent] });
                     showToast(b.name + " sent to " + assigning.student.name);
                     setAssigning(null);
                   }}

@@ -174,11 +174,13 @@ export default function CoursePage() {
             ))}
           </div>
 
-          {/* Assigned by your tutor: booklets to read + worksheets to submit back */}
+          {/* Assigned work: booklets to read + worksheets to submit back. The
+              office can send a booklet too, so the heading does not promise a
+              tutor sent everything under it. */}
           {tutorCourseId && (
             <div className="glass-card" style={{ padding: "20px 22px" }}>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
-                <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Assigned by your tutor</h2>
+                <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800 }}>Assigned to you</h2>
                 <Link href={"/classroom/" + tutorCourseId} className="ev-tap-link" style={{ fontSize: 12.5, color: "var(--brand-600)", textDecoration: "none", fontWeight: 600 }}>Open classroom</Link>
               </div>
               {tutorAssignments.length === 0 && (

@@ -1099,6 +1099,17 @@ export function searchDrive(q: string): { file: DriveFile; folder: DriveFolder; 
 
 export type AssignTarget = { kind: "class" } | { kind: "student"; studentId: string; studentName: string };
 
+/**
+ * The id an assignment targets a student by.
+ *
+ * The student portal matches on this id, not on the display name, so a target
+ * built as `studentId: "Maya Kapoor"` reaches nobody. Every caller that has a
+ * name and needs a target goes through here.
+ */
+export function studentIdFor(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, "-");
+}
+
 export type MaterialKind = "booklet" | "worksheet" | "study_notes" | "video" | "recording" | "reference_notes";
 
 export const MATERIAL_KIND_ORDER: MaterialKind[] = ["booklet", "worksheet", "study_notes", "video", "recording", "reference_notes"];
@@ -1123,6 +1134,8 @@ export interface MaterialAssignment {
   sessionISO?: string;
   due?: string;
   status: "assigned" | "submitted" | "graded";
+  /** Who sent it. Absent means the tutor, which is every seeded assignment. */
+  by?: "office";
 }
 
 export const SEED_ASSIGNMENTS: MaterialAssignment[] = [

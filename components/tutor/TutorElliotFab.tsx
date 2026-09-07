@@ -14,7 +14,7 @@ import { useTutor } from "@/lib/tutor-store";
 import { Icon } from "@/components/ui/Icon";
 import { ElliotMark } from "@/components/ui/ElliotMark";
 import { useDismissable } from "@/lib/use-dismissable";
-import { seedSharedOutlines, SharedOutline } from "@/lib/tutor-data";
+import { seedSharedOutlines, SharedOutline, studentIdFor } from "@/lib/tutor-data";
 import { SUGGESTIONS_PER_BATCH, TutorSuggestion, tutorSuggestions } from "@/lib/tutor-elliot";
 
 const IC = {
@@ -56,7 +56,7 @@ export function TutorElliotFab() {
     assignMaterial({
       fileIds: [s.file.id],
       courseId: s.courseId,
-      target: { kind: "student", studentId: s.student, studentName: s.student },
+      target: { kind: "student", studentId: studentIdFor(s.student), studentName: s.student },
       kind: s.materialKind ?? "booklet",
     });
     setDoneIds((d) => new Set(d).add(s.id));

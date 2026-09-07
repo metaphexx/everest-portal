@@ -17,6 +17,7 @@ import {
   TUTOR_COURSE_ORDER,
   TutorCourseId,
   searchDrive,
+  studentIdFor,
 } from "@/lib/tutor-data";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
@@ -485,7 +486,7 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
                         {cData.students.map((st) => {
                           const on = courseSelected && targets.some((t) => t.kind === "student" && t.studentId === st.name);
                           return (
-                            <button key={st.name} onClick={() => selectTarget(cid, { kind: "student", studentId: st.name, studentName: st.name })} aria-pressed={on} title={on ? "Tap to unselect " + st.name : "Assign to " + st.name} style={chipStyle(on)}>
+                            <button key={st.name} onClick={() => selectTarget(cid, { kind: "student", studentId: studentIdFor(st.name), studentName: st.name })} aria-pressed={on} title={on ? "Tap to unselect " + st.name : "Assign to " + st.name} style={chipStyle(on)}>
                               {st.name}
                             </button>
                           );
@@ -510,7 +511,7 @@ export function BookletPicker({ open, onClose, courseId, sessionISO, fixedTarget
                       return (
                         <button
                           key={st.name}
-                          onClick={() => selectTarget(effectiveCourseId as TutorCourseId, { kind: "student", studentId: st.name, studentName: st.name })}
+                          onClick={() => selectTarget(effectiveCourseId as TutorCourseId, { kind: "student", studentId: studentIdFor(st.name), studentName: st.name })}
                           aria-pressed={on}
                           title={on ? "Tap to unselect " + st.name : "Assign to " + st.name}
                           style={chipStyle(on)}
