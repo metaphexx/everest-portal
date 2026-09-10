@@ -34,8 +34,9 @@ import {
 } from "./tutor-data";
 import { readPortalState, readTutorState } from "./live-sync";
 
-// Same deterministic first-paint clock as the student store (demo today = Thu 2 Jul 2026).
-const SEED_NOW = Date.parse("2026-07-02T18:00:00");
+// Same deterministic first-paint clock as the student store (demo today = Thu 2 Jul 2026),
+// and the same 18:52 start, so both portals sit inside the pre-class glow window.
+const SEED_NOW = Date.parse("2026-07-02T18:52:00");
 
 interface TutorState {
   now: number;

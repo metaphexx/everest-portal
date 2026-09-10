@@ -180,7 +180,12 @@ function todayKeyOf(now: number): string {
 // time-derived text (countdown, greeting, today highlight) hydrates without a
 // mismatch. Immediately after mount we swap to the real clock. Pinned to the
 // demo "today" so the fixtures line up on first paint.
-const SEED_NOW = Date.parse("2026-07-02T18:00:00");
+// 18:52 rather than 18:00: the Thursday Chemistry class starts at 19:00 and the
+// hero's glow sweep runs from ten minutes out, so the demo opens inside that
+// window with eight minutes on the clock and rolls into "Live now" while it is
+// left open. Both stores share the value, so the student and the tutor see the
+// same moment.
+const SEED_NOW = Date.parse("2026-07-02T18:52:00");
 
 export function PortalProvider({ children }: { children: React.ReactNode }) {
   const initialNow = useMemo(() => SEED_NOW, []);
